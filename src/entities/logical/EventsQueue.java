@@ -6,7 +6,7 @@ import java.util.List;
 public class EventsQueue {
     private static List<Event> queue = new ArrayList<>();
 
-    public void addEvent(Event event){
+    public static void addEvent(Event event){
         if(queue.size() == 0){
             queue.add(event);
             return;
@@ -21,14 +21,14 @@ public class EventsQueue {
         queue.add(event);
     }
 
-    public Event popEvent(){
+    public static Event popEvent(){
         if(queue.size() == 0){
             return null;
         }
         return queue.remove(0);
     }
 
-    public boolean hasEvent(){
+    public static boolean hasEvent(){
         return queue.size() > 0;
     }
 

@@ -1,13 +1,26 @@
 package entities.physical;
 
-import entities.logical.Event;
-import entities.logical.IEventHandler;
+import entities.logical.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Link extends IEventHandler{
-    private EndDevice endPoint1;
-    private EndDevice endPoint2;
+    private EndDevice endPointA;
+    private EndDevice endPointB;
     private float propagationDelay;
     private float bw;
+    private List<Segment> segmentsFromA;
+    private List<Segment> segmentsFromB;
+    private boolean isSendingFromA;
+    private boolean isSendingFromB;
+
+    public Link(float propagationDelay, float bw){
+        segmentsFromA = new ArrayList<>();
+        segmentsFromB = new ArrayList<>();
+        this.propagationDelay = propagationDelay;
+        this.bw = bw;
+    }
 
     public float getPropagationDelay() {
         return propagationDelay;
@@ -25,20 +38,20 @@ public class Link extends IEventHandler{
         this.bw = bw;
     }
 
-    public EndDevice getEndPoint1() {
-        return endPoint1;
+    public EndDevice getEndPointA() {
+        return endPointA;
     }
 
-    public void setEndPoint1(EndDevice endPoint1) {
-        this.endPoint1 = endPoint1;
+    public void setEndPointA(EndDevice endPointA) {
+        this.endPointA = endPointA;
     }
 
-    public EndDevice getEndPoint2() {
-        return endPoint2;
+    public EndDevice getEndPointB() {
+        return endPointB;
     }
 
-    public void setEndPoint2(EndDevice endPoint2) {
-        this.endPoint2 = endPoint2;
+    public void setEndPointB(EndDevice endPointB) {
+        this.endPointB = endPointB;
     }
 
     @Override
@@ -46,5 +59,52 @@ public class Link extends IEventHandler{
         if(!event.getRelatedEntity().equals(this)){
             throw new Exception("");
         }
+
+        if(event.getType() == EventType.sendData){
+            if(event.getCreator().equals(endPointA))
+                segmentsFromA.add((Segment) event.getOptionalData());
+            else segmentsFromB.add((Segment) event.getOptionalData());
+
+            checkForSendData(event.getTime());
+        }
+        else if(event.getType() == EventType.dataSent){
+            //Remove sent segment from queue
+            Segment sentSegment = (Segment) event.getOptionalData();
+            boolean isInA = segmentsFromA.remove(sentSegment);
+            boolean isInB = segmentsFromB.remove(sentSegment);
+
+            if(!isInA && !isInB)
+                throw new Exception("segment not found in link!");
+
+            if(isInA)
+                isSendingFromA = false;
+            else isSendingFromB = false;
+
+            //Create Event for receiver
+            Event e = new Event<>(EventType.receiveData,
+                    (isInA)? endPointB : endPointA, event.getTime(), this, sentSegment );
+            EventsQueue.addEvent(e);
+
+            //SendNextSegment
+            checkForSendData(event.getTime());
+        }
     }
+
+    private void checkForSendData(float time) {
+        if(segmentsFromA.size()>0 && !isSendingFromA){
+            float eventTime = time + propagationDelay + segmentsFromA.get(0).getSize()/bw;
+            Event<Link> event = new Event<>(EventType.dataSent, this, eventTime, this, segmentsFromA.get(0));
+            EventsQueue.addEvent(event);
+
+            isSendingFromA = true;
+        }
+        else if(segmentsFromB.size()> 0 && !isSendingFromB){
+            float eventTime = time + propagationDelay + segmentsFromB.get(0).getSize()/bw;
+            Event<Link> event = new Event<>(EventType.dataSent, this, eventTime, this, segmentsFromB.get(0));
+            EventsQueue.addEvent(event);
+
+            isSendingFromB = true;
+        }
+    }
+
 }

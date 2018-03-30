@@ -1,5 +1,8 @@
 package entities.logical;
 
 public enum EventType {
-    SendReq, ReceiveReq, forward
+    //Link Event Types:
+    sendData, dataSent,
+    //Other
+    sendReq, receiveData, forward
 }

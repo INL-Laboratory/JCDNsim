@@ -1,7 +1,5 @@
 package entities.logical;
 
-import entities.physical.EndDevice;
-
 public class Event <T extends IEventHandler> {
     private EventType type;
     private T relatedEntity;

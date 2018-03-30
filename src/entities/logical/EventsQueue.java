@@ -28,4 +28,8 @@ public class EventsQueue {
         return queue.remove(0);
     }
 
+    public boolean hasEvent(){
+        return queue.size() > 0;
+    }
+
 }

@@ -9,21 +9,30 @@ public class Segment {
     private EndDevice source;
     private EndDevice destination;
     private float size;
-    private String optionalContent;
+    private Request optionalContent;
+    private SegmentType segmentType;
 
-    public Segment(int id, EndDevice source, EndDevice destination, float size){
+    public Segment(int id, EndDevice source, EndDevice destination, float size ,SegmentType segmentType){
         this.id = id;
         this.source = source;
         this.destination = destination;
         this.size = size;
+        this.segmentType = segmentType ;
+
     }
 
-    public Segment(int id, EndDevice source, EndDevice destination, float size, String optionalContent){
+    public SegmentType getSegmentType() {
+        return segmentType;
+    }
+
+    public Segment(int id, EndDevice source, EndDevice destination, float size, SegmentType segmentType , Request optionalContent){
         this.id = id;
         this.source = source;
         this.destination = destination;
         this.size = size;
         this.optionalContent = optionalContent;
+        this.segmentType = segmentType;
+
     }
 
 
@@ -59,11 +68,15 @@ public class Segment {
         this.size = size;
     }
 
-    public String getOptionalContent() {
+    public Request getOptionalContent() {
         return optionalContent;
     }
 
-    public void setOptionalContent(String optionalContent) {
+    public void setOptionalContent(Request optionalContent) {
         this.optionalContent = optionalContent;
+    }
+
+    public void setSegmentType(SegmentType segmentType) {
+        this.segmentType = segmentType;
     }
 }

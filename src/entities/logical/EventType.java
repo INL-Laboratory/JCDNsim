@@ -4,5 +4,5 @@ public enum EventType {
     //Link Event Types:
     sendData, dataSent,
     //Other
-    sendReq, receiveData, forward
+    sendReq, receiveSegment, forward
 }

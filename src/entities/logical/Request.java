@@ -6,8 +6,8 @@ import entities.physical.Server;
 public class Request {
     private Client source;
     private Server destination;
-    private IFile neededFile;
-    private boolean isRedirect;
+    private int neededFileID;
+    private boolean isRedirect = false;
 
     public boolean isRedirect() {
         return isRedirect;
@@ -17,12 +17,18 @@ public class Request {
         isRedirect = redirect;
     }
 
-    public IFile getNeededFile() {
-        return neededFile;
+    public int getNeededFileID() {
+        return neededFileID;
     }
 
-    public void setNeededFile(IFile neededFile) {
-        this.neededFile = neededFile;
+    public Request(Client source, Server destination, int neededFileID) {
+        this.source = source;
+        this.destination = destination;
+        this.neededFileID = neededFileID;
+    }
+
+    public void setNeededFileID(int neededFileID) {
+        this.neededFileID = neededFileID;
     }
 
     public Client getSource() {

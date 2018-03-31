@@ -81,7 +81,7 @@ public class Link extends IEventHandler{
             else isSendingFromB = false;
 
             //Create Event for receiver
-            Event e = new Event<>(EventType.receiveData,
+            Event e = new Event<>(EventType.receiveSegment,
                     (isInA)? endPointB : endPointA, event.getTime(), this, sentSegment );
             EventsQueue.addEvent(e);
 
@@ -105,6 +105,10 @@ public class Link extends IEventHandler{
 
             isSendingFromB = true;
         }
+    }
+
+    public EndDevice getOtherEndPoint(EndDevice endDevice){
+        return endDevice.equals(endPointA)?endPointB:endPointB;
     }
 
 }

@@ -1,12 +1,8 @@
 package entities.physical;
 
-import entities.logical.Event;
-import entities.logical.EventType;
-import entities.logical.EventsQueue;
-import entities.logical.Segment;
+import entities.logical.*;
 
 public class Client extends EndDevice {
-    public static final float requestSize = (float) 0.05;
     private int generatedId;
     private Link link;
 
@@ -25,19 +21,29 @@ public class Client extends EndDevice {
     @Override
     public void handleEvent(Event event) throws Exception {
         if(event.getType() == EventType.sendReq){
-            //TODO: Add needed file to optionalContent of segment
-            Segment segment = new Segment(generateId(), this, null, requestSize);
-            EventsQueue.addEvent(
-                    new Event<>(EventType.sendData, link, event.getTime(),this, segment)
-            );
+            sendFileRequest(event);
         }
-        if(event.getType() == EventType.receiveData){
+        if(event.getType() == EventType.receiveSegment){
             //TODO: ADD to log. we need a map of unanswered requests id and created time of request
         }
+    }
+
+    private void sendFileRequest(Event event) {
+        //TODO: Add needed file to optionalContent of segment
+        Server dstServer = (Server)link.getOtherEndPoint(this);
+        Segment segment = new Segment(
+                generateId(), this, dstServer , DefaultValues.requestSize,
+                SegmentType.Request, new Request(this,dstServer, 0 ) //todo: this id should be generated
+        );
+        EventsQueue.addEvent(
+                new Event<>(EventType.sendData, link, event.getTime(),this, segment)
+        );
     }
 
     private int generateId(){
         generatedId++;
         return generatedId;
     }
+
+
 }

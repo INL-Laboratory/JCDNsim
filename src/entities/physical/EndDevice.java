@@ -1,6 +1,7 @@
 package entities.physical;
 
 import entities.logical.IEventHandler;
+import entities.logical.Segment;
 
 public abstract class EndDevice extends IEventHandler{
     /**
@@ -15,4 +16,5 @@ public abstract class EndDevice extends IEventHandler{
     public void setNumber(int number) {
         this.number = number;
     }
+
 }

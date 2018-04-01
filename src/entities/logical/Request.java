@@ -7,6 +7,7 @@ public class Request {
     private Client source;
     private Server destination;
     private int neededFileID;
+    private final int id;     //This must be the same id in segment
     private boolean isRedirect = false;
 
     public boolean isRedirect() {
@@ -21,10 +22,11 @@ public class Request {
         return neededFileID;
     }
 
-    public Request(Client source, Server destination, int neededFileID) {
+    public Request(Client source, Server destination, int neededFileID , int id) {
         this.source = source;
         this.destination = destination;
         this.neededFileID = neededFileID;
+        this.id = id;
     }
 
     public void setNeededFileID(int neededFileID) {
@@ -45,5 +47,9 @@ public class Request {
 
     public void setDestination(Server destination) {
         this.destination = destination;
+    }
+
+    public int getId() {
+        return id;
     }
 }

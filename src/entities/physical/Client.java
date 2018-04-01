@@ -31,9 +31,10 @@ public class Client extends EndDevice {
     private void sendFileRequest(Event event) {
         //TODO: Add needed file to optionalContent of segment
         Server dstServer = (Server)link.getOtherEndPoint(this);
+        generateId();
         Segment segment = new Segment(
-                generateId(), this, dstServer , DefaultValues.requestSize,
-                SegmentType.Request, new Request(this,dstServer, 0 ) //todo: this id should be generated
+                generatedId, this, dstServer , DefaultValues.REQUEST_SIZE,
+                SegmentType.Request, new Request(this,dstServer, 0 , generatedId) //todo: this id should be generated
         );
         EventsQueue.addEvent(
                 new Event<>(EventType.sendData, link, event.getTime(),this, segment)

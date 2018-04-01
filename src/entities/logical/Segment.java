@@ -5,7 +5,7 @@ import entities.physical.EndDevice;
 public class Segment {
     //Each client generate id for each request, and server put this id in response segment
     //So client can map request and response together
-    private int id;
+    private final int id;
     private EndDevice source;
     private EndDevice destination;
     private float size;
@@ -40,25 +40,22 @@ public class Segment {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public EndDevice getSource() {
         return source;
     }
 
-    public void setSource(EndDevice source) {
-        this.source = source;
-    }
+//    public void setSource(EndDevice source) {
+//        this.source = source;
+//    }
 
     public EndDevice getDestination() {
         return destination;
     }
 
-    public void setDestination(EndDevice destination) {
-        this.destination = destination;
-    }
+//    public void setDestination(EndDevice destination) {
+//        this.destination = destination;
+//    }
 
     public float getSize() {
         return size;

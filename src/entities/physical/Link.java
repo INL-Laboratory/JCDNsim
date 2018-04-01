@@ -14,6 +14,15 @@ public class Link extends IEventHandler{
     private List<Segment> segmentsFromB;
     private boolean isSendingFromA;
     private boolean isSendingFromB;
+    private int weight = 1; //number of intervening ASes between endpointA and B+1
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
 
     public Link(float propagationDelay, float bw){
         segmentsFromA = new ArrayList<>();

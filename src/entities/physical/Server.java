@@ -6,12 +6,14 @@ import java.util.*;
 
 public class Server extends EndDevice{
     private Map<Server,Link> serverslinks = new HashMap<>();
-    private Link clientLink;
+//    private Link clientLink;
     private EndDevice client;
     private List<IFile> files;
     private int cacheSize = DefaultValues.CACHE_SIZE;
-    private Map<EndDevice, Link> routingTable;
-    Queue<Request> queue = new ArrayDeque<>();
+    private Map<EndDevice, Link> routingTable = new HashMap<>();
+    private Map<EndDevice, Integer> communicationCost = new HashMap<>();
+    private Queue<Request> queue = new ArrayDeque<>();
+    private RedirectingAlgorithm redirectingAlgorithm ;
 
     public List<IFile> getFiles() {
         return files;
@@ -29,13 +31,6 @@ public class Server extends EndDevice{
         this.serverslinks = serverslinks;
     }
 
-    public Link getClientLink() {
-        return clientLink;
-    }
-
-    public void setClientLink(Link clientLink) {
-        this.clientLink = clientLink;
-    }
 
     public boolean receiveData(Event event){
         if(!isRecievedDataValid((Link)event.getCreator()))
@@ -52,7 +47,7 @@ public class Server extends EndDevice{
         /***
          * Checks the validity of the link from the segment arrived.
          */
-        boolean linkExistence = clientLink.equals(link) || serverslinks.values().contains(link) ;
+        boolean linkExistence =  serverslinks.values().contains(link) ;
         return linkExistence;
     }
 
@@ -108,7 +103,7 @@ public class Server extends EndDevice{
          */
         IFile neededFile= findFile(request.getNeededFileID());
         if (neededFile == null){
-            forwardToSuitableServer();
+            forwardToSuitableServer(time, request);
         }
 
         EndDevice destination = request.getSource();
@@ -123,11 +118,65 @@ public class Server extends EndDevice{
         );
     }
 
-    private void forwardToSuitableServer() {
-        //TODO: find a suitable server from graph to respond to the request
+    public int getServerLoad(){
+        return queue.size();
     }
 
-    private IFile findFile(int fileID){
+    private void forwardToSuitableServer(float time, Request request) {
+        //TODO: find a suitable server from graph to respond to the request
+        int fileId = request.getNeededFileID();
+        Client client = request.getSource();
+        List<Server> serversHavingFile = IFile.serversHavingFile.get(fileId);
+        if (serversHavingFile==null || serversHavingFile.size()==0) throw new RuntimeException(" ");
+        Server selectedServer;
+        float queryDelay = 0;
+        //TODO: update queryDelay
+        switch (redirectingAlgorithm){
+            case PSS:
+                selectedServer = selectPSSserver(client, serversHavingFile);
+                break;
+            case WMC:
+                selectedServer = selectWMCserver(client, serversHavingFile);
+                break;
+            case MCS:
+                selectedServer = selectMCSserver(client, serversHavingFile);
+                break;
+            default:
+                throw new RuntimeException("Redirecting Algorithm is not defined");
+        }
+        if (selectedServer==null) throw new RuntimeException();
+        Request newRequest = new Request(client,selectedServer,request.getNeededFileID(),request.getId());
+        Segment newSegment = new Segment(newRequest.getId(),this,selectedServer,DefaultValues.REQUEST_SIZE,SegmentType.Request,newRequest);
+        forwardSegment(time + queryDelay , newSegment);
+
+    }
+
+    private Server selectMCSserver(Client client, List<Server> serversHavingFile) {
+        Server selectedServer;
+        List<Server> nearestServers= NetworkGraph.networkGraph.getNearestServers(DefaultValues.MCS_DELTA,serversHavingFile,client);
+        if (nearestServers==null || nearestServers.size()==0) throw new RuntimeException();
+        selectedServer = NetworkGraph.networkGraph.getLeastLoadedServer(serversHavingFile);
+        return selectedServer;
+    }
+
+    private Server selectWMCserver(Client client, List<Server> serversHavingFile) {
+        Server selectedServer;
+        selectedServer = NetworkGraph.networkGraph.getMostDesirableServer(serversHavingFile, DefaultValues.WMC_ALPHA,client);
+        return selectedServer;
+    }
+
+    private Server selectPSSserver(Client client, List<Server> serversHavingFile) {
+        Server selectedServer;
+        float randomFloat = DefaultValues.random.nextInt(1000)/1000f;
+        if (randomFloat<DefaultValues.PSS_PROBABILITY){
+            selectedServer = NetworkGraph.networkGraph.getNearestServer(serversHavingFile,client);
+        }else{
+            selectedServer = NetworkGraph.networkGraph.getLeastLoadedServer(serversHavingFile);
+        }
+        return selectedServer;
+    }
+
+    public IFile findFile(int fileID){
         /***
         * searches for a file in cached files with corresponding fileID */
         for (IFile f:files) {
@@ -163,7 +212,7 @@ public class Server extends EndDevice{
         return routingTable;
     }
 
-    public void setRoutingTable(Map<EndDevice, Link> routingTable) {
-        this.routingTable = routingTable;
+    public Map<EndDevice, Integer> getCommunicationCost() {
+        return communicationCost;
     }
 }

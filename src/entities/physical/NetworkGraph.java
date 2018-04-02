@@ -1,10 +1,7 @@
 package entities.physical;
 
 import edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath;
-import edu.uci.ics.jung.graph.UndirectedGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
-import org.apache.commons.collections15.Transformer;
-import org.apache.commons.collections15.comparators.ComparatorChain;
 
 import java.util.*;
 
@@ -44,7 +41,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
                     communicationCost += l.getWeight();
                 }
                 src.getRoutingTable().put(dest,link);
-                src.getCommunicationCost().put(dest,communicationCost);
+                src.getCommunicationCostTable().put(dest,communicationCost);
                 //TODO: We should optimize this part if it was slow by exploiting the path list. Now we just use the first element of that
                 //TODO: We should test whether the first link is at index 0 or the last one
             }
@@ -59,7 +56,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         if (n<=0) return toReturnServers;
 
         Collections.sort(preFilteredServers, (Comparator<Server>) (o1, o2) -> {
-            return o1.getCommunicationCost().get(src)<o2.getCommunicationCost().get(src)?1:0;
+            return o1.getCommunicationCostTable().get(src)<o2.getCommunicationCostTable().get(src)?1:0;
             //TODO: check whether the order is right
         });
         for (int i = 0; i <n ; i++) {
@@ -147,7 +144,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
     private int calculateTotalCosts(List<Server> preFilteredServers, EndDevice src) {
         int sum = 0;
         for (Server server:preFilteredServers) {
-            sum+=  server.getCommunicationCost().get(src);
+            sum+=  server.getCommunicationCostTable().get(src);
         }
         return sum;
     }
@@ -160,7 +157,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
     }
 
     private double calculateDesirability(int totalCost, int totalLoad, Server server, float alpha, EndDevice src) {
-        int cost = server.getCommunicationCost().get(src);
+        int cost = server.getCommunicationCostTable().get(src);
         int load = server.getServerLoad();
         double desirability = alpha * cost/totalCost + (1-alpha)*load/totalLoad;
         return desirability;

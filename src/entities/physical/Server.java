@@ -5,15 +5,14 @@ import entities.logical.*;
 import java.util.*;
 
 public class Server extends EndDevice{
-    private Map<Server,Link> serverslinks = new HashMap<>();
+    private Map<Server,Link> links = new HashMap<>();
 //    private Link clientLink;
     private EndDevice client;
     private List<IFile> files;
     private int cacheSize = DefaultValues.CACHE_SIZE;
     private Map<EndDevice, Link> routingTable = new HashMap<>();
-    private Map<EndDevice, Integer> communicationCost = new HashMap<>();
+    private Map<EndDevice, Integer> communicationCostTable = new HashMap<>();
     private Queue<Request> queue = new ArrayDeque<>();
-    private RedirectingAlgorithm redirectingAlgorithm ;
 
     public List<IFile> getFiles() {
         return files;
@@ -23,47 +22,36 @@ public class Server extends EndDevice{
         this.files = files;
     }
 
-    public Map<Server, Link> getServerslinks() {
-        return serverslinks;
+    public Map<Server, Link> getLinks() {
+        return links;
     }
 
-    public void setServerslinks(Map<Server, Link> serverslinks) {
-        this.serverslinks = serverslinks;
+    public void setLinks(Map<Server, Link> links) {
+        this.links = links;
     }
 
 
-    public boolean receiveData(Event event){
-        if(!isRecievedDataValid((Link)event.getCreator()))
-            return false;
-        parseReceivedSegment(event);
-        return true;
-    }
-
-    private boolean isThisServerDestined(Segment optionalData) {
-        return optionalData.getDestination().equals(this);
-    }
-
-    private boolean isRecievedDataValid(Link link) {
+    @Override
+    protected boolean isReceivedDataValid(Link link) {
         /***
          * Checks the validity of the link from the segment arrived.
          */
-        boolean linkExistence =  serverslinks.values().contains(link) ;
+        boolean linkExistence =  links.values().contains(link) ;
         return linkExistence;
     }
-
-    private void parseReceivedSegment(Event event) {
+    @Override
+    protected void parseReceivedSegment(float time, Segment segment) {
         /***
          * takes suitable course of action according to the type of the segment
          */
-        Segment segment = (Segment) event.getOptionalData();
-        if (isThisServerDestined(segment)) {
+        if (isThisDeviceDestined(segment)) {
             switch (segment.getSegmentType()) {
 
                 case Request:
-                    Request request = ((Segment) event.getOptionalData()).getOptionalContent();
+                    Request request = (Request) segment.getOptionalContent();
                     queue.add(request);
                     if (queue.size()==1) {
-                        setTimerToPopQueue(event.getTime());
+                        setTimerToPopQueue(time);
                     }
                     break;
                 case Data:
@@ -71,7 +59,7 @@ public class Server extends EndDevice{
                     throw new RuntimeException("Segment dropped. Unexpected file received by server" + toString());
             }
         }else{
-            forwardSegment(event.getTime(), segment);
+            forwardSegment(time, segment);
         }
 
     }
@@ -108,14 +96,8 @@ public class Server extends EndDevice{
 
         EndDevice destination = request.getSource();
         Link link = routingTable.get(destination);
-        Segment fileSegment = new Segment(request.getId(), this, destination , neededFile.getSize() , SegmentType.Data);
+        Segment fileSegment = new Segment(request.getId(), this, destination , neededFile.getSize() , SegmentType.Data, neededFile);
         sendData(time, link, fileSegment);
-    }
-
-    private void sendData(float time, Link link, Segment segment) {
-        EventsQueue.addEvent(
-                new Event<>(EventType.sendData, link, time, this , segment)
-        );
     }
 
     public int getServerLoad(){
@@ -128,22 +110,9 @@ public class Server extends EndDevice{
         Client client = request.getSource();
         List<Server> serversHavingFile = IFile.serversHavingFile.get(fileId);
         if (serversHavingFile==null || serversHavingFile.size()==0) throw new RuntimeException(" ");
-        Server selectedServer;
+        Server selectedServer = RedirectingAlgorithm.selectServerToRedirect(DefaultValues.redirectingAlgorithmType,serversHavingFile,client);
         float queryDelay = 0;
         //TODO: update queryDelay
-        switch (redirectingAlgorithm){
-            case PSS:
-                selectedServer = selectPSSserver(client, serversHavingFile);
-                break;
-            case WMC:
-                selectedServer = selectWMCserver(client, serversHavingFile);
-                break;
-            case MCS:
-                selectedServer = selectMCSserver(client, serversHavingFile);
-                break;
-            default:
-                throw new RuntimeException("Redirecting Algorithm is not defined");
-        }
         if (selectedServer==null) throw new RuntimeException();
         Request newRequest = new Request(client,selectedServer,request.getNeededFileID(),request.getId());
         Segment newSegment = new Segment(newRequest.getId(),this,selectedServer,DefaultValues.REQUEST_SIZE,SegmentType.Request,newRequest);
@@ -151,30 +120,7 @@ public class Server extends EndDevice{
 
     }
 
-    private Server selectMCSserver(Client client, List<Server> serversHavingFile) {
-        Server selectedServer;
-        List<Server> nearestServers= NetworkGraph.networkGraph.getNearestServers(DefaultValues.MCS_DELTA,serversHavingFile,client);
-        if (nearestServers==null || nearestServers.size()==0) throw new RuntimeException();
-        selectedServer = NetworkGraph.networkGraph.getLeastLoadedServer(serversHavingFile);
-        return selectedServer;
-    }
 
-    private Server selectWMCserver(Client client, List<Server> serversHavingFile) {
-        Server selectedServer;
-        selectedServer = NetworkGraph.networkGraph.getMostDesirableServer(serversHavingFile, DefaultValues.WMC_ALPHA,client);
-        return selectedServer;
-    }
-
-    private Server selectPSSserver(Client client, List<Server> serversHavingFile) {
-        Server selectedServer;
-        float randomFloat = DefaultValues.random.nextInt(1000)/1000f;
-        if (randomFloat<DefaultValues.PSS_PROBABILITY){
-            selectedServer = NetworkGraph.networkGraph.getNearestServer(serversHavingFile,client);
-        }else{
-            selectedServer = NetworkGraph.networkGraph.getLeastLoadedServer(serversHavingFile);
-        }
-        return selectedServer;
-    }
 
     public IFile findFile(int fileID){
         /***
@@ -191,7 +137,7 @@ public class Server extends EndDevice{
     public void handleEvent(Event event) throws Exception {
         switch (event.getType()){
             case receiveSegment:
-                receiveData(event);
+                receiveData(event.getTime(),(Segment) event.getOptionalData() , (Link)event.getCreator());
                 break;
             case pop:
                 pop(event.getTime());
@@ -212,7 +158,7 @@ public class Server extends EndDevice{
         return routingTable;
     }
 
-    public Map<EndDevice, Integer> getCommunicationCost() {
-        return communicationCost;
+    public Map<EndDevice, Integer> getCommunicationCostTable() {
+        return communicationCostTable;
     }
 }

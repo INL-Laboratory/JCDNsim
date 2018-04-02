@@ -9,7 +9,7 @@ public class Segment {
     private EndDevice source;
     private EndDevice destination;
     private float size;
-    private Request optionalContent;
+    private Object optionalContent;
     private SegmentType segmentType;
 
     public Segment(int id, EndDevice source, EndDevice destination, float size ,SegmentType segmentType){
@@ -25,7 +25,7 @@ public class Segment {
         return segmentType;
     }
 
-    public Segment(int id, EndDevice source, EndDevice destination, float size, SegmentType segmentType , Request optionalContent){
+    public Segment(int id, EndDevice source, EndDevice destination, float size, SegmentType segmentType , Object optionalContent){
         this.id = id;
         this.source = source;
         this.destination = destination;
@@ -65,7 +65,7 @@ public class Segment {
         this.size = size;
     }
 
-    public Request getOptionalContent() {
+    public Object getOptionalContent() {
         return optionalContent;
     }
 

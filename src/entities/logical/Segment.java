@@ -76,4 +76,13 @@ public class Segment {
     public void setSegmentType(SegmentType segmentType) {
         this.segmentType = segmentType;
     }
+
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("Segment{");
+        sb.append("id=").append(id);
+        sb.append(", segmentType=").append(segmentType);
+        sb.append('}');
+        return sb.toString();
+    }
 }

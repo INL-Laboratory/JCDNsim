@@ -46,7 +46,7 @@ public class Client extends EndDevice {
         }
     }
 
-    private void sendFileRequest(float time, int fileID ) {
+    private void sendFileRequest(float time, int fileID) {
         Server dstServer = (Server)link.getOtherEndPoint(this);
         generateId();
         Segment segment = new Segment(
@@ -59,6 +59,7 @@ public class Client extends EndDevice {
         EventsQueue.addEvent(
                 new Event<>(EventType.timeOut, this, time + DefaultValues.TIME_OUT,this, segment.getId())
         );
+
     }
 
     private int generateId(){
@@ -100,4 +101,11 @@ public class Client extends EndDevice {
     }
 
 
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("Client{");
+        sb.append("id=").append(number);
+        sb.append('}');
+        return sb.toString();
+    }
 }

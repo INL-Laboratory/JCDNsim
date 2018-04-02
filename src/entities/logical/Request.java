@@ -52,4 +52,12 @@ public class Request {
     public int getId() {
         return id;
     }
+
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("Request{");
+        sb.append(", id=").append(id);
+        sb.append('}');
+        return sb.toString();
+    }
 }

@@ -6,8 +6,13 @@ public class Logger {
     private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
     private static LocalDateTime now = LocalDateTime.now();
     public static void print(String toPrint, float time){
-        System.out.println(toPrint);
+        System.out.println(time + " " + toPrint);
     }
+
+    public static void ePrint(String toPrint, float time){
+        print(toPrint,time);
+    }
+
     public static void printWithClock(String toPrint, float time){
 
         print(getRealTime()+ " " + toPrint, time);

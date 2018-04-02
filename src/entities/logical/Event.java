@@ -1,5 +1,7 @@
 package entities.logical;
 
+import entities.utilities.logger.Logger;
+
 public class Event <T extends IEventHandler> {
     private EventType type;
     private T relatedEntity;
@@ -12,13 +14,11 @@ public class Event <T extends IEventHandler> {
         this.relatedEntity = relatedEntity;
         this.time = time;
         this.creator = creator;
+        Logger.ePrint("Event created: " + this, 0f);
     }
 
     public Event(EventType eventType, T relatedEntity, float time, T creator, Object optionalData){
-        this.type = eventType;
-        this.relatedEntity = relatedEntity;
-        this.time = time;
-        this.creator = creator;
+        this(eventType,relatedEntity,time,creator);
         this.optionalData = optionalData;
     }
 
@@ -60,5 +60,17 @@ public class Event <T extends IEventHandler> {
 
     public void setOptionalData(Object optionalData) {
         this.optionalData = optionalData;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("Event{");
+        sb.append("type=").append(type);
+        sb.append(", relatedEntity=").append(relatedEntity);
+        sb.append(", time=").append(time);
+        sb.append(", creator=").append(creator);
+        sb.append(", optionalData=").append(optionalData);
+        sb.append('}');
+        return sb.toString();
     }
 }

@@ -1,5 +1,7 @@
 package entities.logical;
 
+import entities.utilities.logger.Logger;
+
 public class Brain {
 
 //    EventsQueue eventsQueue;
@@ -8,6 +10,7 @@ public class Brain {
         while (EventsQueue.hasEvent()){
             Event event = EventsQueue.popEvent();
             try {
+                Logger.ePrint("Event is Handling:" + event.toString(),event.getTime());
                 event.getRelatedEntity().handleEvent(event);
 
             }

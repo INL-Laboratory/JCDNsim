@@ -120,4 +120,12 @@ public class Link extends IEventHandler{
         return endDevice.equals(endPointA)?endPointB:endPointB;
     }
 
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("Link{");
+        sb.append("endPointA=").append(endPointA.toString());
+        sb.append(", endPointB=").append(endPointB.toString());
+        sb.append('}');
+        return sb.toString();
+    }
 }

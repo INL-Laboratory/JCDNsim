@@ -1,6 +1,7 @@
 package entities.physical;
 
 import entities.logical.*;
+import entities.utilities.logger.Logger;
 
 import java.util.*;
 
@@ -12,9 +13,7 @@ public class Server extends EndDevice{
     private Map<EndDevice, Link> routingTable = new HashMap<>();
     private Map<EndDevice, Integer> communicationCostTable = new HashMap<>();
     private Queue<Request> queue = new ArrayDeque<>();
-
-
-
+    private boolean isServerBusy;
 
 
     @Override
@@ -26,37 +25,42 @@ public class Server extends EndDevice{
         return linkExistence;
     }
     @Override
-    protected void parseReceivedSegment(float time, Segment segment) {
+    protected void parseReceivedSegment(float time, Segment segment) throws Exception {
         /***
          * takes suitable course of action according to the type of the segment
          */
+        Logger.print(segment+ " is being parsed by " + this, time);
         if (isThisDeviceDestined(segment)) {
+            Logger.print(segment+ " is destined for " + this, time);
             switch (segment.getSegmentType()) {
-
                 case Request:
                     Request request = (Request) segment.getOptionalContent();
-                    queue.add(request);
-                    if (queue.size()==1) {
-                        setTimerToPopQueue(time);
+                    if (queue.size()==0 && !this.isServerBusy)  {
+                        Logger.print(this + " wasn't busy and goes to serve " + request,time);
+                        serveRequest(time,request);
+                    }else {
+                        queue.add(request);
+                        Logger.print(this + " added to queue: " + request + " queueSize = " + queue.size(),time);
                     }
                     break;
                 case Data:
                 default:
-                    throw new RuntimeException("Segment dropped. Unexpected file received by server" + toString());
+                    throw new Exception(this + " received unexpected " +segment);
             }
         }else{
+            Logger.print(segment+ " is not destined for " + this + " and it will be forwarded", time);
             forwardSegment(time, segment );
         }
 
     }
 
-    private void setTimerToPopQueue(float time) {
+    private void setTimeToPopNextEventInQueue(float time , float delay, Request request) {
         /***
          * releases an event which at current time + service time pops the queue
          */
             if (queue.size()==0) return;
             EventsQueue.addEvent(
-                    new Event<>(EventType.pop, this, time + DefaultValues.SERVICE_TIME, this)
+                    new Event<>(EventType.requestServed, this, time+delay, this, request)
             );
 
     }
@@ -69,6 +73,7 @@ public class Server extends EndDevice{
         Client client = request.getSource();
         Request newRequest = new Request(client,selectedServer,request.getNeededFileID(),request.getId());
         Segment newSegment = new Segment(newRequest.getId(),this,selectedServer,DefaultValues.REQUEST_SIZE,SegmentType.Request,newRequest);
+        Logger.print(this+ " will forward "+ request + " at time "+ time+" to " + selectedServer,time);
         forwardSegment(time, newSegment);
     }
 
@@ -82,23 +87,33 @@ public class Server extends EndDevice{
     }
 
 
-    private void serveRequest(float time, Request request) {
+    private void serveRequest(float time, Request request) throws Exception{
         /***
          * Checks if the file is cached. If Yes sends the file, otherwise finds another server.
          */
+        isServerBusy = true;
         float queryDelay = 0f; //TODO : update this
-        IFile neededFile= findFile(request.getNeededFileID());
+        float delay = 0f;
+        Logger.print(this+ " is looking for a suitable server to serve " + request,time);
         Server selectedServer = getSuitableServer(request);
-        if (selectedServer==null) throw new RuntimeException();
+        if (selectedServer==null) throw new Exception("At "+this+" no server was selected to serve "+request);
+        Logger.print(this+ " selected "+ selectedServer + " to serve " + request,time);
         if (selectedServer.equals(this)){
+            Logger.print(this + "starts to serve the " + request, time);
             EndDevice destination = request.getSource();
             Link link = routingTable.get(destination);
+            IFile neededFile= findFile(request.getNeededFileID());
             Segment fileSegment = new Segment(request.getId(), this, destination , neededFile.getSize() , SegmentType.Data, neededFile);
-            sendData(time+ queryDelay, link, fileSegment);
+            delay = DefaultValues.SERVICE_TIME + queryDelay;
+            Logger.print(this + " puts file " + neededFile + " in " + fileSegment,time );
+            sendData(time + delay, link, fileSegment);
 
+        }else {
+
+            delay = queryDelay;
+            forwardRequest(time + delay, request, selectedServer);
+            setTimeToPopNextEventInQueue(time, delay, request);
         }
-
-        forwardRequest(time + queryDelay , request,selectedServer);
 
     }
 
@@ -106,14 +121,14 @@ public class Server extends EndDevice{
         return queue.size();
     }
 
-    private Server getSuitableServer( Request request) {
+    private Server getSuitableServer( Request request) throws Exception{
         /***
          *   finds a suitable server from graph to respond to the request
          */
         int fileId = request.getNeededFileID();
         Client client = request.getSource();
         List<Server> serversHavingFile = SimulationParameters.serversHavingFile.get(fileId);
-        if (serversHavingFile==null || serversHavingFile.size()==0) throw new RuntimeException(" ");
+        if (serversHavingFile==null || serversHavingFile.size()==0) throw new Exception(" No server has the file " + fileId + " requested in " + request   );
         Server selectedServer = RedirectingAlgorithm.selectServerToRedirect(SimulationParameters.redirectingAlgorithmType,serversHavingFile,client);
         return selectedServer;
     }
@@ -137,19 +152,23 @@ public class Server extends EndDevice{
             case receiveSegment:
                 receiveData(event.getTime(),(Segment) event.getOptionalData() , (Link)event.getCreator());
                 break;
-            case pop:
-                pop(event.getTime());
+            case requestServed:
+                requestServed(event.getTime(), (Request)event.getOptionalData());
         }
     }
 
-    private void pop(float time) {
+    private void requestServed(float time, Request servedRequest) throws Exception {
         /***
          * Commands to serve the request then after a service delay serve the next request
          */
-        if (queue.size()==0) return;
-        Request request = queue.remove(); //popping action
-        serveRequest(time, request);
-        setTimerToPopQueue(time);
+        if (queue.size()==0) {
+            isServerBusy = false;
+            Logger.print(this + " has served the request " + servedRequest + " and is not busy now", time);
+            return;
+        }
+        Request nextRequest = queue.remove(); //popping action
+        Logger.print(this + " has served the request " + servedRequest + " and goes to serve " + nextRequest  , time);
+        serveRequest(time, nextRequest);
     }
 
     public Map<EndDevice, Link> getRoutingTable() {
@@ -175,6 +194,14 @@ public class Server extends EndDevice{
 
     public void setLinks(Map<Server, Link> links) {
         this.links = links;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("Server{");
+        sb.append("id=").append(number);
+        sb.append('}');
+        return sb.toString();
     }
 
 }

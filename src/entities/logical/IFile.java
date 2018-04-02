@@ -32,4 +32,12 @@ public class IFile {
     public void setId(int id) {
         this.id = id;
     }
+
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("IFile{");
+        sb.append("id=").append(id);
+        sb.append('}');
+        return sb.toString();
+    }
 }

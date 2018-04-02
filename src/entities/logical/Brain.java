@@ -2,11 +2,11 @@ package entities.logical;
 
 public class Brain {
 
-    EventsQueue eventsQueue;
+//    EventsQueue eventsQueue;
 
-    public void handleEvents(){
-        while (eventsQueue.hasEvent()){
-            Event event = eventsQueue.popEvent();
+    public static void handleEvents(){
+        while (EventsQueue.hasEvent()){
+            Event event = EventsQueue.popEvent();
             try {
                 event.getRelatedEntity().handleEvent(event);
 
@@ -19,11 +19,9 @@ public class Brain {
         }
     }
 
-    public EventsQueue getEventsQueue() {
-        return eventsQueue;
+    public static void main(String[] args) {
+
     }
 
-    public void setEventsQueue(EventsQueue eventsQueue) {
-        this.eventsQueue = eventsQueue;
-    }
+
 }

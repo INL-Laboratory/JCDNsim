@@ -13,7 +13,6 @@ public class DefaultValues {
     public static final float WMC_ALPHA = 0.5f;
     public static final int MCS_DELTA = 3;
     public static final Random random = new Random();
-    public static final RedirectingAlgorithmType redirectingAlgorithmType = RedirectingAlgorithmType.PSS;
 
 
     public static final float TIME_OUT = 20f ;

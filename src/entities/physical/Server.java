@@ -108,9 +108,9 @@ public class Server extends EndDevice{
         //TODO: find a suitable server from graph to respond to the request
         int fileId = request.getNeededFileID();
         Client client = request.getSource();
-        List<Server> serversHavingFile = IFile.serversHavingFile.get(fileId);
+        List<Server> serversHavingFile = SimulationParameters.serversHavingFile.get(fileId);
         if (serversHavingFile==null || serversHavingFile.size()==0) throw new RuntimeException(" ");
-        Server selectedServer = RedirectingAlgorithm.selectServerToRedirect(DefaultValues.redirectingAlgorithmType,serversHavingFile,client);
+        Server selectedServer = RedirectingAlgorithm.selectServerToRedirect(SimulationParameters.redirectingAlgorithmType,serversHavingFile,client);
         float queryDelay = 0;
         //TODO: update queryDelay
         if (selectedServer==null) throw new RuntimeException();

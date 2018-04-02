@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 public class IFile {
-    public static Map<Integer, List<Server>> serversHavingFile = new HashMap<>();
-    //TODO: for all files we should fill this map using getServersHavingFile Method in NetworkGraph
 
 
     private int id;

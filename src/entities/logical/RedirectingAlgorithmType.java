@@ -1,4 +1,4 @@
-package entities.physical;
+package entities.logical;
 
 /**
  * Created by hd on 2018/4/1 AD.

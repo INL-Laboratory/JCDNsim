@@ -1,4 +1,8 @@
-package entities.physical;
+package entities.logical;
+
+import entities.physical.Client;
+import entities.physical.NetworkGraph;
+import entities.physical.Server;
 
 import java.util.List;
 

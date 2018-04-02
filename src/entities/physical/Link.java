@@ -83,7 +83,7 @@ public class Link extends IEventHandler{
             boolean isInB = segmentsFromB.remove(sentSegment);
 
             if(!isInA && !isInB)
-                throw new Exception("segment not found in link!");
+                throw new Exception(sentSegment+ " not found in " + this);
 
             if(isInA)
                 isSendingFromA = false;

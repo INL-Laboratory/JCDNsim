@@ -31,6 +31,13 @@ public class Link extends IEventHandler{
         this.bw = bw;
     }
 
+    public Link(EndDevice endPointA, EndDevice endPointB, float propagationDelay, float bw, int weight) {
+        this(propagationDelay, bw);
+        this.endPointA = endPointA;
+        this.endPointB = endPointB;
+        this.weight = weight;
+    }
+
     public float getPropagationDelay() {
         return propagationDelay;
     }

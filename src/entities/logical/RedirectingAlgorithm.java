@@ -10,10 +10,10 @@ import java.util.List;
  * Created by hd on 2018/4/2 AD.
  */
 public class RedirectingAlgorithm {
-    static float queryDelay = 0;
+//    static float queryDelay = 0;
     public static Server selectServerToRedirect(RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile, Client client){
         Server selectedServer;
-        queryDelay = 0;
+//        queryDelay = 0;
         switch (redirectingAlgorithmType){
             case PSS:
                 selectedServer = selectPSSserver(client, serversHavingFile);

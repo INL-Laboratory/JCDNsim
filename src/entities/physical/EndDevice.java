@@ -9,6 +9,10 @@ public abstract class EndDevice extends IEventHandler{
      */
     protected int number;
 
+    public EndDevice(int number) {
+        this.number = number;
+    }
+
     public int getNumber() {
         return number;
     }

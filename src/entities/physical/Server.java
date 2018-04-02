@@ -9,12 +9,19 @@ public class Server extends EndDevice{
     private Map<Server,Link> links = new HashMap<>();
 //    private Link clientLink;
     private List<IFile> files;
-    private int cacheSize = DefaultValues.CACHE_SIZE;
-    private Map<EndDevice, Link> routingTable = new HashMap<>();
-    private Map<EndDevice, Integer> communicationCostTable = new HashMap<>();
-    private Queue<Request> queue = new ArrayDeque<>();
+    private final Map<EndDevice, Link> routingTable = new HashMap<>();
+    private final  Map<EndDevice, Integer> communicationCostTable = new HashMap<>();
+    private final Queue<Request> queue = new ArrayDeque<>();
     private boolean isServerBusy;
 
+    public Server(int number, List<IFile> files) {
+        super(number);
+        this.files = files;
+    }
+
+    public Server(int number) {
+        super(number);
+    }
 
     @Override
     protected boolean isReceivedDataValid(Link link) {

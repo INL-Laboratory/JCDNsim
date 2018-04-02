@@ -9,15 +9,18 @@ import java.util.List;
 
 
 public class Client extends EndDevice {
-    private static int generatedId;         //In order to have unique IDs I changed this.
-    private Link link;
-    private HashMap<Integer, Float> sentRequestsTime = new HashMap<>();   //Maps the sent requests' id to the time they have been sent
-    private HashMap<Integer, Integer> sentRequestsFileId = new HashMap<>();   //Maps the sent requests' id to the file have been request
-    private HashMap<Integer, Float> servedRequests = new HashMap<>(); //Maps the successfully served requests' id to the time the response has been received
-    private List<Integer> unansweredRequests = new LinkedList<>();
+    private static int generatedId = 0;         //In order to have unique IDs I changed this to static.
 
-    public Client(){
-        generatedId = 0;
+
+    private Link link;
+
+    private final HashMap<Integer, Float> sentRequestsTime = new HashMap<>();   //Maps the sent requests' id to the time they have been sent
+    private final HashMap<Integer, Integer> sentRequestsFileId = new HashMap<>();   //Maps the sent requests' id to the file have been request
+    private final HashMap<Integer, Float> servedRequests = new HashMap<>(); //Maps the successfully served requests' id to the time the response has been received
+    private final List<Integer> unansweredRequests = new LinkedList<>();
+
+    public Client(int number) {
+        super(number);
     }
 
     public Link getLink() {
@@ -32,9 +35,7 @@ public class Client extends EndDevice {
     public void handleEvent(Event event) throws Exception {
         switch (event.getType()){
             case sendReq:
-
-                sendFileRequest(event.getTime(), 0);
-                //TODO: Add needed file to optionalContent of segment
+                sendFileRequest(event.getTime(), Integer.parseInt((String)event.getOptionalData()));
                 break;
             case receiveSegment:
                 receiveData(event.getTime(),(Segment) event.getOptionalData() , (Link)event.getCreator());
@@ -55,7 +56,8 @@ public class Client extends EndDevice {
         Request request = new Request(this,dstServer, fileID , generatedId);
         Segment segment = new Segment(
                 generatedId, this, dstServer , DefaultValues.REQUEST_SIZE,
-                SegmentType.Request,request //todo: this id should be generated
+                SegmentType.Request,request
+                //todo: this id should be generated
         );
         sentRequestsTime.put(generatedId,time);
         sentRequestsFileId.put(generatedId,fileID);

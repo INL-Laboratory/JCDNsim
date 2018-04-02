@@ -65,15 +65,16 @@ public class Server extends EndDevice{
 
     }
 
-    private void forwardRequest(float time, Request request, Server selectedServer) {
+    private void redirectRequest(float time, Request request, Server selectedServer) {
         /***
          * Forwards the request to the intended server  - makes new request and segment
          */
 
         Client client = request.getSource();
         Request newRequest = new Request(client,selectedServer,request.getNeededFileID(),request.getId());
+        newRequest.setRedirect(true);
         Segment newSegment = new Segment(newRequest.getId(),this,selectedServer,DefaultValues.REQUEST_SIZE,SegmentType.Request,newRequest);
-        Logger.print(this+ " will forward "+ request + " at time "+ time+" to " + selectedServer,time);
+        Logger.print(this+ " redirects "+ request +" to " + selectedServer,time);
         forwardSegment(time, newSegment);
     }
 
@@ -89,8 +90,11 @@ public class Server extends EndDevice{
 
     private void serveRequest(float time, Request request) throws Exception{
         /***
-         * Checks if the file is cached. If Yes sends the file, otherwise finds another server.
          */
+        if (request.isRedirected()){
+            Logger.print(this+ " directly serves the redirected" + request,time);
+            sendFile(time, request, 0);
+        }
         isServerBusy = true;
         float queryDelay = 0f; //TODO : update this
         float delay = 0f;
@@ -99,22 +103,27 @@ public class Server extends EndDevice{
         if (selectedServer==null) throw new Exception("At "+this+" no server was selected to serve "+request);
         Logger.print(this+ " selected "+ selectedServer + " to serve " + request,time);
         if (selectedServer.equals(this)){
-            Logger.print(this + "starts to serve the " + request, time);
-            EndDevice destination = request.getSource();
-            Link link = routingTable.get(destination);
-            IFile neededFile= findFile(request.getNeededFileID());
-            Segment fileSegment = new Segment(request.getId(), this, destination , neededFile.getSize() , SegmentType.Data, neededFile);
-            delay = DefaultValues.SERVICE_TIME + queryDelay;
-            Logger.print(this + " puts file " + neededFile + " in " + fileSegment,time );
-            sendData(time + delay, link, fileSegment);
+            sendFile(time, request, queryDelay);
 
         }else {
 
             delay = queryDelay;
-            forwardRequest(time + delay, request, selectedServer);
+            redirectRequest(time + delay, request, selectedServer);
             setTimeToPopNextEventInQueue(time, delay, request);
         }
 
+    }
+
+    private void sendFile(float time, Request request, float queryDelay) {
+        float delay;
+        Logger.print(this + "starts to serve the " + request, time);
+        EndDevice destination = request.getSource();
+        Link link = routingTable.get(destination);
+        IFile neededFile= findFile(request.getNeededFileID());
+        Segment fileSegment = new Segment(request.getId(), this, destination , neededFile.getSize() , SegmentType.Data, neededFile);
+        delay = DefaultValues.SERVICE_TIME + queryDelay;
+        Logger.print(this + " puts file " + neededFile + " in " + fileSegment,time );
+        sendData(time + delay, link, fileSegment);
     }
 
     public int getServerLoad(){

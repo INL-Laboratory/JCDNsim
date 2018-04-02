@@ -10,7 +10,7 @@ public class Request {
     private final int id;     //This must be the same id in segment
     private boolean isRedirect = false;
 
-    public boolean isRedirect() {
+    public boolean isRedirected() {
         return isRedirect;
     }
 

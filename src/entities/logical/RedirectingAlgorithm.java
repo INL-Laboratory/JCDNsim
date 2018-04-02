@@ -10,9 +10,10 @@ import java.util.List;
  * Created by hd on 2018/4/2 AD.
  */
 public class RedirectingAlgorithm {
-
-    public static Server selectServerToRedirect(RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile, Client client ){
+    static float queryDelay = 0;
+    public static Server selectServerToRedirect(RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile, Client client){
         Server selectedServer;
+        queryDelay = 0;
         switch (redirectingAlgorithmType){
             case PSS:
                 selectedServer = selectPSSserver(client, serversHavingFile);
@@ -26,6 +27,7 @@ public class RedirectingAlgorithm {
             default:
                 throw new RuntimeException("Redirecting Algorithm is not defined");
         }
+
         return selectedServer;
     }
     private static Server selectMCSserver(Client client, List<Server> serversHavingFile) {

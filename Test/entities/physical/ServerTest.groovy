@@ -172,17 +172,17 @@ class ServerTest extends GroovyTestCase {
 
     void testScenario1() {
         EventsQueue.addEvent(
-                new Event(EventType.sendReq,clients.get(0),1f,null, "4")
+                new Event(EventType.sendReq,clients.get(0),1f,null, 4)
         );
         Brain.handleEvents();
     }
 
     void testScenario2() {
         EventsQueue.addEvent(
-                new Event(EventType.sendReq,clients.get(0),1f,null, "3")
+                new Event(EventType.sendReq,clients.get(0),1f,null, 3)
         );
         EventsQueue.addEvent(
-                new Event(EventType.sendReq,clients.get(1),1.1f,null, "3")
+                new Event(EventType.sendReq,clients.get(1),1.1f,null, 3)
         );
         Brain.handleEvents();
     }
@@ -190,10 +190,10 @@ class ServerTest extends GroovyTestCase {
 
     void testScenario3() {
         EventsQueue.addEvent(
-                new Event(EventType.sendReq,clients.get(0),1f,null, "3")
+                new Event(EventType.sendReq,clients.get(0),1f,null, 3)
         );
         EventsQueue.addEvent(
-                new Event(EventType.sendReq,clients.get(1),1f,null, "3")
+                new Event(EventType.sendReq,clients.get(1),1f,null, 3)
         );
         Brain.handleEvents();
     }
@@ -201,10 +201,10 @@ class ServerTest extends GroovyTestCase {
     void testScenario4() {
         files.get(2).size = 10000 ;
         EventsQueue.addEvent(
-                new Event(EventType.sendReq,clients.get(0),1f,null, "3")
+                new Event(EventType.sendReq,clients.get(0),1f,null, 3)
         );
         EventsQueue.addEvent(
-                new Event(EventType.sendReq,clients.get(1),1f,null, "3")
+                new Event(EventType.sendReq,clients.get(1),1f,null, 3)
         );
         Brain.handleEvents();
     }

@@ -35,7 +35,7 @@ public class Client extends EndDevice {
     public void handleEvent(Event event) throws Exception {
         switch (event.getType()){
             case sendReq:
-                sendFileRequest(event.getTime(), Integer.parseInt((String)event.getOptionalData()));
+                sendFileRequest(event.getTime(), (Integer) event.getOptionalData());
                 break;
             case receiveSegment:
                 receiveData(event.getTime(),(Segment) event.getOptionalData() , (Link)event.getCreator());

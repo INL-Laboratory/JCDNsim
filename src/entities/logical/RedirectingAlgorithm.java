@@ -3,6 +3,7 @@ package entities.logical;
 import entities.physical.Client;
 import entities.physical.NetworkGraph;
 import entities.physical.Server;
+import entities.utilities.logger.Logger;
 
 import java.util.List;
 
@@ -48,8 +49,10 @@ public class RedirectingAlgorithm {
         Server selectedServer;
         float randomFloat = DefaultValues.random.nextInt(1000)/1000f;
         if (randomFloat<DefaultValues.PSS_PROBABILITY){
+            System.out.println("PSS wants to find the nearest Server.");
             selectedServer = NetworkGraph.networkGraph.getNearestServer(serversHavingFile,client);
         }else{
+            System.out.println("PSS wants to find the least loaded Server.");
             selectedServer = NetworkGraph.networkGraph.getLeastLoadedServer(serversHavingFile);
         }
         return selectedServer;

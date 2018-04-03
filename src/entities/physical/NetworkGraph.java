@@ -2,6 +2,8 @@ package entities.physical;
 
 import edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
+import entities.utilities.logger.Logger;
+import sun.rmi.runtime.Log;
 
 import java.util.*;
 
@@ -15,35 +17,42 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
     private NetworkGraph() {
     }
 
-    public void buildRoutingTables(){
+    public void buildRoutingTables() {
         /***
          * Completely builds routing tables of all servers using Dijkestra shortest path algorithm
          */
         Server src;
-        for (EndDevice end:getVertices()) {
+        for (EndDevice end : getVertices()) {
             if (!(end instanceof Server)) continue;
-            src= (Server) end;
-            DijkstraShortestPath<EndDevice,Link> algorithm =
+            src = (Server) end;
+            DijkstraShortestPath<EndDevice, Link> algorithm =
                     new DijkstraShortestPath<EndDevice, Link>(
                             this, link -> link.getWeight()
                     );
-            Server dest;
-            List< Link> path;
+//            Server dest;
+            List<Link> path;
             Link link;
-            for (EndDevice endd:getVertices()) {
-                dest = (Server)endd;
-                if (dest==src) continue;
-                if (src.getRoutingTable().get(dest)!= null) continue;
-                path = algorithm.getPath(src,dest);
+            for (EndDevice dest : getVertices()) {
+
+//                dest = (Server) endd;
+                if (dest == src) continue;
+                if (src.getRoutingTable().get(dest) != null) continue;
+                path = algorithm.getPath(src, dest);
                 link = path.get(0);
                 int communicationCost = 0;
-                for (Link l:path) {
+                for (Link l : path) {
                     communicationCost += l.getWeight();
                 }
-                src.getRoutingTable().put(dest,link);
-                src.getCommunicationCostTable().put(dest,communicationCost);
+                src.getRoutingTable().put(dest, link);
+                src.getCommunicationCostTable().put(dest, communicationCost);
                 //TODO: We should optimize this part if it was slow by exploiting the path list. Now we just use the first element of that
                 //TODO: We should test whether the first link is at index 0 or the last one
+
+            }
+        }
+        for (EndDevice end : getVertices()) {
+            if (end instanceof Server){
+                Logger.print(((Server)end).toStringRoutingTable(), 0f);
             }
         }
     }
@@ -56,10 +65,15 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         if (n<=0) return toReturnServers;
 
         Collections.sort(preFilteredServers, (Comparator<Server>) (o1, o2) -> {
-            return o1.getCommunicationCostTable().get(src)<o2.getCommunicationCostTable().get(src)?1:0;
+            int o1Cost =  o1.getCommunicationCostTable().get(src);
+            int o2Cost =  o2.getCommunicationCostTable().get(src);
+            boolean con = o1Cost<o2Cost;
+            boolean con2 = o1Cost>o2Cost;
+            return con?-1:(con2?1:0);
             //TODO: check whether the order is right
         });
         for (int i = 0; i <n ; i++) {
+            if (preFilteredServers.size()==i) return toReturnServers;
             toReturnServers.add(preFilteredServers.get(i));
         }
         return toReturnServers;
@@ -159,6 +173,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
     private double calculateDesirability(int totalCost, int totalLoad, Server server, float alpha, EndDevice src) {
         int cost = server.getCommunicationCostTable().get(src);
         int load = server.getServerLoad();
+        if (totalLoad==0) totalLoad = 1;
         double desirability = alpha * cost/totalCost + (1-alpha)*load/totalLoad;
         return desirability;
     }

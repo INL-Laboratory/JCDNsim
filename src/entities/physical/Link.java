@@ -71,8 +71,7 @@ public class Link extends IEventHandler{
     }
 
     @Override
-    public void handleEvent(Event event) throws Exception {
-        if(!event.getRelatedEntity().equals(this)){
+    public void handleEvent(Event event) throws Exception {if(!event.getRelatedEntity().equals(this)){
             throw new Exception("");
         }
 

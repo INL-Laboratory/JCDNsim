@@ -10,12 +10,15 @@ public class Brain {
         while (EventsQueue.hasEvent()){
             Event event = EventsQueue.popEvent();
             try {
-                Logger.ePrint("Event is Handling:" + event.toString(),event.getTime());
+                Logger.ePrint("Event is being handled:" + event.toString(),event.getTime());
+                System.out.println();
                 event.getRelatedEntity().handleEvent(event);
-
             }
-            catch (Exception e){
-                System.err.println("Exception Occurred : ");
+            catch (OkayException e){
+                Logger.print(e.getMessage(),e.getTime());
+//                return;                   Why was this put here? Exceptions are defined by ourselves and after catching one the next event should be handled.
+            }catch (Exception e){
+                System.err.print(" Exception Occurred and program stopped running : ");
                 e.printStackTrace();
                 return;
             }

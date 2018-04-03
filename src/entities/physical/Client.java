@@ -42,8 +42,8 @@ public class Client extends EndDevice {
                 break;
             case timeOut:
                 int requestID = (int)event.getOptionalData();
-                Logger.print(this + " 's "+ requestID + " remained unanswered ",event.getTime());
                 if (servedRequests.get(requestID)==null){
+                    Logger.print(this + " 's "+ requestID + " remained unanswered ",event.getTime());
                     unansweredRequests.add(requestID);
                 }
 
@@ -57,11 +57,10 @@ public class Client extends EndDevice {
         Segment segment = new Segment(
                 generatedId, this, dstServer , DefaultValues.REQUEST_SIZE,
                 SegmentType.Request,request
-                //todo: this id should be generated
         );
         sentRequestsTime.put(generatedId,time);
         sentRequestsFileId.put(generatedId,fileID);
-        Logger.print(this + "makes " + request+" , puts in " + segment,time);
+        Logger.print(this + "makes " + request+ " for file " +fileID+" , puts in " + segment,time);
         sendData(time,link,segment);
         EventsQueue.addEvent(
                 new Event<>(EventType.timeOut, this, time + DefaultValues.TIME_OUT,this, segment.getId())
@@ -90,10 +89,10 @@ public class Client extends EndDevice {
                     break;
                 case Request:
                 default:
-                    throw new Exception(this + " received unexpected " +segment);
+                    throw new OkayException(this + " received unexpected " +segment, time);
             }
         }else{
-            throw new Exception(this + " received " + segment + " whose destination wasn't this client.");
+            throw new OkayException(this + " received " + segment + " whose destination wasn't this client." , time);
         }
     }
 
@@ -103,8 +102,10 @@ public class Client extends EndDevice {
         int receivedFileID = receivedFile .getId();
         Float sendTime = this.sentRequestsTime.get(requestID);
         Integer requestedFileId = this.sentRequestsFileId.get(requestID);
-        if (sendTime==null || requestedFileId==null || requestedFileId != receivedFileID)   throw new Exception(this + " received unrelated "+ receivedFile+ " in " + segment);
-        if (time-sendTime>= DefaultValues.TIME_OUT)  throw new Exception(this + "says to file " + requestedFileId +" in " + segment + " : Amadi Janam Beghorbanat Vali hala chera");
+        if (sendTime==null || requestedFileId==null || requestedFileId != receivedFileID)   throw new OkayException(this + " received unrelated "+ receivedFile+ " in " + segment,time);
+        if (time-sendTime>= DefaultValues.TIME_OUT)  {
+            throw new OkayException(this + "says to file " + requestedFileId +" in " + segment + " : Amadi Janam Beghorbanat Vali hala chera", time);
+        }
         servedRequests.put(requestID,time);
         Logger.print(this + " successfully received its file "+ requestedFileId + " in "+ segment + " with delay = " + (time -sendTime) , time );
     }
@@ -113,7 +114,7 @@ public class Client extends EndDevice {
     @Override
     public String toString() {
         final StringBuffer sb = new StringBuffer("Client{");
-        sb.append("id=").append(number);
+        sb.append(number);
         sb.append('}');
         return sb.toString();
     }

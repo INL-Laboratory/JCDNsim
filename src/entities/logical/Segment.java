@@ -9,15 +9,20 @@ public class Segment {
     private EndDevice source;
     private EndDevice destination;
     private float size;
+    private int toleratedCost;
     private Object optionalContent;
     private SegmentType segmentType;
 
-    public Segment(int id, EndDevice source, EndDevice destination, float size ,SegmentType segmentType){
+    public Segment(int id, EndDevice source, EndDevice destination, float size ,SegmentType segmentType, int toleratedCost){
         this.id = id;
         this.source = source;
         this.destination = destination;
         this.size = size;
         this.segmentType = segmentType ;
+        this.toleratedCost = toleratedCost;
+        if(this.optionalContent instanceof Request){
+            ((Request) this.optionalContent).setToleratedCost(toleratedCost);
+        }
 
     }
 
@@ -25,13 +30,9 @@ public class Segment {
         return segmentType;
     }
 
-    public Segment(int id, EndDevice source, EndDevice destination, float size, SegmentType segmentType , Object optionalContent){
-        this.id = id;
-        this.source = source;
-        this.destination = destination;
-        this.size = size;
+    public Segment(int id, EndDevice source, EndDevice destination, float size, SegmentType segmentType , Object optionalContent, int toleratedCost){
+        this(id,source,destination,size,segmentType,toleratedCost);
         this.optionalContent = optionalContent;
-        this.segmentType = segmentType;
 
     }
 
@@ -69,9 +70,9 @@ public class Segment {
         return optionalContent;
     }
 
-    public void setOptionalContent(Request optionalContent) {
-        this.optionalContent = optionalContent;
-    }
+//    public void setOptionalContent(Request optionalContent) {
+//        this.optionalContent = optionalContent;
+//    }
 
     public void setSegmentType(SegmentType segmentType) {
         this.segmentType = segmentType;
@@ -84,5 +85,15 @@ public class Segment {
         sb.append(", segmentType=").append(segmentType);
         sb.append('}');
         return sb.toString();
+    }
+    public void increaseToleratedCost(int newCost){
+        toleratedCost += newCost;
+        if(this.optionalContent instanceof Request){
+            ((Request)this.optionalContent).setToleratedCost(toleratedCost);
+        }
+    }
+
+    public int getToleratedCost() {
+        return toleratedCost;
     }
 }

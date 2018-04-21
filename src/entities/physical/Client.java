@@ -16,9 +16,9 @@ public class Client extends EndDevice {
 
     private final HashMap<Integer, Float> sentRequestsTime = new HashMap<>();   //Maps the sent requests' id to the time they have been sent
     private final HashMap<Integer, Integer> sentRequestsFileId = new HashMap<>();   //Maps the sent requests' id to the file have been request
-    private final HashMap<Integer, Float> servedRequests = new HashMap<>(); //Maps the successfully served requests' id to the time the response has been received
+    private final HashMap<Integer, Float> servedRequestsTime = new HashMap<>(); //Maps the successfully served requests' id to the time the response has been received
+    private final HashMap<Integer, Integer> servedRequestsCost = new HashMap<>(); //Maps the successfully served requests' id to the time the response has been received
     private final List<Integer> unansweredRequests = new LinkedList<>();
-
     public Client(int number) {
         super(number);
     }
@@ -42,7 +42,7 @@ public class Client extends EndDevice {
                 break;
             case timeOut:
                 int requestID = (int)event.getOptionalData();
-                if (servedRequests.get(requestID)==null){
+                if (servedRequestsTime.get(requestID)==null){
                     Logger.print(this + " 's "+ requestID + " remained unanswered ",event.getTime());
                     unansweredRequests.add(requestID);
                 }
@@ -56,7 +56,7 @@ public class Client extends EndDevice {
         Request request = new Request(this,dstServer, fileID , generatedId);
         Segment segment = new Segment(
                 generatedId, this, dstServer , DefaultValues.REQUEST_SIZE,
-                SegmentType.Request,request
+                SegmentType.Request,request,0
         );
         sentRequestsTime.put(generatedId,time);
         sentRequestsFileId.put(generatedId,fileID);
@@ -106,8 +106,9 @@ public class Client extends EndDevice {
         if (time-sendTime>= DefaultValues.TIME_OUT)  {
             throw new OkayException(this + "says to file " + requestedFileId +" in " + segment + " : Amadi Janam Beghorbanat Vali hala chera", time);
         }
-        servedRequests.put(requestID,time);
-        Logger.print(this + " successfully received its file "+ requestedFileId + " in "+ segment + " with delay = " + (time -sendTime) , time );
+        servedRequestsTime.put(requestID,time);
+        servedRequestsCost.put(requestID, segment.getToleratedCost());
+        Logger.print(this + " successfully received its file "+ requestedFileId + " in "+ segment + " with delay = " + (time -sendTime) + " tolerated cost = " + segment.getToleratedCost() , time );
     }
 
 

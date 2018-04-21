@@ -9,7 +9,7 @@ public class Request {
     private int neededFileID;
     private final int id;     //This must be the same id in segment
     private boolean isRedirect = false;
-
+    private int toleratedCost =0;
     public boolean isRedirected() {
         return isRedirect;
     }
@@ -51,6 +51,14 @@ public class Request {
 
     public int getId() {
         return id;
+    }
+
+    public void setToleratedCost(int toleratedCost) {
+        this.toleratedCost = toleratedCost;
+    }
+
+    public int getToleratedCost() {
+        return toleratedCost;
     }
 
     @Override

@@ -175,6 +175,7 @@ class ServerTest extends GroovyTestCase {
                 new Event(EventType.sendReq,clients.get(0),1f,null, 4)
         );
         Brain.handleEvents();
+        println ("saeedHD");
     }
 
     void testScenario2() {

@@ -85,6 +85,7 @@ public class Link extends IEventHandler{
         else if(event.getType() == EventType.dataSent){
             //Remove sent segment from queue
             Segment sentSegment = (Segment) event.getOptionalData();
+            sentSegment.increaseToleratedCost(this.weight);
             boolean isInA = segmentsFromA.remove(sentSegment);
             boolean isInB = segmentsFromB.remove(sentSegment);
 

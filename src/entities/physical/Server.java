@@ -79,7 +79,7 @@ public class Server extends EndDevice{
         Client client = request.getSource();
         Request newRequest = new Request(client,selectedServer,request.getNeededFileID(),request.getId());
         newRequest.setRedirect(true);
-        Segment newSegment = new Segment(newRequest.getId(),this,selectedServer,DefaultValues.REQUEST_SIZE,SegmentType.Request,newRequest);
+        Segment newSegment = new Segment(newRequest.getId(),this,selectedServer,DefaultValues.REQUEST_SIZE,SegmentType.Request,newRequest,request.getToleratedCost());
         Logger.print(this+ " redirects "+ request +" to " + selectedServer,time);
         forwardSegment(time, newSegment);
     }
@@ -127,7 +127,7 @@ public class Server extends EndDevice{
         Link link = routingTable.get(destination);
         IFile neededFile= findFile(request.getNeededFileID());
         if (neededFile== null) throw new OkayException(this+ "doesn't have the requested file"+request.getNeededFileID(), time);
-        Segment fileSegment = new Segment(request.getId(), this, destination , neededFile.getSize() , SegmentType.Data, neededFile);
+        Segment fileSegment = new Segment(request.getId(), this, destination , neededFile.getSize() , SegmentType.Data, neededFile, request.getToleratedCost());
         delay = DefaultValues.SERVICE_TIME + queryDelay;
         Logger.print(this + " puts file " + neededFile + " in " + fileSegment,time + delay );
         sendData(time + delay, link, fileSegment);

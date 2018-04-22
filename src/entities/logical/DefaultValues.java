@@ -21,4 +21,5 @@ public class DefaultValues {
 
 
     public static final boolean LOGGER_ON = true ;
+    //Having it On takes over 850 MB of your disk for every 10 times making 20000 requests
 }

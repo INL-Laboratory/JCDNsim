@@ -12,7 +12,11 @@ import java.util.*;
  */
 public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
     //it's like singleton design pattern
-    public static final NetworkGraph networkGraph = new NetworkGraph();
+    public static NetworkGraph networkGraph = new NetworkGraph();
+
+    public static void renewNetworrkGraph(){
+        networkGraph = new NetworkGraph();
+    }
 
     private NetworkGraph() {
     }
@@ -131,8 +135,13 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
             if (candidateServer.getServerLoad()<minLoad){
                 toReturnServer = candidateServer;
                 minLoad = candidateServer.getServerLoad();
+
             }
         }
+                //TODO
+                if (minLoad>0){
+                    int ss = 0;
+                }
         return toReturnServer;
     }
     public Server getMostDesirableServer(List<Server> preFilteredServers , float alpha , EndDevice src){

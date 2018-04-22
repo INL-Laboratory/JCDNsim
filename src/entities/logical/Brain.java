@@ -11,8 +11,8 @@ public class Brain {
             Event event = EventsQueue.popEvent();
             try {
                 Logger.ePrint("Event is being handled:" + event.toString(),event.getTime());
-                System.out.println();
                 event.getRelatedEntity().handleEvent(event);
+
             }
             catch (OkayException e){
                 Logger.print(e.getMessage(),e.getTime());
@@ -23,6 +23,7 @@ public class Brain {
                 return;
             }
         }
+
     }
 
     public static void main(String[] args) {

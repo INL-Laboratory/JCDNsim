@@ -9,7 +9,7 @@ import java.util.List;
 
 
 public class Client extends EndDevice {
-    private static int generatedId = 0;         //In order to have unique IDs I changed this to static.
+    public static int generatedId = 0;         //In order to have unique IDs I changed this to static.
 
 
     private Link link;
@@ -25,6 +25,18 @@ public class Client extends EndDevice {
 
     public Link getLink() {
         return link;
+    }
+
+    public HashMap<Integer, Float> getSentRequestsTime() {
+        return sentRequestsTime;
+    }
+
+    public HashMap<Integer, Float> getServedRequestsTime() {
+        return servedRequestsTime;
+    }
+
+    public HashMap<Integer, Integer> getServedRequestsCost() {
+        return servedRequestsCost;
     }
 
     public void setLink(Link link) {
@@ -62,9 +74,11 @@ public class Client extends EndDevice {
         sentRequestsFileId.put(generatedId,fileID);
         Logger.print(this + "makes " + request+ " for file " +fileID+" , puts in " + segment,time);
         sendData(time,link,segment);
-        EventsQueue.addEvent(
-                new Event<>(EventType.timeOut, this, time + DefaultValues.TIME_OUT,this, segment.getId())
-        );
+        if (DefaultValues.IS_TIME_OUT_ACTIVATED) {
+            EventsQueue.addEvent(
+                    new Event<>(EventType.timeOut, this, time + DefaultValues.TIME_OUT, this, segment.getId())
+            );
+        }
 
     }
 
@@ -103,7 +117,7 @@ public class Client extends EndDevice {
         Float sendTime = this.sentRequestsTime.get(requestID);
         Integer requestedFileId = this.sentRequestsFileId.get(requestID);
         if (sendTime==null || requestedFileId==null || requestedFileId != receivedFileID)   throw new OkayException(this + " received unrelated "+ receivedFile+ " in " + segment,time);
-        if (time-sendTime>= DefaultValues.TIME_OUT)  {
+        if (DefaultValues.IS_TIME_OUT_ACTIVATED && time-sendTime>= DefaultValues.TIME_OUT)  {
             throw new OkayException(this + "says to file " + requestedFileId +" in " + segment + " : Amadi Janam Beghorbanat Vali hala chera", time);
         }
         servedRequestsTime.put(requestID,time);

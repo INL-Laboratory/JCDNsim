@@ -44,11 +44,11 @@ class ServerTest extends GroovyTestCase {
         fileList4.add(file3);
         fileList4.add(file4);
 //        fileList5.add(file5);
-
-        Server server1 = new Server(1,fileList1);
-        Server server2 = new Server(2,fileList2);
-        Server server3 = new Server(3,fileList3);
-        Server server4 = new Server(4,fileList4);
+        Map<Integer, List<Server>> serversHavingFile = new HashMap<>();
+        Server server1 = new Server(1, fileList1,serversHavingFile);
+        Server server2 = new Server(2, fileList2,serversHavingFile);
+        Server server3 = new Server(3, fileList3,serversHavingFile);
+        Server server4 = new Server(4, fileList4,serversHavingFile);
 //        Server server5 = new Server(5,fileList5);
 
 
@@ -114,9 +114,11 @@ class ServerTest extends GroovyTestCase {
         StringBuffer sb = new StringBuffer();
         List<Server> serversss ;
         sb.append(" ***** Files ***** ");
+
+
         for(IFile f: files){
             serversss = networkGraph.getServersHavingFile(f.getId());
-            SimulationParameters.serversHavingFile.put(f.getId(),serversss);
+            serversHavingFile.put(f.getId(),serversss);
             sb.append("\n").append(f).append(" :");
             for(Server s: serversss){
                 sb.append("  ").append(s);
@@ -200,7 +202,7 @@ class ServerTest extends GroovyTestCase {
     }
 
     void testScenario4() {
-        files.get(2).size = 10000 ;
+        files.get(2).size = 100000000 ;
         EventsQueue.addEvent(
                 new Event(EventType.sendReq,clients.get(0),1f,null, 3)
         );

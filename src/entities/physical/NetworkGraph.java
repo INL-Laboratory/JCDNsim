@@ -148,19 +148,23 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         /***
          * returns the least desirable server in a list of servers that might have been already filtered.
          */
+        Logger.printWithoutTime("*******Servers Having File:");
         if (preFilteredServers.size()==0) return null;
         double minDesirability = Double.MAX_VALUE;
         Server toReturnServer = null;
         int totalCosts = calculateTotalCosts(preFilteredServers, src);
         int totalLoad = calculateTotalLoad(preFilteredServers);
+        Logger.printWithoutTime(" total cost = "+ totalCosts + "  total Load = " + totalLoad);
         double serverDesirability;
         for (Server candidateServer:preFilteredServers) {
-             serverDesirability = calculateDesirability(totalCosts, totalLoad, candidateServer, alpha, src);
+            serverDesirability = calculateDesirability(totalCosts, totalLoad, candidateServer, alpha, src);
+            Logger.printWithoutTime(candidateServer.toString()+" queueSize = "+ candidateServer.getServerLoad() + " cost = " + candidateServer.getCommunicationCostTable().get(src) + "desirability = " + serverDesirability);
             if (serverDesirability<minDesirability){
                 toReturnServer = candidateServer;
                 minDesirability = serverDesirability;
             }
         }
+        Logger.printWithoutTime(" total cost = "+ totalCosts + "  total Load = " + totalLoad);
         return toReturnServer;
     }
 

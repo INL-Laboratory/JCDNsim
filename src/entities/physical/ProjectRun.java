@@ -11,10 +11,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by hd on 2018/4/21 AD.
@@ -33,78 +30,199 @@ public class ProjectRun {
 
 
     public static void main(String[] args) throws IOException {
-        final int numberOfFiles = 25;
-        final int numberOfServers = 25;
-        final int numberOfFilesPerServer = 4;
-        final int numberOfRequests = 20000;
-        final float bandwidth = 100f;
-        final float propagationDelay = 1f;
-        final int sizeOfFiles = 500;
-        final float reqRateCoef = 1;
+        final int numberOfFiles = 48;
+        final int numberOfServers = 35;
+        final int numberOfFilesPerServer = 15;
+        final int numberOfRequests =100000;
+        final float bandwidth = 10000000f;
+        final float propagationDelay = 0f;
+        final int sizeOfFiles = 50;
+        final int numberOfRuns = 50;
+        final float lambdaInOutRatio = 0.999f;
         String path = dtf.format(now);
         new File(path).mkdir();
         new File(path+"/logs").mkdir();
         new File(path+"/chart").mkdir();
         PrintWriter parametersFile = new PrintWriter(new FileWriter(path+"/parameters.txt"));
-        PrintWriter result = new PrintWriter(new FileWriter(path+"/result.txt"));
+        PrintWriter result0 = new PrintWriter(new FileWriter(path+"/resultPSS.txt"));
+        PrintWriter result1 = new PrintWriter(new FileWriter(path+"/resultWMC.txt"));
+        PrintWriter result2 = new PrintWriter(new FileWriter(path+"/resultMCS.txt"));
         parametersFile.println("No of Servers: " + numberOfServers);
+        parametersFile.println("No of Run for each point: " + numberOfRuns);
         parametersFile.println("No of Requests: " + numberOfRequests);
         parametersFile.println("No of Files: " + numberOfFiles);
         parametersFile.println("Size of Files: " + sizeOfFiles);
         parametersFile.println("No of Files per Server: " + numberOfFilesPerServer);
         parametersFile.println("Request Size(MB) : " + DefaultValues.REQUEST_SIZE);
         parametersFile.println("Service Time " + DefaultValues.SERVICE_TIME);
-        parametersFile.println("Request Rate: float[0,1]* " + reqRateCoef);
+        parametersFile.println("Request generation average interval: float[0,1]*2* " + DefaultValues.SERVICE_TIME/numberOfServers/lambdaInOutRatio);
+        parametersFile.println("lambdaInPerOutRatio: " + lambdaInOutRatio);
         parametersFile.println("Propagation Delay:" + propagationDelay);
         parametersFile.println("BandWidth:" + bandwidth);
         parametersFile.println("Time out:  " + (DefaultValues.IS_TIME_OUT_ACTIVATED?"Enabled":"Disabled"));
         parametersFile.println((DefaultValues.IS_TIME_OUT_ACTIVATED?"Time out time: " + DefaultValues.TIME_OUT:""));
-        parametersFile.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
         parametersFile.close();
-        result.println("Redirecting Algorithm Parameter: " );
-
-        String startDate = dtf.format(now);
 
 
 
-        Float[] costStats = new Float[11];
-        Float[] delayStats = new Float[11];
+        int numberOfPoints = 11;
+
+        Float[] costStats0 = new Float[numberOfPoints];
+        Float[] delayStats0 = new Float[numberOfPoints];
+        Float[][] costStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
+        Float[][] delayStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
+        simulatePSS(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result0, costStatsForAllRuns0, delayStatsForAllRuns0, costStats0, delayStats0);
+
+        numberOfPoints = 11;
+
+        Float[] costStats1 = new Float[numberOfPoints];
+        Float[] delayStats1 = new Float[numberOfPoints];
+        Float[][] delayStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
+        Float[][] costStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
+        simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result1, costStatsForAllRuns1, delayStatsForAllRuns1, costStats1, delayStats1);
 
 
+        numberOfPoints = 17;
 
-        SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.PSS;
-        DefaultValues.PSS_PROBABILITY = 0;
-        for (int i = 0; i < 11; i++){
-            PrintWriter logger = new PrintWriter(new FileWriter(path+"/logs/run with i "+i+".txt"));
-            Logger.printWriter = logger;
-            DefaultValues.PSS_PROBABILITY = 0.1f*i;
-            result.print(DefaultValues.PSS_PROBABILITY);
-            System.out.println(DefaultValues.PSS_PROBABILITY);
-            initSimulator(numberOfFiles, numberOfServers, numberOfFilesPerServer , propagationDelay , bandwidth,sizeOfFiles );
-            generateRequests(numberOfRequests,numberOfFiles, numberOfServers , reqRateCoef);
-            Brain.handleEvents();
-            gatherStats(costStats, delayStats, i);
-            result.print("\t cost: "+costStats[i]+ "\t delay: " + delayStats[i]+"\n");
-            logger.close();
-        }
 
-        String finishDate = dtf.format(now);
-        result.println("Start on: " + startDate);
-        result.println("Finish on: " + finishDate);
+        Float[] costStats2 = new Float[numberOfPoints];
+        Float[] delayStats2 = new Float[numberOfPoints];
+        Float[][] costStatsForAllRuns2 = new Float[numberOfPoints][numberOfRuns];
+        Float[][] delayStatsForAllRuns2 = new Float[numberOfPoints][numberOfRuns];
+        simulateMCS(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result2, costStatsForAllRuns2, delayStatsForAllRuns2, costStats2, delayStats2);
 
-        result.close();
+
 
 
         //Chart stuff
-        String pathName = path+"/chart/photo.png" , seriesName = SimulationParameters.redirectingAlgorithmType.toString();
+        String pathName = path+"/chart/photo.png" ,
+                seriesName0 = SimulationParameters.redirectingAlgorithmType.toString(),
+                seriesName1 = SimulationParameters.redirectingAlgorithmType.toString(),
+                seriesName2 = SimulationParameters.redirectingAlgorithmType.toString();
         Chart.initiateChart(pathName);
-        Chart.addSeries(seriesName, costStats, delayStats);
+        Chart.addSeries(seriesName0, costStats0, delayStats0);
+        Chart.addSeries(seriesName1, costStats1, delayStats1);
+        Chart.addSeries(seriesName2, costStats2, delayStats2);
         Chart.main(args);
 
     }
 
+    private static void simulatePSS(int numberOfPoints,int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, int numberOfRuns, float lambdaInOutRatio, String path, PrintWriter result, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, Float[] costStats, Float[] delayStats) throws IOException {
+        double startTime = System.currentTimeMillis();
+        SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.PSS;
+        result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
+        DefaultValues.PSS_PROBABILITY = 0;
+        for (int i = 0; i < numberOfPoints; i++){
+            for (int j = 0; j < numberOfRuns ; j++) {
+                PrintWriter logger = null;
+                if (DefaultValues.LOGGER_ON) {
+                    new File(path+"/logs/run"+j).mkdir();
+                    logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i + ".txt"));
+                    Logger.printWriter = logger;
+                }
+                DefaultValues.PSS_PROBABILITY = 0.1f*i;
+                System.out.println(DefaultValues.PSS_PROBABILITY+"\t" + j);
+                initSimulator(numberOfFiles, numberOfServers, numberOfFilesPerServer , propagationDelay , bandwidth,sizeOfFiles );
+                generateRequests(numberOfRequests,numberOfFiles, numberOfServers , lambdaInOutRatio);
+                Brain.handleEvents();
+                gatherStats(costStatsForAllRuns, delayStatsForAllRuns, i,j);
+                if(logger!=null) {
+                    logger.close();
+                }
+            }
+            calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
+            result.print(DefaultValues.PSS_PROBABILITY);
+            result.print("\t cost: "+costStats[i]+ "\t delay: " + delayStats[i]+"\n");
+        }
 
-    private static void gatherStats(Float[] costStats, Float[] delayStats, int i) {
+        double finishTime = System.currentTimeMillis();
+        result.println("Duration(min): " + (finishTime - startTime)/60000);
+
+        result.close();
+    }
+
+
+    private static void simulateWMC(int numberOfPoints,int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, int numberOfRuns, float lambdaInOutRatio, String path, PrintWriter result, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, Float[] costStats, Float[] delayStats) throws IOException {
+        double startTime = System.currentTimeMillis();
+        SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.WMC;
+        result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
+        DefaultValues.WMC_ALPHA = 0;
+        for (int i = 0; i < numberOfPoints; i++){
+            for (int j = 0; j < numberOfRuns ; j++) {
+                PrintWriter logger = null;
+                if (DefaultValues.LOGGER_ON) {
+                    new File(path+"/logs/run"+j).mkdir();
+                    logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i + ".txt"));
+                    Logger.printWriter = logger;
+                }
+                DefaultValues.WMC_ALPHA = 0.1f*i;
+                System.out.println(DefaultValues.WMC_ALPHA+"\t" + j);
+                initSimulator(numberOfFiles, numberOfServers, numberOfFilesPerServer , propagationDelay , bandwidth,sizeOfFiles );
+                generateRequests(numberOfRequests,numberOfFiles, numberOfServers , lambdaInOutRatio);
+                Brain.handleEvents();
+                gatherStats(costStatsForAllRuns, delayStatsForAllRuns, i,j);
+                if(logger!=null) {
+                    logger.close();
+                }
+            }
+            calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
+            result.print(DefaultValues.WMC_ALPHA);
+            result.print("\t cost: "+costStats[i]+ "\t delay: " + delayStats[i]+"\n");
+        }
+
+        double finishTime = System.currentTimeMillis();
+        result.println("Duration(min): " + (finishTime - startTime)/60000);
+
+        result.close();
+    }
+
+    private static void simulateMCS(int numberOfPoints,int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, int numberOfRuns, float lambdaInOutRatio, String path, PrintWriter result, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, Float[] costStats, Float[] delayStats) throws IOException {
+        double startTime = System.currentTimeMillis();
+        SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.MCS;
+        result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
+        for (int i = 0; i < numberOfPoints; i++){
+            for (int j = 0; j < numberOfRuns ; j++) {
+                PrintWriter logger = null;
+                if (DefaultValues.LOGGER_ON) {
+                    new File(path+"/logs/run"+j).mkdir();
+                    logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i+1 + ".txt"));
+                    Logger.printWriter = logger;
+                }
+                DefaultValues.MCS_DELTA = i+1;
+                System.out.println(DefaultValues.MCS_DELTA+"\t" + j);
+                initSimulator(numberOfFiles, numberOfServers, numberOfFilesPerServer , propagationDelay , bandwidth,sizeOfFiles );
+                generateRequests(numberOfRequests,numberOfFiles, numberOfServers , lambdaInOutRatio);
+                Brain.handleEvents();
+                gatherStats(costStatsForAllRuns, delayStatsForAllRuns, i,j);
+                if(logger!=null) {
+                    logger.close();
+                }
+            }
+            calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
+            result.print(DefaultValues.MCS_DELTA);
+            result.print("\t cost: "+costStats[i]+ "\t delay: " + delayStats[i]+"\n");
+        }
+
+        double finishTime = System.currentTimeMillis();
+        result.println("Duration(min): " + (finishTime - startTime)/60000);
+
+        result.close();
+    }
+
+
+    private static void calcAverageOnAllRuns(Float[] costStats, Float[] delayStats, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, int i) {
+        float costSum = 0 , delaySum = 0;
+        int numberOfRuns = costStatsForAllRuns[0].length;
+            for (int j = 0; j < numberOfRuns; j++) {
+                costSum+=costStatsForAllRuns[i][j];
+                delaySum+=delayStatsForAllRuns[i][j];
+            }
+            costStats[i] = costSum/numberOfRuns;
+            delayStats[i] = delaySum/numberOfRuns;
+    }
+
+
+    private static void gatherStats(Float[][] costStats, Float[][] delayStats, int i,int j) {
         int totalCost = 0;
         float counter = 0;
         float totalDelay = 0f;
@@ -119,19 +237,20 @@ public class ProjectRun {
             }
         }
 
-        costStats[i] = totalCost/counter;
-        delayStats[i]= totalDelay/counter;
+        costStats[i][j] = totalCost/counter;
+        delayStats[i][j]= totalDelay/counter;
     }
 
-    private static void generateRequests(int numberOfRequests,int numberOfFiles, int numberOfServers, float coef) {
+    private static void generateRequests(int numberOfRequests, int numberOfFiles, int numberOfServers, float ratio) {
         int reqFileId, requestingClientID;
+        Random random = new Random();
         float reqTime = 0f;
         for (int  j= 0; j < numberOfRequests; j++) {
 
             requestingClientID = DefaultValues.random.nextInt(numberOfServers);
             reqFileId = DefaultValues.random.nextInt(numberOfFiles);
 
-            reqTime += DefaultValues.random.nextFloat()*coef;
+            reqTime += random.nextFloat()*2*DefaultValues.SERVICE_TIME/numberOfServers/ratio;
             EventsQueue.addEvent(
                     new Event(EventType.sendReq, clients.get(requestingClientID), reqTime, null, reqFileId)
             );

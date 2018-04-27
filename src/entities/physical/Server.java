@@ -38,21 +38,7 @@ public class Server extends EndDevice{
         Logger.print(this+ " is parsing "+ segment, time);
         if (isThisDeviceDestined(segment)) {
             Logger.print(this + " is the destination of " + segment, time);
-            switch (segment.getSegmentType()) {
-                case Request:
-                    Request request = (Request) segment.getOptionalContent();
-                    if (queue.size()==0 && !this.isServerBusy)  {
-                        Logger.print(this + " wasn't busy and goes to serve " + request,time);
-                        serveRequest(time,request);
-                    }else {
-                        queue.add(request);
-                        Logger.print(this + " added to queue: " + request + " queueSize = " + queue.size(),time);
-                    }
-                    break;
-                case Data:
-                default:
-                    throw new OkayException(this + " received unexpected " +segment,time);
-            }
+            lookAtContent(time, segment);
         }else{
             Logger.print(this + " is not the destination of " + segment + " and it will be forwarded", time);
             forwardSegment(time, segment );
@@ -60,7 +46,25 @@ public class Server extends EndDevice{
 
     }
 
-    private void setTimeToPopNextEventInQueue(float time , float delay, Request request) {
+    private void lookAtContent(float time, Segment segment) throws Exception {
+        switch (segment.getSegmentType()) {
+            case Request:
+                Request request = (Request) segment.getOptionalContent();
+                if (queue.size()==0 && !this.isServerBusy)  {
+                    Logger.print(this + " wasn't busy and goes to serve " + request,time);
+                    serveRequest(time,request);
+                }else {
+                    queue.add(request);
+                    Logger.print(this + " added to queue: " + request + " queueSize = " + queue.size(),time);
+                }
+                break;
+            case Data:
+            default:
+                throw new OkayException(this + " received unexpected " +segment,time);
+        }
+    }
+
+    private void setTimeToPopNextRequestInQueue(float time , float delay, Request request) {
         /***
          * releases an event which at current time + service time pops the queue
          */
@@ -118,7 +122,7 @@ public class Server extends EndDevice{
                 redirectRequest(time + delay, request, selectedServer);
             }
         }
-        setTimeToPopNextEventInQueue(time, delay, request);
+        setTimeToPopNextRequestInQueue(time, delay, request);
 
     }
 
@@ -185,8 +189,8 @@ public class Server extends EndDevice{
         /***
          * Commands to serve the request then after a service delay serve the next request
          */
+        isServerBusy = false;
         if (queue.size()==0) {
-            isServerBusy = false;
             Logger.print(this + " has served the request " + servedRequest + " and is not busy now", time);
             return;
         }

@@ -35,7 +35,10 @@ public class RedirectingAlgorithm {
         Server selectedServer;
         List<Server> nearestServers= NetworkGraph.networkGraph.getNearestServers(DefaultValues.MCS_DELTA,serversHavingFile,client);
         if (nearestServers==null || nearestServers.size()==0) throw new RuntimeException();
-        selectedServer = NetworkGraph.networkGraph.getLeastLoadedServer(serversHavingFile);
+//        if (nearestServers.size()==4 && nearestServers.get(0).getServerLoad()>5){
+//            System.out.println();
+//        }
+        selectedServer = NetworkGraph.networkGraph.getLeastLoadedServer(nearestServers);
         return selectedServer;
     }
 

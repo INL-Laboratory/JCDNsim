@@ -8,7 +8,7 @@ import java.util.Random;
 public class DefaultValues {
     public static  int CACHE_SIZE = 100000;        // 100 GB , 100000 MB
     public static  float REQUEST_SIZE = (float) 0.5;
-    public static  float SERVICE_TIME = 15f;
+    public static  float SERVICE_TIME = 10f;
     public static  float PSS_PROBABILITY = 0.5f;
     public static float WMC_ALPHA = 0.5f;
     public static  int MCS_DELTA = 3;
@@ -20,6 +20,6 @@ public class DefaultValues {
 
 
 
-    public static final boolean LOGGER_ON = true ;
+    public static final boolean LOGGER_ON = false ;
     //Having it On takes over 850 MB of your disk for every 10 times making 20000 requests
 }

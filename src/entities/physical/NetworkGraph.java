@@ -61,14 +61,20 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         }
     }
     //TODO: implement NumberOf Queries
-    public List<Server> getNearestServers(int n, List<Server> preFilteredServers, EndDevice src){
+    public List<Server> getNearestServers(int n, List<Server> preFilteredServers, EndDevice src, boolean shuffled){
         /***
          * returns the n nearest servers to the src in a list of servers that might have been already filtered.
          */
+//        Collections.shuffle(preFilteredServers);
         List<Server> toReturnServers = new LinkedList<>();
         if (n<=0) return toReturnServers;
 
-        Collections.sort(preFilteredServers, (Comparator<Server>) (o1, o2) -> {
+        List<Server> newList = new LinkedList<>();
+        for (Server server:preFilteredServers) {
+            newList.add(server);
+        }
+
+        Collections.sort(newList, (Comparator<Server>) (o1, o2) -> {
             int o1Cost =  o1.getCommunicationCostTable().get(src);
             int o2Cost =  o2.getCommunicationCostTable().get(src);
             boolean con = o1Cost<o2Cost;
@@ -77,8 +83,11 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
             //TODO: check whether the order is right
         });
         for (int i = 0; i <n ; i++) {
-            if (preFilteredServers.size()==i) return toReturnServers;
-            toReturnServers.add(preFilteredServers.get(i));
+            if (newList.size()==i) return toReturnServers;
+            toReturnServers.add(newList.get(i));
+        }
+        if (shuffled) {
+//            Collections.shuffle(toReturnServers);
         }
         return toReturnServers;
     }
@@ -90,7 +99,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         if (preFilteredServers.contains(directlyConnectedServer)) {
             return directlyConnectedServer;
         }
-        List<Server> returnedByGeneralMethod = getNearestServers(1, preFilteredServers, src);
+        List<Server> returnedByGeneralMethod = getNearestServers(1, preFilteredServers, src, false);
         if (returnedByGeneralMethod.size()==0) return null;
         return returnedByGeneralMethod.get(0);
     }
@@ -125,6 +134,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         return toReturnServers;
     }
     public Server getLeastLoadedServer(List<Server> preFilteredServers){
+//        Collections.shuffle(preFilteredServers);
         /***
          * returns the least loaded server in a list of servers that might have been already filtered.
          */
@@ -133,16 +143,17 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         Server toReturnServer = null;
         for (Server candidateServer:preFilteredServers) {
             if (candidateServer.getServerLoad()<minLoad){
-                toReturnServer = candidateServer;
                 minLoad = candidateServer.getServerLoad();
-
             }
         }
-                //TODO
-                if (minLoad>0){
-                    int ss = 0;
-                }
-        return toReturnServer;
+        List<Server> toReturnServers = new LinkedList<>();
+        for (Server candidateServer:preFilteredServers) {
+            if (candidateServer.getServerLoad() == minLoad) {
+                toReturnServers.add(candidateServer);
+            }
+        }
+            toReturnServer = toReturnServers.get(new Random().nextInt(toReturnServers.size()));
+            return toReturnServer;
     }
     public Server getMostDesirableServer(List<Server> preFilteredServers , float alpha , EndDevice src){
         /***

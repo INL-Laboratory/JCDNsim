@@ -30,7 +30,7 @@ public class ProjectRun {
 
 
     public static void main(String[] args) throws IOException {
-        final int numberOfFiles = 48;
+        final int numberOfFiles = 35;
         final int numberOfServers = 35;
         final int numberOfFilesPerServer = 15;
         final int numberOfRequests =1000;
@@ -80,10 +80,7 @@ public class ProjectRun {
         Float[][] costStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
         simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result1, costStatsForAllRuns1, delayStatsForAllRuns1, costStats1, delayStats1);
 
-
-
-        numberOfPoints = 16;
-
+         numberOfPoints = 16;
 
         Float[] costStats2 = new Float[numberOfPoints];
         Float[] delayStats2 = new Float[numberOfPoints];
@@ -182,7 +179,7 @@ public class ProjectRun {
         double startTime = System.currentTimeMillis();
         SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.MCS;
         result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
-        for (int i = numberOfPoints-1; i >=0 ; i--){
+        for (int i = 0; i <numberOfPoints ; i++){
 //                saeed = i;
             for (int j = 0; j < numberOfRuns ; j++) {
                 PrintWriter logger = null;

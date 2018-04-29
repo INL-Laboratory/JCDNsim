@@ -6,6 +6,7 @@ import entities.physical.ProjectRun;
 import entities.physical.Server;
 import entities.utilities.logger.Logger;
 
+import java.util.Collections;
 import java.util.List;
 
 
@@ -16,6 +17,7 @@ public class RedirectingAlgorithm {
 //    static float queryDelay = 0;
     public static Server selectServerToRedirect(RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile, Client client){
         Server selectedServer;
+        Collections.shuffle(serversHavingFile);
 //        queryDelay = 0;
         switch (redirectingAlgorithmType){
             case PSS:
@@ -35,14 +37,19 @@ public class RedirectingAlgorithm {
     }
     private static Server selectMCSserver(Client client, List<Server> serversHavingFile) {
         Server selectedServer;
-        List<Server> nearestServers= NetworkGraph.networkGraph.getNearestServers(DefaultValues.MCS_DELTA,serversHavingFile,client);
+        List<Server> nearestServers= NetworkGraph.networkGraph.getNearestServers(DefaultValues.MCS_DELTA,serversHavingFile,client, true);
+//        for (int i = 0; i < serversHavingFile.size(); i++) {
+//            if (!serversHavingFile.contains(nearestServers.get(i))){
+//                System.out.println("klm");
+//            }
+//        }
         if (nearestServers==null || nearestServers.size()==0) throw new RuntimeException();
 //        if (nearestServers.size()==4 && nearestServers.get(0).getServerLoad()>5){
 //            System.out.println();
 //        }
         selectedServer = NetworkGraph.networkGraph.getLeastLoadedServer(nearestServers);
-        Server selectedServer1 = null;
-        Server selectedServer2 = null;
+//        Server selectedServer1 = null;
+//        Server selectedServer2 = null;
 //        if (saeed == 0 ) {
 //            DefaultValues.WMC_ALPHA = 1;
 //            DefaultValues.PSS_PROBABILITY = 1;
@@ -57,7 +64,7 @@ public class RedirectingAlgorithm {
 //        if (saeed == 16 || saeed ==0) {
 //            selectedServer1 = selectPSSserver(client, serversHavingFile);
 //            selectedServer2 = selectWMCserver(client, serversHavingFile);
-//            if (!selectedServer1.equals(selectedServer) || !selectedServer1.equals(selectedServer2) || !selectedServer2.equals(selectedServer)) {
+//            if (!selectedServer1.equals(selectedServer)) {
 //                System.out.println("Error");
 //            }
 //        }
@@ -67,7 +74,7 @@ public class RedirectingAlgorithm {
     private static Server selectWMCserver(Client client, List<Server> serversHavingFile) {
         Server selectedServer;
         selectedServer = NetworkGraph.networkGraph.getMostDesirableServer(serversHavingFile, DefaultValues.WMC_ALPHA,client);
-        Server selectedServer2 = selectPSSserver(client, serversHavingFile);
+//        Server selectedServer2 = selectPSSserver(client, serversHavingFile);
 //        if (!selectedServer.equals(selectedServer2)) {
 //            System.out.println();
 //            System.out.println("sdf");

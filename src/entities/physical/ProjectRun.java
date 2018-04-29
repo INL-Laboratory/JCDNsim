@@ -96,9 +96,9 @@ public class ProjectRun {
 
         //Chart stuff
         String pathName = path+"/chart/photo.png" ,
-                seriesName0 = SimulationParameters.redirectingAlgorithmType.toString(),
-                seriesName1 = SimulationParameters.redirectingAlgorithmType.toString(),
-                seriesName2 = SimulationParameters.redirectingAlgorithmType.toString();
+                seriesName0 = "PSS",
+                seriesName1 = "WMC",
+                seriesName2 = "MCS";
         Chart.initiateChart(pathName);
         Chart.addSeries(seriesName0, costStats0, delayStats0);
         Chart.addSeries(seriesName1, costStats1, delayStats1);

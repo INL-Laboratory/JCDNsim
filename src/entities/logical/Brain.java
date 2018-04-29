@@ -1,5 +1,6 @@
 package entities.logical;
 
+import entities.physical.Server;
 import entities.utilities.logger.Logger;
 
 public class Brain {
@@ -11,6 +12,9 @@ public class Brain {
             Event event = EventsQueue.popEvent();
             try {
                 Logger.ePrint("Event is being handled:" + event.toString(),event.getTime());
+//                if (event.getType() == EventType.requestServed && ((Server)event.getRelatedEntity()).getServerLoad()>500){
+//                    System.out.println();
+//                }
                 event.getRelatedEntity().handleEvent(event);
 
             }

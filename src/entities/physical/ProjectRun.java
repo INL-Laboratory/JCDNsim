@@ -33,11 +33,11 @@ public class ProjectRun {
         final int numberOfFiles = 48;
         final int numberOfServers = 35;
         final int numberOfFilesPerServer = 15;
-        final int numberOfRequests =100000;
+        final int numberOfRequests =1000;
         final float bandwidth = 10000000f;
         final float propagationDelay = 0f;
         final int sizeOfFiles = 50;
-        final int numberOfRuns = 50;
+        final int numberOfRuns = 100;
         final float lambdaInOutRatio = 0.999f;
         String path = dtf.format(now);
         new File(path).mkdir();
@@ -65,8 +65,8 @@ public class ProjectRun {
 
 
 
-        int numberOfPoints = 11;
 
+        int numberOfPoints = 11;
         Float[] costStats0 = new Float[numberOfPoints];
         Float[] delayStats0 = new Float[numberOfPoints];
         Float[][] costStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
@@ -74,7 +74,6 @@ public class ProjectRun {
         simulatePSS(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result0, costStatsForAllRuns0, delayStatsForAllRuns0, costStats0, delayStats0);
 
         numberOfPoints = 11;
-
         Float[] costStats1 = new Float[numberOfPoints];
         Float[] delayStats1 = new Float[numberOfPoints];
         Float[][] delayStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
@@ -82,7 +81,8 @@ public class ProjectRun {
         simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result1, costStatsForAllRuns1, delayStatsForAllRuns1, costStats1, delayStats1);
 
 
-        numberOfPoints = 17;
+
+        numberOfPoints = 16;
 
 
         Float[] costStats2 = new Float[numberOfPoints];
@@ -106,13 +106,14 @@ public class ProjectRun {
         Chart.main(args);
 
     }
-
+    public static int saeed = 0;
     private static void simulatePSS(int numberOfPoints,int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, int numberOfRuns, float lambdaInOutRatio, String path, PrintWriter result, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, Float[] costStats, Float[] delayStats) throws IOException {
         double startTime = System.currentTimeMillis();
         SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.PSS;
         result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
         DefaultValues.PSS_PROBABILITY = 0;
         for (int i = 0; i < numberOfPoints; i++){
+//            saeed = i;
             for (int j = 0; j < numberOfRuns ; j++) {
                 PrintWriter logger = null;
                 if (DefaultValues.LOGGER_ON) {
@@ -148,6 +149,7 @@ public class ProjectRun {
         result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
         DefaultValues.WMC_ALPHA = 0;
         for (int i = 0; i < numberOfPoints; i++){
+//            saeed = i;
             for (int j = 0; j < numberOfRuns ; j++) {
                 PrintWriter logger = null;
                 if (DefaultValues.LOGGER_ON) {
@@ -180,7 +182,8 @@ public class ProjectRun {
         double startTime = System.currentTimeMillis();
         SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.MCS;
         result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
-        for (int i = 0; i < numberOfPoints; i++){
+        for (int i = numberOfPoints-1; i >=0 ; i--){
+//                saeed = i;
             for (int j = 0; j < numberOfRuns ; j++) {
                 PrintWriter logger = null;
                 if (DefaultValues.LOGGER_ON) {
@@ -188,7 +191,7 @@ public class ProjectRun {
                     logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i+1 + ".txt"));
                     Logger.printWriter = logger;
                 }
-                DefaultValues.MCS_DELTA = i+1;
+                DefaultValues.MCS_DELTA =  i+1;
                 System.out.println(DefaultValues.MCS_DELTA+"\t" + j);
                 initSimulator(numberOfFiles, numberOfServers, numberOfFilesPerServer , propagationDelay , bandwidth,sizeOfFiles );
                 generateRequests(numberOfRequests,numberOfFiles, numberOfServers , lambdaInOutRatio);

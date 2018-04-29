@@ -87,7 +87,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
             toReturnServers.add(newList.get(i));
         }
         if (shuffled) {
-//            Collections.shuffle(toReturnServers);
+            Collections.shuffle(toReturnServers);
         }
         return toReturnServers;
     }
@@ -134,7 +134,6 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         return toReturnServers;
     }
     public Server getLeastLoadedServer(List<Server> preFilteredServers){
-//        Collections.shuffle(preFilteredServers);
         /***
          * returns the least loaded server in a list of servers that might have been already filtered.
          */
@@ -144,16 +143,10 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         for (Server candidateServer:preFilteredServers) {
             if (candidateServer.getServerLoad()<minLoad){
                 minLoad = candidateServer.getServerLoad();
+                toReturnServer = candidateServer;
             }
         }
-        List<Server> toReturnServers = new LinkedList<>();
-        for (Server candidateServer:preFilteredServers) {
-            if (candidateServer.getServerLoad() == minLoad) {
-                toReturnServers.add(candidateServer);
-            }
-        }
-            toReturnServer = toReturnServers.get(new Random().nextInt(toReturnServers.size()));
-            return toReturnServer;
+        return toReturnServer;
     }
     public Server getMostDesirableServer(List<Server> preFilteredServers , float alpha , EndDevice src){
         /***

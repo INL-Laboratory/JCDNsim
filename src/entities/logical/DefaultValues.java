@@ -7,7 +7,7 @@ import java.util.Random;
  */
 public class DefaultValues {
     public static  int CACHE_SIZE = 100000;        // 100 GB , 100000 MB
-    public static  float REQUEST_SIZE = (float) 0.5;
+    public static  float REQUEST_SIZE = (float) 0.1;
     public static  float SERVICE_TIME = 10f;
     public static  float PSS_PROBABILITY = 0.5f;
     public static float WMC_ALPHA = 0.5f;

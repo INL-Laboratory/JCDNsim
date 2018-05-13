@@ -106,24 +106,30 @@ public class Server extends EndDevice{
             sendFile(time, request, 0);
             delay = DefaultValues.SERVICE_TIME;
         }else {     //if the request is not redirected
-            float queryDelay = 0f; //TODO : update this
-            Logger.print(this + " is looking for a suitable server to serve " + request, time);
-            Server selectedServer = getSuitableServer(request);
-            if (selectedServer == null)
-                throw new OkayException("At " + this + " no server was selected to serve " + request , time);
-            Logger.print(this + " selected " + selectedServer + " to serve " + request, time);
-            if (selectedServer.equals(this)) {              //If this server is selected
-                sendFile(time, request, queryDelay);
-                delay = DefaultValues.SERVICE_TIME + queryDelay;
-
-            } else {                //if another server is selected
-
-                delay = queryDelay;
-                redirectRequest(time + delay, request, selectedServer);
-            }
+            delay = serveUnredirectedRequest(time, request);
         }
         setTimeToPopNextRequestInQueue(time, delay, request);
 
+    }
+
+    private float serveUnredirectedRequest(float time, Request request) throws Exception {
+        float delay;
+        float queryDelay = 0f; //TODO : update this
+        Logger.print(this + " is looking for a suitable server to serve " + request, time);
+        Server selectedServer = getSuitableServer(request);
+        if (selectedServer == null)
+            throw new OkayException("At " + this + " no server was selected to serve " + request , time);
+        Logger.print(this + " selected " + selectedServer + " to serve " + request, time);
+        if (selectedServer.equals(this)) {              //If this server is selected
+            sendFile(time, request, queryDelay);
+            delay = DefaultValues.SERVICE_TIME + queryDelay;
+
+        } else {                //if another server is selected
+
+            delay = queryDelay;
+            redirectRequest(time + delay, request, selectedServer);
+        }
+        return delay;
     }
 
     private void sendFile(float time, Request request, float queryDelay) throws Exception {

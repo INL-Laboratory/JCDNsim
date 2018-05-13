@@ -79,7 +79,7 @@ public class Link extends IEventHandler{
             if(event.getCreator().equals(endPointA))
                 segmentsFromA.add((Segment) event.getOptionalData());
             else segmentsFromB.add((Segment) event.getOptionalData());
-
+//            System.out.println(event.getTime()+" "+(Segment) event.getOptionalData() +"is being sent by " + this);
             checkForSendData(event.getTime());
         }
         else if(event.getType() == EventType.dataSent){
@@ -100,7 +100,7 @@ public class Link extends IEventHandler{
             Event e = new Event<>(EventType.receiveSegment,
                     (isInA)? endPointB : endPointA, event.getTime(), this, sentSegment );
             EventsQueue.addEvent(e);
-
+//            System.out.println(event.getTime()+" "+(Segment) event.getOptionalData() + " sent by " + this);
             //SendNextSegment
             checkForSendData(event.getTime());
         }
@@ -108,16 +108,16 @@ public class Link extends IEventHandler{
 
     private void checkForSendData(float time) {
         if(segmentsFromA.size()>0 && !isSendingFromA){
-            float eventTime = time + propagationDelay + segmentsFromA.get(0).getSize()/bw;
-//            float eventTime = time + propagationDelay ;
+//            float eventTime = time + propagationDelay + segmentsFromA.get(0).getSize()/bw;
+            float eventTime = time ;
             Event<Link> event = new Event<>(EventType.dataSent, this, eventTime, this, segmentsFromA.get(0));
             EventsQueue.addEvent(event);
 
             isSendingFromA = true;
         }
         else if(segmentsFromB.size()> 0 && !isSendingFromB){
-            float eventTime = time + propagationDelay + segmentsFromB.get(0).getSize()/bw;
-//            float eventTime = time + propagationDelay ;
+//            float eventTime = time + propagationDelay + segmentsFromB.get(0).getSize()/bw;
+            float eventTime = time ;
             Event<Link> event = new Event<>(EventType.dataSent, this, eventTime, this, segmentsFromB.get(0));
             EventsQueue.addEvent(event);
 

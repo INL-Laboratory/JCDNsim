@@ -152,6 +152,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         }
         return toReturnServer;
     }
+    static int maxLoad = 0;
     public Server getMostDesirableServer(List<Server> preFilteredServers , float alpha , EndDevice src){
         /***
          * returns the least desirable server in a list of servers that might have been already filtered.
@@ -162,6 +163,11 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         Server toReturnServer = null;
         int totalCosts = calculateTotalCosts(preFilteredServers, src);
         int totalLoad = calculateTotalLoad(preFilteredServers);
+
+        if (totalLoad>maxLoad){
+            maxLoad = totalLoad;
+        }
+
         Logger.printWithoutTime(" total cost = "+ totalCosts + "  total Load = " + totalLoad);
         double serverDesirability;
         for (Server candidateServer:preFilteredServers) {
@@ -172,6 +178,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
                 minDesirability = serverDesirability;
             }
         }
+//        System.out.println(minDesirability);
         Logger.printWithoutTime(" total cost = "+ totalCosts + "  total Load = " + totalLoad);
         return toReturnServer;
     }
@@ -195,7 +202,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         int cost = server.getCommunicationCostTable().get(src);
         int load = server.getServerLoad();
         if (totalLoad==0) totalLoad = 1;
-        double desirability = alpha * cost/totalCost + (1-alpha)*load/totalLoad;
+        double desirability = alpha *( ((double)cost)/((double)totalCost)) + (1-alpha)*(((double)load)/((double)totalLoad));
         return desirability;
     }
 

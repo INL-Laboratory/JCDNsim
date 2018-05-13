@@ -1,5 +1,6 @@
 package entities.physical;
 
+import com.sun.istack.internal.Nullable;
 import edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import entities.utilities.logger.Logger;
@@ -61,7 +62,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         }
     }
     //TODO: implement NumberOf Queries
-    public List<Server> getNearestServers(int n, List<Server> preFilteredServers, EndDevice src, boolean shuffled){
+    public List<Server> getNearestServers(int n, List<Server> preFilteredServers, EndDevice src, boolean shuffled, @Nullable Random rnd){
         /***
          * returns the n nearest servers to the src in a list of servers that might have been already filtered.
          */
@@ -87,7 +88,10 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
             toReturnServers.add(newList.get(i));
         }
         if (shuffled) {
+            if (rnd==null)
             Collections.shuffle(toReturnServers);
+            else
+                Collections.shuffle(toReturnServers,rnd);
         }
         return toReturnServers;
     }
@@ -99,7 +103,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         if (preFilteredServers.contains(directlyConnectedServer)) {
             return directlyConnectedServer;
         }
-        List<Server> returnedByGeneralMethod = getNearestServers(1, preFilteredServers, src, false);
+        List<Server> returnedByGeneralMethod = getNearestServers(1, preFilteredServers, src, false, null);
         if (returnedByGeneralMethod.size()==0) return null;
         return returnedByGeneralMethod.get(0);
     }

@@ -12,7 +12,7 @@ public class DefaultValues {
     public static  float PSS_PROBABILITY = 0.5f;
     public static float WMC_ALPHA = 0.5f;
     public static  int MCS_DELTA = 3;
-    public static  final Random random = new Random();
+    public static  Random random = new Random();
 
 
     public static final float TIME_OUT = 20f ;

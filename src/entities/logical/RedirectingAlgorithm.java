@@ -8,6 +8,7 @@ import entities.utilities.logger.Logger;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 
 /**
@@ -15,9 +16,10 @@ import java.util.List;
  */
 public class RedirectingAlgorithm {
 //    static float queryDelay = 0;
+    public static Random rnd = new Random();
     public static Server selectServerToRedirect(RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile, Client client){
         Server selectedServer;
-        Collections.shuffle(serversHavingFile);
+        Collections.shuffle(serversHavingFile, rnd);
 //        queryDelay = 0;
         switch (redirectingAlgorithmType){
             case PSS:
@@ -37,7 +39,7 @@ public class RedirectingAlgorithm {
     }
     private static Server selectMCSserver(Client client, List<Server> serversHavingFile) {
         Server selectedServer;
-        List<Server> nearestServers= NetworkGraph.networkGraph.getNearestServers(DefaultValues.MCS_DELTA,serversHavingFile,client, true);
+        List<Server> nearestServers= NetworkGraph.networkGraph.getNearestServers(DefaultValues.MCS_DELTA,serversHavingFile,client, true, rnd);
         if (nearestServers==null || nearestServers.size()==0) throw new RuntimeException();
         selectedServer = NetworkGraph.networkGraph.getLeastLoadedServer(nearestServers);
         return selectedServer;

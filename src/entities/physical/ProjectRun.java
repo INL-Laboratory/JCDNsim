@@ -33,13 +33,15 @@ public class ProjectRun {
         final int numberOfFiles = 35;
         final int numberOfServers = 35;
         final int numberOfFilesPerServer = 15;
-        final int numberOfRequests =500000;
+        final int numberOfRequests =20000;
         final float bandwidth = 10000000f;
         final float propagationDelay = 0f;
         final int sizeOfFiles = 50000;
-        final int numberOfRuns = 100;
+        final int numberOfRuns = 50;
         final float lambdaInOutRatio = 0.999f;
-        String path = "results/"+dtf.format(now);
+        String path = "results";
+        new File( path).mkdir();
+        path = "results/"+dtf.format(now);
         new File( path).mkdir();
         new File(path+"/logs").mkdir();
         new File(path+"/chart").mkdir();
@@ -265,6 +267,8 @@ public class ProjectRun {
         NetworkGraph.renewNetworrkGraph();
         networkGraph = NetworkGraph.networkGraph;
         Client.generatedId=0;
+        RedirectingAlgorithm.rnd = new Random() ;
+        DefaultValues.random = new Random() ;
 
         for (int i = 0; i < numberOfFiles; i++) {
             files.add(new IFile(i,sizeOfFiles));

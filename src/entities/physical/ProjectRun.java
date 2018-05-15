@@ -33,11 +33,11 @@ public class ProjectRun {
         final int numberOfFiles = 35;
         final int numberOfServers = 35;
         final int numberOfFilesPerServer = 15;
-        final int numberOfRequests =50000;
+        final int numberOfRequests =1000;
         final float bandwidth = 10000000f;
         final float propagationDelay = 0f;
-        final int sizeOfFiles = 50000;
-        final int numberOfRuns = 10;
+        final int sizeOfFiles = 50;
+        final int numberOfRuns = 200;
         final float lambdaInOutRatio = 0.999f;
         String path = "results";
         new File( path).mkdir();
@@ -69,26 +69,26 @@ public class ProjectRun {
 
 //
         int numberOfPoints = 11;
-//        Float[] costStats0 = new Float[numberOfPoints];
-//        Float[] delayStats0 = new Float[numberOfPoints];
-//        Float[][] costStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
-//        Float[][] delayStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
-//        simulatePSS(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result0, costStatsForAllRuns0, delayStatsForAllRuns0, costStats0, delayStats0);
+        Float[] costStats0 = new Float[numberOfPoints];
+        Float[] delayStats0 = new Float[numberOfPoints];
+        Float[][] costStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
+        Float[][] delayStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
+        simulatePSS(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result0, costStatsForAllRuns0, delayStatsForAllRuns0, costStats0, delayStats0);
 
-        numberOfPoints = 2;
+        numberOfPoints = 11;
         Float[] costStats1 = new Float[numberOfPoints];
         Float[] delayStats1 = new Float[numberOfPoints];
         Float[][] delayStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
         Float[][] costStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
         simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result1, costStatsForAllRuns1, delayStatsForAllRuns1, costStats1, delayStats1);
-//
-//         numberOfPoints = 16;
-//
-//        Float[] costStats2 = new Float[numberOfPoints];
-//        Float[] delayStats2 = new Float[numberOfPoints];
-//        Float[][] costStatsForAllRuns2 = new Float[numberOfPoints][numberOfRuns];
-//        Float[][] delayStatsForAllRuns2 = new Float[numberOfPoints][numberOfRuns];
-//        simulateMCS(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result2, costStatsForAllRuns2, delayStatsForAllRuns2, costStats2, delayStats2);
+
+         numberOfPoints = 16;
+
+        Float[] costStats2 = new Float[numberOfPoints];
+        Float[] delayStats2 = new Float[numberOfPoints];
+        Float[][] costStatsForAllRuns2 = new Float[numberOfPoints][numberOfRuns];
+        Float[][] delayStatsForAllRuns2 = new Float[numberOfPoints][numberOfRuns];
+        simulateMCS(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result2, costStatsForAllRuns2, delayStatsForAllRuns2, costStats2, delayStats2);
 
 
 
@@ -99,20 +99,18 @@ public class ProjectRun {
                 seriesName1 = "WMC",
                 seriesName2 = "MCS";
         Chart.initiateChart(pathName);
-//        Chart.addSeries(seriesName0, costStats0, delayStats0);
+        Chart.addSeries(seriesName0, costStats0, delayStats0);
         Chart.addSeries(seriesName1, costStats1, delayStats1);
-//        Chart.addSeries(seriesName2, costStats2, delayStats2);
+        Chart.addSeries(seriesName2, costStats2, delayStats2);
         Chart.main(args);
 
     }
-    public static int saeed = 0;
     private static void simulatePSS(int numberOfPoints,int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, int numberOfRuns, float lambdaInOutRatio, String path, PrintWriter result, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, Float[] costStats, Float[] delayStats) throws IOException {
         double startTime = System.currentTimeMillis();
         SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.PSS;
         result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
         DefaultValues.PSS_PROBABILITY = 0;
         for (int i = 0; i < numberOfPoints; i++){
-//            saeed = i;
             for (int j = 0; j < numberOfRuns ; j++) {
                 PrintWriter logger = null;
                 if (DefaultValues.LOGGER_ON) {
@@ -147,10 +145,7 @@ public class ProjectRun {
         SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.WMC;
         result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
         DefaultValues.WMC_ALPHA = 0;
-        float[] a = {0.2f,0.3f};
         for (int i = 0; i < numberOfPoints; i++){
-//            saeed = i;
-
             for (int j = 0; j < numberOfRuns ; j++) {
                 PrintWriter logger = null;
                 if (DefaultValues.LOGGER_ON) {
@@ -158,10 +153,8 @@ public class ProjectRun {
                     logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i + ".txt"));
                     Logger.printWriter = logger;
                 }
-                DefaultValues.WMC_ALPHA = a[i];
+                DefaultValues.WMC_ALPHA = 0.1f*i;
                 System.out.println(DefaultValues.WMC_ALPHA+"\t" + j);
-//                NetworkGraph.maxLoad = 0;
-
                 initSimulator(numberOfFiles, numberOfServers, numberOfFilesPerServer , propagationDelay , bandwidth,sizeOfFiles );
                 generateRequests(numberOfRequests,numberOfFiles, numberOfServers , lambdaInOutRatio);
                 Brain.handleEvents();
@@ -169,7 +162,6 @@ public class ProjectRun {
                 if(logger!=null) {
                     logger.close();
                 }
-//                System.out.println(NetworkGraph.maxLoad);
             }
             calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
             result.print(DefaultValues.WMC_ALPHA);
@@ -265,64 +257,44 @@ public class ProjectRun {
     }
 
     private static void initSimulator(int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, float propDelay, float bw, int sizeOfFiles) {
-        servers = new ArrayList<>();
-        clients= new ArrayList<>();
-        files= new ArrayList<>();
-        links= new ArrayList<>();
-        NetworkGraph.renewNetworrkGraph();
-        networkGraph = NetworkGraph.networkGraph;
-        Client.generatedId=0;
-        RedirectingAlgorithm.rnd = new Random() ;
-        DefaultValues.random = new Random() ;
+        resetSimulatorSettings();
 
-        for (int i = 0; i < numberOfFiles; i++) {
-            files.add(new IFile(i,sizeOfFiles));
-        }
+        createFiles(numberOfFiles, sizeOfFiles);
 
-        int fileId =0;
+
+        initiateServesAndClients(numberOfServers, propDelay, bw);
+
         Map<Integer, List<Server>> serversHavingFile = new HashMap<>();
-        for (int i = 0; i < numberOfServers ; i++) {
-            List<IFile> fileList = new ArrayList<>(1);
-            for (int j = 0; j < numberOfFilesPerServer; j++) {
-                    fileId = i+j;
-                    if (fileId>=numberOfFiles){
-                        fileId-=numberOfFiles;
-                    }
-                    if (files.get(fileId)==null) throw new RuntimeException();
-                    fileList.add(files.get(fileId));
-            }
 
-            Server server = new Server(i,fileList, serversHavingFile);
-            servers.add(server);
-            Client client = new Client(i);
-            clients.add(client);
-            Link link = new Link(client,server,propDelay,bw,1);
-            links.add(link);
-            client.setLink(link);
-            server.getLinks().put(client,link);
-        }
+        setServersHavingFile(numberOfServers, serversHavingFile);
 
-        int targetServerId;
-        for (int i = 0; i < numberOfServers; i++) {
-            Server server =  servers.get(i);
-            for (int j = 0; j < 3 ; j++) {
+        assignFileListsToServers(numberOfFiles, numberOfServers, numberOfFilesPerServer);
 
+        createSimpleTopology(numberOfServers, propDelay, bw);
 
-                targetServerId = i + 1 + j;
-                if (targetServerId>=numberOfServers){
-                    targetServerId -= numberOfServers;
-                }
-                if (targetServerId== i){
-                    targetServerId++;
-                }
-                Server targetServer = servers.get(targetServerId);
-                Link link = new Link(server,targetServer,propDelay,bw,1);
-                targetServer.getLinks().put(server,link);
-                server.getLinks().put(targetServer,link);
-                links.add(link);
+        addLinksToGraph();
+
+        fillServersHavingFile(serversHavingFile);
+        networkGraph.buildRoutingTables();
+    }
+
+    private static void fillServersHavingFile(Map<Integer, List<Server>> serversHavingFile) {
+        StringBuffer sb = new StringBuffer();
+        List<Server> serversss ;
+        sb.append(" ***** Files ***** ");
+
+        for(IFile f: files){
+            serversss = networkGraph.getServersHavingFile(f.getId());
+            serversHavingFile.put(f.getId(),serversss);
+            sb.append("\n").append(f).append(" :");
+            for(Server s: serversss){
+                sb.append("  ").append(s);
             }
         }
+        Logger.print(sb.toString(),0);
+    }
 
+    private static void addLinksToGraph() {
         for (Server s:servers){
             networkGraph.addVertex(s);
             try {
@@ -338,20 +310,80 @@ public class ProjectRun {
         for (Link l:links){
             networkGraph.addEdge(l,l.getEndPointA(),l.getEndPointB(), EdgeType.UNDIRECTED);
         }
+    }
 
-        StringBuffer sb = new StringBuffer();
-        List<Server> serversss ;
-        sb.append(" ***** Files ***** ");
-
-        for(IFile f: files){
-            serversss = networkGraph.getServersHavingFile(f.getId());
-            serversHavingFile.put(f.getId(),serversss);
-            sb.append("\n").append(f).append(" :");
-            for(Server s: serversss){
-                sb.append("  ").append(s);
+    private static void createSimpleTopology(int numberOfServers, float propDelay, float bw) {
+        int targetServerId;
+        for (int i = 0; i < numberOfServers; i++) {
+            Server server =  servers.get(i);
+            for (int j = 0; j < 3 ; j++) {
+                targetServerId = i + 1 + j;
+                if (targetServerId>=numberOfServers){
+                    targetServerId -= numberOfServers;
+                }
+                if (targetServerId== i){
+                    targetServerId++;
+                }
+                Server targetServer = servers.get(targetServerId);
+                Link link = new Link(server,targetServer,propDelay,bw,1);
+                targetServer.getLinks().put(server,link);
+                server.getLinks().put(targetServer,link);
+                links.add(link);
             }
         }
-        Logger.print(sb.toString(),0);
-        networkGraph.buildRoutingTables();
+    }
+
+    private static void initiateServesAndClients(int numberOfServers, float propDelay, float bw) {
+        for (int i = 0; i < numberOfServers ; i++) {
+
+            Server server = new Server(i);
+            servers.add(server);
+            Client client = new Client(i);
+            clients.add(client);
+            Link link = new Link(client,server,propDelay,bw,1);
+            links.add(link);
+            client.setLink(link);
+            server.getLinks().put(client,link);
+        }
+    }
+
+    private static void setServersHavingFile(int numberOfServers, Map<Integer, List<Server>> serversHavingFile) {
+        for (int i = 0; i < numberOfServers ; i++) {
+            servers.get(i).setServersHavingFile(serversHavingFile);
+        }
+    }
+
+    private static void assignFileListsToServers(int numberOfFiles, int numberOfServers, int numberOfFilesPerServer) {
+        int fileId;
+        for (int i = 0; i < numberOfServers ; i++) {
+            List<IFile> fileList = new ArrayList<>(1);
+            for (int j = 0; j < numberOfFilesPerServer; j++) {
+                    fileId = i+j;
+                    if (fileId>=numberOfFiles){
+                        fileId-=numberOfFiles;
+                    }
+                    if (files.get(fileId)==null) throw new RuntimeException();
+                    fileList.add(files.get(fileId));
+            }
+            servers.get(i).setFiles(fileList);
+        }
+    }
+
+    private static void createFiles(int numberOfFiles, int sizeOfFiles) {
+        for (int i = 0; i < numberOfFiles; i++) {
+            files.add(new IFile(i,sizeOfFiles));
+        }
+    }
+
+    private static void resetSimulatorSettings() {
+        servers = new ArrayList<>();
+        clients= new ArrayList<>();
+        files= new ArrayList<>();
+        links= new ArrayList<>();
+        NetworkGraph.renewNetworrkGraph();
+        networkGraph = NetworkGraph.networkGraph;
+        Client.generatedId=0;
+        RedirectingAlgorithm.rnd = new Random() ;
+        DefaultValues.random = new Random() ;
     }
 }

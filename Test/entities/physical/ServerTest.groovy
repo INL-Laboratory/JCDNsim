@@ -285,15 +285,15 @@ class ServerTest extends GroovyTestCase {
         list.add(servers.get(2));
         list.add(servers.get(3));
         servers.get(2).queue.add(new Request(clients.get(0),servers.get(2),2,6))
-        assertEquals(networkGraph.getLeastLoadedServer(list),servers.get(3));
+        assertEquals(networkGraph.getLeastLoadedServer(list, serverLoads),servers.get(3));
         servers.get(3).queue.add(new Request(clients.get(0),servers.get(2),2,7))
         servers.get(3).queue.add(new Request(clients.get(0),servers.get(2),2,8))
-        assertEquals(networkGraph.getLeastLoadedServer(list),servers.get(2));
+        assertEquals(networkGraph.getLeastLoadedServer(list, serverLoads),servers.get(2));
         servers.get(2).queue.add(new Request(clients.get(0),servers.get(2),2,9))
         servers.get(3).queue.add(new Request(clients.get(0),servers.get(2),2,10))
-        assertEquals(networkGraph.getLeastLoadedServer(list),servers.get(2));
+        assertEquals(networkGraph.getLeastLoadedServer(list, serverLoads),servers.get(2));
         list.add(servers.get(0));
-        assertEquals(networkGraph.getLeastLoadedServer(list),servers.get(0));
+        assertEquals(networkGraph.getLeastLoadedServer(list, serverLoads),servers.get(0));
 
 
     }

@@ -13,9 +13,7 @@ import java.util.Map;
  */
 public class SimulationParameters {
     public static  RedirectingAlgorithmType redirectingAlgorithmType = RedirectingAlgorithmType.PSS;
-//    public static final Map<Integer, List<Server>> serversHavingFile = new HashMap<>();
-    public static File servers;
-    public static File clients;
+    public static  UpdateType updateType = UpdateType.ideal;
     public static File links;
     public static File topology;
     public static File serverContents;

@@ -14,11 +14,15 @@ public class Server extends EndDevice{
     private final Queue<Request> queue = new ArrayDeque<>();
     private boolean isServerBusy;
     private Map<Integer, List<Server>> serversHavingFile = new HashMap<>();
+    private Map<Server, Integer> serverLoads = new HashMap<>();
 
     public Server(int number, List<IFile> files, Map<Integer, List<Server>> serversHavingFile) {
-        super(number);
+        this(number);
         this.files = files;
         this.serversHavingFile = serversHavingFile;
+    }
+    public Server(int number) {
+        super(number);
     }
 
 
@@ -146,7 +150,7 @@ public class Server extends EndDevice{
         sendData(time + delay, link, fileSegment);
     }
 
-    public int getServerLoad(){
+    private int getServerLoad(){
         return queue.size();
     }
 
@@ -155,7 +159,7 @@ public class Server extends EndDevice{
         return getSuitableServer(request,0f);
     }
 
-        public Server getSuitableServer( Request request , float time) throws Exception{
+    public Server getSuitableServer( Request request , float time) throws Exception{
         /***
          *   finds a suitable server from graph to respond to the request
          */
@@ -163,7 +167,8 @@ public class Server extends EndDevice{
         Client client = request.getSource();
         List<Server> serversHavingSpecificFile = serversHavingFile.get(fileId);
         if (serversHavingSpecificFile==null || serversHavingSpecificFile.size()==0) throw new OkayException(" No server has the file " + fileId + " requested in " + request , time);
-        Server selectedServer = RedirectingAlgorithm.selectServerToRedirect(SimulationParameters.redirectingAlgorithmType,serversHavingSpecificFile,client);
+        makeLoadListIdeally(serversHavingSpecificFile,serverLoads);
+        Server selectedServer = RedirectingAlgorithm.selectServerToRedirect(SimulationParameters.redirectingAlgorithmType,serversHavingSpecificFile,serverLoads,client);
         return selectedServer;
     }
 
@@ -244,5 +249,16 @@ public class Server extends EndDevice{
             sb.append(end).append(" : ").append(routingTable.get(end)).append(" cost: ").append(communicationCostTable.get(end)).append("\n");
         }
         return sb.toString();
+    }
+
+    public static void makeLoadListIdeally(List<Server> serversHavingSpecificFile, Map<Server, Integer> serverLoads){
+        for (Server server:
+             serversHavingSpecificFile) {
+            serverLoads.put(server,server.getServerLoad());
+        }
+    }
+
+    public void setServersHavingFile(Map<Integer, List<Server>> serversHavingFile) {
+        this.serversHavingFile = serversHavingFile;
     }
 }

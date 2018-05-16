@@ -77,11 +77,11 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         List<Server> toReturnServers = new LinkedList<>();
         if (n<=0) return toReturnServers;
         List<Server> newList;
-        newList = cachSortedLists.get(new Pair(src,preFilteredServers));
-        if(newList!=null) {
-            c++;
-        }
-        if (newList==null) {
+//        newList = cachSortedLists.get(new Pair(src,preFilteredServers));
+//        if(newList!=null) {
+//            c++;
+//        }
+        if (true ||newList==null) {
             t++;
             newList = new LinkedList<>();
             for (Server server : preFilteredServers) {

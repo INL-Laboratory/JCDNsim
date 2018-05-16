@@ -22,7 +22,7 @@ public abstract class EndDevice extends IEventHandler{
     }
 
     protected void sendData(float time, Link link, Segment segment) {
-        Logger.print(this+ " sends "+ segment  + " at time "+ time+" to " + segment.getDestination() + " through link" + link,time);
+//        Logger.print(this+ " sends "+ segment  + " at time "+ time+" to " + segment.getDestination() + " through link" + link,time);
         EventsQueue.addEvent(
                 new Event<>(EventType.sendData, link, time, this , segment)
         );
@@ -31,7 +31,7 @@ public abstract class EndDevice extends IEventHandler{
     public boolean receiveData(float time, Segment segment, Link link) throws Exception{
         if(!isReceivedDataValid(link))
             return false;
-        Logger.print(this + " received "+ segment + " from Link " + link,time);
+//        Logger.print(this + " received "+ segment + " from Link " + link,time);
         parseReceivedSegment(time, segment);
         return true;
     }

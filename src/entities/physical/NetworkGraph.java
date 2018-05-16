@@ -77,11 +77,11 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         List<Server> toReturnServers = new LinkedList<>();
         if (n<=0) return toReturnServers;
         List<Server> newList;
-//        newList = cachSortedLists.get(new Pair(src,preFilteredServers));
-//        if(newList!=null) {
-//            c++;
-//        }
-        if (true||newList==null) {
+        newList = cachSortedLists.get(new Pair(src,preFilteredServers));
+        if(newList!=null) {
+            c++;
+        }
+        if (newList==null) {
             t++;
             newList = new LinkedList<>();
             for (Server server : preFilteredServers) {
@@ -111,6 +111,10 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
 
         return toReturnServers;
     }
+
+    Map<Pair, Server> cachedMinCostList = new HashMap<>();
+
+
     public Server getNearestServer(List<Server> preFilteredServers, Client src){
         /***
          * returns the nearest server to the client in a list of servers that might have been already filtered.
@@ -120,6 +124,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         if (preFilteredServers.contains(directlyConnectedServer)) {
             return directlyConnectedServer;
         }
+
         int minCost= Integer.MAX_VALUE;
         Server toReturnServer = null;
         for (Server candidateServer:preFilteredServers) {
@@ -206,11 +211,11 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
             maxLoad = totalLoad;
         }
 
-        Logger.printWithoutTime(" total cost = "+ totalCosts + "  total Load = " + totalLoad);
+//        Logger.printWithoutTime(" total cost = "+ totalCosts + "  total Load = " + totalLoad);
         double serverDesirability;
         for (Server candidateServer:preFilteredServers) {
             serverDesirability = calculateDesirability(totalCosts, totalLoad, candidateServer,serverLoads.get(candidateServer), alpha, src);
-            Logger.printWithoutTime(candidateServer.toString()+" queueSize = "+serverLoads.get(candidateServer)+ " cost = " + candidateServer.getCommunicationCostTable().get(src) + "desirability = " + serverDesirability);
+//            Logger.printWithoutTime(candidateServer.toString()+" queueSize = "+serverLoads.get(candidateServer)+ " cost = " + candidateServer.getCommunicationCostTable().get(src) + "desirability = " + serverDesirability);
             if (serverDesirability<minDesirability){
 //                toReturnServer = candidateServer;
                 minDesirability = serverDesirability;
@@ -227,7 +232,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
 
 
 //        System.out.println(minDesirability);
-        Logger.printWithoutTime(" total cost = "+ totalCosts + "  total Load = " + totalLoad);
+//        Logger.printWithoutTime(" total cost = "+ totalCosts + "  total Load = " + totalLoad);
         return toReturnServer;
     }
 

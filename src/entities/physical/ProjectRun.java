@@ -33,11 +33,11 @@ public class ProjectRun {
         final int numberOfFiles = 35;
         final int numberOfServers = 35;
         final int numberOfFilesPerServer = 15;
-        final int numberOfRequests =1000;
+        final int numberOfRequests =500000;
         final float bandwidth = 10000000f;
         final float propagationDelay = 0f;
         final int sizeOfFiles = 50;
-        final int numberOfRuns = 20;
+        final int numberOfRuns = 100;
         final float lambdaInOutRatio = 0.999f;
         String path = "results";
         new File( path).mkdir();
@@ -193,16 +193,33 @@ public class ProjectRun {
                 initSimulator(numberOfFiles, numberOfServers, numberOfFilesPerServer , propagationDelay , bandwidth,sizeOfFiles );
                 System.out.println("generating Requests");
                 generateRequests(numberOfRequests,numberOfFiles, numberOfServers , lambdaInOutRatio);
+                System.out.println("handling Events");
+                double a = System.currentTimeMillis();
                 Brain.handleEvents();
                 System.out.println(NetworkGraph.networkGraph.c);
                 System.out.println(NetworkGraph.networkGraph.t);
+                System.out.println("gathering Stats");
                 gatherStats(costStatsForAllRuns, delayStatsForAllRuns, i,j);
                 if(logger!=null) {
                     logger.close();
                 }
+                System.out.println();
+                System.out.println("done(s) = "+ (System.currentTimeMillis()-a)/1000);
+                System.out.println("% of Time in redirecting Algs= " + (RedirectingAlgorithm.totalTime/(System.currentTimeMillis()-a))*100);
+                System.out.println("% of Time in Server handle Events= " + (Server.totalTimeInServerHandleEvent /(System.currentTimeMillis()-a))*100);
+                System.out.println("% of Time in Client handle Events= " + (Client.totalTimeINClientHandleEvent /(System.currentTimeMillis()-a))*100);
+                System.out.println("% of Time in Link handle Events= " + (Link.totalTimeInLinkHandleEvent /(System.currentTimeMillis()-a))*100);
+                System.out.println("% of Time in Brain= " + (Brain.totalTimeInBrain /(System.currentTimeMillis()-a))*100);
+                RedirectingAlgorithm.totalTime = 0;
+                Server.totalTimeInServerHandleEvent = 0;
+                Link.totalTimeInLinkHandleEvent = 0;
+                Client.totalTimeINClientHandleEvent = 0;
+                Brain.totalTimeInBrain = 0;
+
             }
             calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
             result.print(DefaultValues.MCS_DELTA);
+
             result.print("\t cost: "+costStats[i]+ "\t delay: " + delayStats[i]+"\n");
         }
 

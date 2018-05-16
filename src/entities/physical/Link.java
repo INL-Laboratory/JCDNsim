@@ -69,9 +69,13 @@ public class Link extends IEventHandler{
     public void setEndPointB(EndDevice endPointB) {
         this.endPointB = endPointB;
     }
+    public static double totalTimeInLinkHandleEvent = 0;
 
     @Override
-    public void handleEvent(Event event) throws Exception {if(!event.getRelatedEntity().equals(this)){
+    public void handleEvent(Event event) throws Exception {
+        double tempTime = System.currentTimeMillis();
+
+        if(!event.getRelatedEntity().equals(this)){
             throw new Exception("");
         }
 
@@ -104,9 +108,11 @@ public class Link extends IEventHandler{
             //SendNextSegment
             checkForSendData(event.getTime());
         }
-    }
+        totalTimeInLinkHandleEvent +=System.currentTimeMillis()-tempTime;
 
+    }
     private void checkForSendData(float time) {
+
         if(segmentsFromA.size()>0 && !isSendingFromA){
 //            float eventTime = time + propagationDelay + segmentsFromA.get(0).getSize()/bw;
             float eventTime = time ;

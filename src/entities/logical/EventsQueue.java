@@ -33,7 +33,6 @@ public class EventsQueue {
 
         return queue.remove();
     }
-
     public static boolean hasEvent(){
         return queue.length() > 0;
     }

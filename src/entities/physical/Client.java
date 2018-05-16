@@ -43,8 +43,11 @@ public class Client extends EndDevice {
         this.link = link;
     }
 
+
+    public static double totalTimeINClientHandleEvent = 0;
     @Override
     public void handleEvent(Event event) throws Exception {
+        double tempTime = System.currentTimeMillis();
         switch (event.getType()){
             case sendReq:
                 sendFileRequest(event.getTime(), (Integer) event.getOptionalData());
@@ -55,11 +58,12 @@ public class Client extends EndDevice {
             case timeOut:
                 int requestID = (int)event.getOptionalData();
                 if (servedRequestsTime.get(requestID)==null){
-                    Logger.print(this + " 's "+ requestID + " remained unanswered ",event.getTime());
+//                    Logger.print(this + " 's "+ requestID + " remained unanswered ",event.getTime());
                     unansweredRequests.add(requestID);
                 }
 
         }
+        totalTimeINClientHandleEvent +=System.currentTimeMillis()-tempTime;
     }
 
     private void sendFileRequest(float time, int fileID) {
@@ -72,7 +76,7 @@ public class Client extends EndDevice {
         );
         sentRequestsTime.put(generatedId,time);
         sentRequestsFileId.put(generatedId,fileID);
-        Logger.print(this + "makes " + request+ " for file " +fileID+" , puts in " + segment,time);
+//        Logger.print(this + "makes " + request+ " for file " +fileID+" , puts in " + segment,time);
         sendData(time,link,segment);
         if (DefaultValues.IS_TIME_OUT_ACTIVATED) {
             EventsQueue.addEvent(
@@ -95,7 +99,7 @@ public class Client extends EndDevice {
 
     @Override
     protected void parseReceivedSegment(float time, Segment segment) throws Exception {
-        Logger.print(segment+ " is being parsed by " + this, time);
+//        Logger.print(segment+ " is being parsed by " + this, time);
         if (isThisDeviceDestined(segment)) {
             switch (segment.getSegmentType()) {
                 case Data:
@@ -122,7 +126,7 @@ public class Client extends EndDevice {
         }
         servedRequestsTime.put(requestID,time);
         servedRequestsCost.put(requestID, segment.getToleratedCost());
-        Logger.print(this + " successfully received its file "+ requestedFileId + " in "+ segment + " with delay = " + (time -sendTime) + " tolerated cost = " + segment.getToleratedCost() , time );
+//        Logger.print(this + " successfully received its file "+ requestedFileId + " in "+ segment + " with delay = " + (time -sendTime) + " tolerated cost = " + segment.getToleratedCost() , time );
     }
 
 

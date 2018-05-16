@@ -16,7 +16,10 @@ import java.util.Random;
 public class RedirectingAlgorithm {
 //    static float queryDelay = 0;
     public static Random rnd = new Random();
+    public static double totalTime = 0;
     public static Server selectServerToRedirect( RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile , Map<Server, Integer> serverLoads ,Client client){
+        double a = System.currentTimeMillis();
+
         Server selectedServer;
 //        queryDelay = 0;
         switch (redirectingAlgorithmType){
@@ -32,7 +35,7 @@ public class RedirectingAlgorithm {
             default:
                 throw new RuntimeException("Redirecting Algorithm is not defined");
         }
-
+         totalTime += System.currentTimeMillis()-a;
         return selectedServer;
     }
     private static Server selectMCSserver(Client client, List<Server> serversHavingFile,Map<Server, Integer> serverLoads) {
@@ -53,17 +56,17 @@ public class RedirectingAlgorithm {
         Server selectedServer;
         float randomFloat = DefaultValues.random.nextFloat();
         if (randomFloat<DefaultValues.PSS_PROBABILITY){
-            Logger.printWithoutTime("*******PSS wants to find the nearest Server.");
+//            Logger.printWithoutTime("*******PSS wants to find the nearest Server.");
             selectedServer = NetworkGraph.networkGraph.getNearestServer(serversHavingFile,client);
         }else{
-            Logger.printWithoutTime("*******PSS wants to find the least loaded Server.");
+//            Logger.printWithoutTime("*******PSS wants to find the least loaded Server.");
             selectedServer = NetworkGraph.networkGraph.getLeastLoadedServer(serversHavingFile, serverLoads);
         }
-        Logger.printWithoutTime("*******Servers Having File:");
-        for (Server serverHavingFile:serversHavingFile) {
-            Logger.printWithoutTime(serverHavingFile.toString()+" queueSize = "+ serverLoads.get(serverHavingFile) + " cost = " + serverHavingFile.getCommunicationCostTable().get(client));
-        }
-        Logger.printWithoutTime("******* PSS selected "+ selectedServer);
+//        Logger.printWithoutTime("*******Servers Having File:");
+//        for (Server serverHavingFile:serversHavingFile) {
+//            Logger.printWithoutTime(serverHavingFile.toString()+" queueSize = "+ serverLoads.get(serverHavingFile) + " cost = " + serverHavingFile.getCommunicationCostTable().get(client));
+//        }
+//        Logger.printWithoutTime("******* PSS selected "+ selectedServer);
         return selectedServer;
     }
 }

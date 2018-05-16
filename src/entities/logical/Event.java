@@ -14,7 +14,7 @@ public class Event <T extends IEventHandler> implements Comparable {
         this.relatedEntity = relatedEntity;
         this.time = time;
         this.creator = creator;
-        Logger.ePrint("Event created: " + this, 0f);
+//        Logger.ePrint("Event created: " + this, 0f);
     }
 
     public Event(EventType eventType, T relatedEntity, float time, T creator, Object optionalData){

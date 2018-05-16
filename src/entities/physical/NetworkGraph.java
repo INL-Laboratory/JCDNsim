@@ -3,6 +3,7 @@ package entities.physical;
 import com.sun.istack.internal.Nullable;
 import edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
+import entities.logical.Pair;
 import entities.utilities.logger.Logger;
 
 import java.util.*;
@@ -61,37 +62,53 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         }
     }
     //TODO: implement NumberOf Queries
-    public List<Server> getNearestServers(int n, List<Server> preFilteredServers, EndDevice src, boolean shuffled, @Nullable Random rnd){
+
+
+
+
+
+    Map<Pair, List<Server>> cachSortedLists = new HashMap<>();
+    public int c = 0;
+    public int t = 0;
+    public List<Server> getNearestServers(int n, List<Server> preFilteredServers, EndDevice src, @Nullable Random rnd){
         /***
          * returns the n nearest servers to the src in a list of servers that might have been already filtered.
          */
         List<Server> toReturnServers = new LinkedList<>();
         if (n<=0) return toReturnServers;
+        List<Server> newList;
+//        newList = cachSortedLists.get(new Pair(src,preFilteredServers));
+//        if(newList!=null) {
+//            c++;
+//        }
+        if (true||newList==null) {
+            t++;
+            newList = new LinkedList<>();
+            for (Server server : preFilteredServers) {
+                newList.add(server);
+            }
+            Collections.shuffle(newList);
 
-        List<Server> newList = new LinkedList<>();
-        for (Server server:preFilteredServers) {
-            newList.add(server);
+            Collections.sort(newList, (Comparator<Server>) (o1, o2) -> {
+                int o1Cost = o1.getCommunicationCostTable().get(src);
+                int o2Cost = o2.getCommunicationCostTable().get(src);
+                boolean con = o1Cost < o2Cost;
+                boolean con2 = o1Cost > o2Cost;
+                return con ? -1 : (con2 ? 1 : 0);
+                //TODO: check whether the order is right
+            });
+            cachSortedLists.put(new Pair( src,preFilteredServers), newList);
         }
-        Collections.shuffle(newList);
 
-        Collections.sort(newList, (Comparator<Server>) (o1, o2) -> {
-            int o1Cost =  o1.getCommunicationCostTable().get(src);
-            int o2Cost =  o2.getCommunicationCostTable().get(src);
-            boolean con = o1Cost<o2Cost;
-            boolean con2 = o1Cost>o2Cost;
-            return con?-1:(con2?1:0);
-            //TODO: check whether the order is right
-        });
         for (int i = 0; i <n ; i++) {
             if (newList.size()==i) return toReturnServers;
             toReturnServers.add(newList.get(i));
         }
-        if (shuffled) {
             if (rnd==null)
             Collections.shuffle(toReturnServers);
             else
                 Collections.shuffle(toReturnServers,rnd);
-        }
+
         return toReturnServers;
     }
     public Server getNearestServer(List<Server> preFilteredServers, Client src){

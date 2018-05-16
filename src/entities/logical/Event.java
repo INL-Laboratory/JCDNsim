@@ -2,7 +2,7 @@ package entities.logical;
 
 import entities.utilities.logger.Logger;
 
-public class Event <T extends IEventHandler> {
+public class Event <T extends IEventHandler> implements Comparable {
     private EventType type;
     private T relatedEntity;
     private float time;
@@ -72,5 +72,12 @@ public class Event <T extends IEventHandler> {
         sb.append(", optionalData=").append(optionalData);
         sb.append('}');
         return sb.toString();
+    }
+
+
+
+    @Override
+    public int compareTo(Object o) {
+        return Float.compare(((Event)o).time,this.time);
     }
 }

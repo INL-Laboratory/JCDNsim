@@ -35,9 +35,9 @@ public class RedirectingAlgorithm {
 
         return selectedServer;
     }
-    private static Server selectMCSserver(Client client, List<Server> serversHavingFile, Map<Server, Integer> serverLoads) {
+    private static Server selectMCSserver(Client client, List<Server> serversHavingFile,Map<Server, Integer> serverLoads) {
         Server selectedServer;
-        List<Server> nearestServers= NetworkGraph.networkGraph.getNearestServers(DefaultValues.MCS_DELTA,serversHavingFile,client, true, rnd);
+        List<Server> nearestServers= NetworkGraph.networkGraph.getNearestServers(DefaultValues.MCS_DELTA,serversHavingFile,client, rnd);
         if (nearestServers==null || nearestServers.size()==0) throw new RuntimeException();
         selectedServer = NetworkGraph.networkGraph.getLeastLoadedServer(nearestServers,serverLoads);
         return selectedServer;

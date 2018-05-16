@@ -69,18 +69,18 @@ public class ProjectRun {
 
 //
         int numberOfPoints = 11;
-//        Float[] costStats0 = new Float[numberOfPoints];
-//        Float[] delayStats0 = new Float[numberOfPoints];
-//        Float[][] costStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
-//        Float[][] delayStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
-//        simulatePSS(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result0, costStatsForAllRuns0, delayStatsForAllRuns0, costStats0, delayStats0);
-//
-//        numberOfPoints = 11;
-//        Float[] costStats1 = new Float[numberOfPoints];
-//        Float[] delayStats1 = new Float[numberOfPoints];
-//        Float[][] delayStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
-//        Float[][] costStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
-//        simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result1, costStatsForAllRuns1, delayStatsForAllRuns1, costStats1, delayStats1);
+        Float[] costStats0 = new Float[numberOfPoints];
+        Float[] delayStats0 = new Float[numberOfPoints];
+        Float[][] costStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
+        Float[][] delayStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
+        simulatePSS(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result0, costStatsForAllRuns0, delayStatsForAllRuns0, costStats0, delayStats0);
+
+        numberOfPoints = 11;
+        Float[] costStats1 = new Float[numberOfPoints];
+        Float[] delayStats1 = new Float[numberOfPoints];
+        Float[][] delayStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
+        Float[][] costStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
+        simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result1, costStatsForAllRuns1, delayStatsForAllRuns1, costStats1, delayStats1);
 
          numberOfPoints = 16;
 
@@ -99,8 +99,8 @@ public class ProjectRun {
                 seriesName1 = "WMC",
                 seriesName2 = "MCS";
         Chart.initiateChart(pathName);
-//        Chart.addSeries(seriesName0, costStats0, delayStats0);
-//        Chart.addSeries(seriesName1, costStats1, delayStats1);
+        Chart.addSeries(seriesName0, costStats0, delayStats0);
+        Chart.addSeries(seriesName1, costStats1, delayStats1);
         Chart.addSeries(seriesName2, costStats2, delayStats2);
         Chart.main(args);
 

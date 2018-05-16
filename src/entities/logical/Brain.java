@@ -8,7 +8,7 @@ public class Brain {
 //    EventsQueue eventsQueue;
     public static double totalTimeInBrain=0;
     public static void handleEvents(){
-            double tempTime = System.currentTimeMillis();
+//            double tempTime = System.currentTimeMillis();
         while (EventsQueue.hasEvent()){
             Event event = EventsQueue.popEvent();
             try {
@@ -28,7 +28,7 @@ public class Brain {
                 return;
             }
         }
-                totalTimeInBrain+= System.currentTimeMillis() - tempTime;
+//                totalTimeInBrain+= System.currentTimeMillis() - tempTime;
 
     }
 

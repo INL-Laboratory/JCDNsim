@@ -188,7 +188,7 @@ public class Server extends EndDevice{
     public static double totalTimeInServerHandleEvent = 0;
     @Override
     public void handleEvent(Event event) throws Exception {
-        double tempTime = System.currentTimeMillis();
+//        double tempTime = System.currentTimeMillis();
         switch (event.getType()){
             case receiveSegment:
                 receiveData(event.getTime(),(Segment) event.getOptionalData() , (Link)event.getCreator());
@@ -196,7 +196,7 @@ public class Server extends EndDevice{
             case requestServed:
                 requestServed(event.getTime(), (Request)event.getOptionalData());
         }
-        totalTimeInServerHandleEvent += System.currentTimeMillis()-tempTime;
+//        totalTimeInServerHandleEvent += System.currentTimeMillis()-tempTime;
 
     }
 

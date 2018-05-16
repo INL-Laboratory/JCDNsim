@@ -47,7 +47,7 @@ public class Client extends EndDevice {
     public static double totalTimeINClientHandleEvent = 0;
     @Override
     public void handleEvent(Event event) throws Exception {
-        double tempTime = System.currentTimeMillis();
+//        double tempTime = System.currentTimeMillis();
         switch (event.getType()){
             case sendReq:
                 sendFileRequest(event.getTime(), (Integer) event.getOptionalData());
@@ -63,7 +63,7 @@ public class Client extends EndDevice {
                 }
 
         }
-        totalTimeINClientHandleEvent +=System.currentTimeMillis()-tempTime;
+//        totalTimeINClientHandleEvent +=System.currentTimeMillis()-tempTime;
     }
 
     private void sendFileRequest(float time, int fileID) {

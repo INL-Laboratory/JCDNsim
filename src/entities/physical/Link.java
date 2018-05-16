@@ -73,7 +73,7 @@ public class Link extends IEventHandler{
 
     @Override
     public void handleEvent(Event event) throws Exception {
-        double tempTime = System.currentTimeMillis();
+//        double tempTime = System.currentTimeMillis();
 
         if(!event.getRelatedEntity().equals(this)){
             throw new Exception("");
@@ -108,7 +108,7 @@ public class Link extends IEventHandler{
             //SendNextSegment
             checkForSendData(event.getTime());
         }
-        totalTimeInLinkHandleEvent +=System.currentTimeMillis()-tempTime;
+//        totalTimeInLinkHandleEvent +=System.currentTimeMillis()-tempTime;
 
     }
     private void checkForSendData(float time) {

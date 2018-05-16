@@ -204,22 +204,22 @@ public class ProjectRun {
                     logger.close();
                 }
                 System.out.println();
-//                System.out.println("done(s) = "+ (System.currentTimeMillis()-a)/1000);
+                System.out.println("done(s) = "+ (System.currentTimeMillis()-a)/1000);
 //                System.out.println("% of Time in redirecting Algs= " + (RedirectingAlgorithm.totalTime/(System.currentTimeMillis()-a))*100);
-                System.out.println("% of Time in Server handle Events= " + (Server.totalTimeInServerHandleEvent /(System.currentTimeMillis()-a))*100);
-                System.out.println("% of Time in Client handle Events= " + (Client.totalTimeINClientHandleEvent /(System.currentTimeMillis()-a))*100);
-                System.out.println("% of Time in Link handle Events= " + (Link.totalTimeInLinkHandleEvent /(System.currentTimeMillis()-a))*100);
-                System.out.println("% of Time in Brain= " + (Brain.totalTimeInBrain /(System.currentTimeMillis()-a))*100);
-                System.out.println("% of Time in Request generation= " + (totalTimeInGenerateRequests /(System.currentTimeMillis()-a))*100);
+//                System.out.println("% of Time in Server handle Events= " + (Server.totalTimeInServerHandleEvent /(System.currentTimeMillis()-a))*100);
+//                System.out.println("% of Time in Client handle Events= " + (Client.totalTimeINClientHandleEvent /(System.currentTimeMillis()-a))*100);
+//                System.out.println("% of Time in Link handle Events= " + (Link.totalTimeInLinkHandleEvent /(System.currentTimeMillis()-a))*100);
+//                System.out.println("% of Time in Brain= " + (Brain.totalTimeInBrain /(System.currentTimeMillis()-a))*100);
+//                System.out.println("% of Time in Request generation= " + (totalTimeInGenerateRequests /(System.currentTimeMillis()-a))*100);
                 System.out.println("% MaximumQueue= " + Server.maxQueue);
-                RedirectingAlgorithm.totalTime = 0;
-                Server.totalTimeInServerHandleEvent = 0;
-                Server.maxQueue = 0;
-                Link.totalTimeInLinkHandleEvent = 0;
-                Client.totalTimeINClientHandleEvent = 0;
-                Brain.totalTimeInBrain = 0;
-                totalTimeInGenerateRequests = 0;
-
+//                RedirectingAlgorithm.totalTime = 0;
+//                Server.totalTimeInServerHandleEvent = 0;
+//                Server.maxQueue = 0;
+//                Link.totalTimeInLinkHandleEvent = 0;
+//                Client.totalTimeINClientHandleEvent = 0;
+//                Brain.totalTimeInBrain = 0;
+//                totalTimeInGenerateRequests = 0;
+//
 
             }
             calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
@@ -267,7 +267,7 @@ public class ProjectRun {
     }
     public static double totalTimeInGenerateRequests = 0;
     private static void generateRequests(int numberOfRequests, int numberOfFiles, int numberOfServers, float ratio) {
-        double tempTime = System.currentTimeMillis();
+//        double tempTime = System.currentTimeMillis();
         int reqFileId, requestingClientID;
         Random random = new Random();
         float reqTime = 0f;
@@ -281,7 +281,7 @@ public class ProjectRun {
                     new Event(EventType.sendReq, clients.get(requestingClientID), reqTime, null, reqFileId)
             );
         }
-        totalTimeInGenerateRequests += System.currentTimeMillis()-tempTime;
+//        totalTimeInGenerateRequests += System.currentTimeMillis()-tempTime;
 
     }
 

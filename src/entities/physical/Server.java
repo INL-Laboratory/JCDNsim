@@ -49,7 +49,7 @@ public class Server extends EndDevice{
         }
 
     }
-
+    public static int maxQueue = 0;
     private void lookAtContent(float time, Segment segment) throws Exception {
         switch (segment.getSegmentType()) {
             case Request:
@@ -59,6 +59,7 @@ public class Server extends EndDevice{
                     serveRequest(time,request);
                 }else {
                     queue.add(request);
+                    if (queue.size()>maxQueue) maxQueue = queue.size();
 //                    Logger.print(this + " added to queue: " + request + " queueSize = " + queue.size(),time);
                 }
                 break;

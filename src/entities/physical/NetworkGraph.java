@@ -55,11 +55,11 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
 
             }
         }
-        for (EndDevice end : getVertices()) {
-            if (end instanceof Server){
-                Logger.print(((Server)end).toStringRoutingTable(), 0f);
-            }
-        }
+//        for (EndDevice end : getVertices()) {
+//            if (end instanceof Server){
+//                Logger.print(((Server)end).toStringRoutingTable(), 0f);
+//            }
+//        }
     }
     //TODO: implement NumberOf Queries
 
@@ -200,7 +200,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         /***
          * returns the least desirable server in a list of servers that might have been already filtered.
          */
-        Logger.printWithoutTime("*******Servers Having File:");
+//        Logger.printWithoutTime("*******Servers Having File:");
         if (preFilteredServers.size()==0) return null;
         double minDesirability = Double.MAX_VALUE;
         Server toReturnServer = null;

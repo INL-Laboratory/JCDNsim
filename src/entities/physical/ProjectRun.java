@@ -181,6 +181,7 @@ public class ProjectRun {
         for (int i = 0; i <numberOfPoints ; i++){
 //                saeed = i;
             for (int j = 0; j < numberOfRuns ; j++) {
+                double a = System.currentTimeMillis();
                 PrintWriter logger = null;
                 if (DefaultValues.LOGGER_ON) {
                     new File(path+"/logs/run"+j).mkdir();
@@ -194,7 +195,6 @@ public class ProjectRun {
                 System.out.println("generating Requests");
                 generateRequests(numberOfRequests,numberOfFiles, numberOfServers , lambdaInOutRatio);
                 System.out.println("handling Events");
-                double a = System.currentTimeMillis();
                 Brain.handleEvents();
                 System.out.println(NetworkGraph.networkGraph.c);
                 System.out.println(NetworkGraph.networkGraph.t);
@@ -204,17 +204,22 @@ public class ProjectRun {
                     logger.close();
                 }
                 System.out.println();
-                System.out.println("done(s) = "+ (System.currentTimeMillis()-a)/1000);
-                System.out.println("% of Time in redirecting Algs= " + (RedirectingAlgorithm.totalTime/(System.currentTimeMillis()-a))*100);
+//                System.out.println("done(s) = "+ (System.currentTimeMillis()-a)/1000);
+//                System.out.println("% of Time in redirecting Algs= " + (RedirectingAlgorithm.totalTime/(System.currentTimeMillis()-a))*100);
                 System.out.println("% of Time in Server handle Events= " + (Server.totalTimeInServerHandleEvent /(System.currentTimeMillis()-a))*100);
                 System.out.println("% of Time in Client handle Events= " + (Client.totalTimeINClientHandleEvent /(System.currentTimeMillis()-a))*100);
                 System.out.println("% of Time in Link handle Events= " + (Link.totalTimeInLinkHandleEvent /(System.currentTimeMillis()-a))*100);
                 System.out.println("% of Time in Brain= " + (Brain.totalTimeInBrain /(System.currentTimeMillis()-a))*100);
+                System.out.println("% of Time in Request generation= " + (totalTimeInGenerateRequests /(System.currentTimeMillis()-a))*100);
+                System.out.println("% MaximumQueue= " + Server.maxQueue);
                 RedirectingAlgorithm.totalTime = 0;
                 Server.totalTimeInServerHandleEvent = 0;
+                Server.maxQueue = 0;
                 Link.totalTimeInLinkHandleEvent = 0;
                 Client.totalTimeINClientHandleEvent = 0;
                 Brain.totalTimeInBrain = 0;
+                totalTimeInGenerateRequests = 0;
+
 
             }
             calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
@@ -260,8 +265,9 @@ public class ProjectRun {
         costStats[i][j] = totalCost/counter;
         delayStats[i][j]= totalDelay/counter;
     }
-
+    public static double totalTimeInGenerateRequests = 0;
     private static void generateRequests(int numberOfRequests, int numberOfFiles, int numberOfServers, float ratio) {
+        double tempTime = System.currentTimeMillis();
         int reqFileId, requestingClientID;
         Random random = new Random();
         float reqTime = 0f;
@@ -275,6 +281,8 @@ public class ProjectRun {
                     new Event(EventType.sendReq, clients.get(requestingClientID), reqTime, null, reqFileId)
             );
         }
+        totalTimeInGenerateRequests += System.currentTimeMillis()-tempTime;
+
     }
 
     private static void initSimulator(int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, float propDelay, float bw, int sizeOfFiles) {
@@ -302,17 +310,17 @@ public class ProjectRun {
     private static void fillServersHavingFile(Map<Integer, List<Server>> serversHavingFile) {
         StringBuffer sb = new StringBuffer();
         List<Server> serversss ;
-        sb.append(" ***** Files ***** ");
-
+//        sb.append(" ***** Files ***** ");
+//
         for(IFile f: files){
             serversss = networkGraph.getServersHavingFile(f.getId());
             serversHavingFile.put(f.getId(),serversss);
-            sb.append("\n").append(f).append(" :");
-            for(Server s: serversss){
-                sb.append("  ").append(s);
-            }
+//            sb.append("\n").append(f).append(" :");
+//            for(Server s: serversss){
+//                sb.append("  ").append(s);
+//            }
         }
-        Logger.print(sb.toString(),0);
+//        Logger.print(sb.toString(),0);
     }
 
     private static void addLinksToGraph() {

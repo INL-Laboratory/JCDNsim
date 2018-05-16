@@ -18,7 +18,7 @@ public class RedirectingAlgorithm {
     public static Random rnd = new Random();
     public static double totalTime = 0;
     public static Server selectServerToRedirect( RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile , Map<Server, Integer> serverLoads ,Client client){
-        double a = System.currentTimeMillis();
+//        double a = System.currentTimeMillis();
 
         Server selectedServer;
 //        queryDelay = 0;
@@ -35,7 +35,7 @@ public class RedirectingAlgorithm {
             default:
                 throw new RuntimeException("Redirecting Algorithm is not defined");
         }
-         totalTime += System.currentTimeMillis()-a;
+//         totalTime += System.currentTimeMillis()-a;
         return selectedServer;
     }
     private static Server selectMCSserver(Client client, List<Server> serversHavingFile,Map<Server, Integer> serverLoads) {

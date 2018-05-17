@@ -8,7 +8,6 @@ import java.util.List;
 public class EventsQueue {
     private static BinaryHeap<Event> queue = new BinaryHeap<>(false);
 
-    public static void renewQueue(){queue=new BinaryHeap<>(false);}
     public static void addEvent(Event event){
 //        if(queue.() == 0){
 //            queue.add(event);

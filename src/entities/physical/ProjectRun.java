@@ -3,6 +3,7 @@ package entities.physical;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import entities.logical.*;
 import entities.utilities.Chart;
+import entities.utilities.ZipfGenerator;
 import entities.utilities.logger.Logger;
 
 import java.io.File;
@@ -33,11 +34,11 @@ public class ProjectRun {
         final int numberOfFiles = 35;
         final int numberOfServers = 35;
         final int numberOfFilesPerServer = 15;
-        final int numberOfRequests =500000;
+        final int numberOfRequests =10000;
         final float bandwidth = 10000000f;
         final float propagationDelay = 0f;
         final int sizeOfFiles = 50;
-        final int numberOfRuns = 100;
+        final int numberOfRuns = 300;
         final float lambdaInOutRatio = 0.999f;
         String path = "results";
         new File( path).mkdir();
@@ -82,7 +83,7 @@ public class ProjectRun {
         Float[][] costStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
         simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result1, costStatsForAllRuns1, delayStatsForAllRuns1, costStats1, delayStats1);
 
-         numberOfPoints = 16;
+         numberOfPoints = numberOfServers-1;
 
         Float[] costStats2 = new Float[numberOfPoints];
         Float[] delayStats2 = new Float[numberOfPoints];
@@ -111,6 +112,8 @@ public class ProjectRun {
         result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
         DefaultValues.PSS_PROBABILITY = 0;
         for (int i = 0; i < numberOfPoints; i++){
+            System.out.println(i);
+
             for (int j = 0; j < numberOfRuns ; j++) {
                 PrintWriter logger = null;
                 if (DefaultValues.LOGGER_ON) {
@@ -119,14 +122,8 @@ public class ProjectRun {
                     Logger.printWriter = logger;
                 }
                 DefaultValues.PSS_PROBABILITY = 0.1f*i;
-                System.out.println(DefaultValues.PSS_PROBABILITY+"\t" + j);
-                initSimulator(numberOfFiles, numberOfServers, numberOfFilesPerServer , propagationDelay , bandwidth,sizeOfFiles );
-                generateRequests(numberOfRequests,numberOfFiles, numberOfServers , lambdaInOutRatio);
-                Brain.handleEvents();
-                gatherStats(costStatsForAllRuns, delayStatsForAllRuns, i,j);
-                if(logger!=null) {
-                    logger.close();
-                }
+                simulate(numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, lambdaInOutRatio, costStatsForAllRuns, delayStatsForAllRuns, i, j, logger);
+
             }
             calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
             result.print(DefaultValues.PSS_PROBABILITY);
@@ -146,6 +143,8 @@ public class ProjectRun {
         result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
         DefaultValues.WMC_ALPHA = 0;
         for (int i = 0; i < numberOfPoints; i++){
+            System.out.println(i);
+
             for (int j = 0; j < numberOfRuns ; j++) {
                 PrintWriter logger = null;
                 if (DefaultValues.LOGGER_ON) {
@@ -154,14 +153,8 @@ public class ProjectRun {
                     Logger.printWriter = logger;
                 }
                 DefaultValues.WMC_ALPHA = 0.1f*i;
-                System.out.println(DefaultValues.WMC_ALPHA+"\t" + j);
-                initSimulator(numberOfFiles, numberOfServers, numberOfFilesPerServer , propagationDelay , bandwidth,sizeOfFiles );
-                generateRequests(numberOfRequests,numberOfFiles, numberOfServers , lambdaInOutRatio);
-                Brain.handleEvents();
-                gatherStats(costStatsForAllRuns, delayStatsForAllRuns, i,j);
-                if(logger!=null) {
-                    logger.close();
-                }
+                simulate(numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, lambdaInOutRatio, costStatsForAllRuns, delayStatsForAllRuns, i, j, logger);
+
             }
             calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
             result.print(DefaultValues.WMC_ALPHA);
@@ -180,8 +173,8 @@ public class ProjectRun {
         result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
         for (int i = 0; i <numberOfPoints ; i++){
 //                saeed = i;
+            System.out.println(i);
             for (int j = 0; j < numberOfRuns ; j++) {
-                double a = System.currentTimeMillis();
                 PrintWriter logger = null;
                 if (DefaultValues.LOGGER_ON) {
                     new File(path+"/logs/run"+j).mkdir();
@@ -189,37 +182,7 @@ public class ProjectRun {
                     Logger.printWriter = logger;
                 }
                 DefaultValues.MCS_DELTA =  i+1;
-                System.out.println(DefaultValues.MCS_DELTA+"\t" + j);
-                System.out.println("initializing simulator");
-                initSimulator(numberOfFiles, numberOfServers, numberOfFilesPerServer , propagationDelay , bandwidth,sizeOfFiles );
-                System.out.println("generating Requests");
-                generateRequests(numberOfRequests,numberOfFiles, numberOfServers , lambdaInOutRatio);
-                System.out.println("handling Events");
-                Brain.handleEvents();
-                System.out.println(NetworkGraph.networkGraph.c);
-                System.out.println(NetworkGraph.networkGraph.t);
-                System.out.println("gathering Stats");
-                gatherStats(costStatsForAllRuns, delayStatsForAllRuns, i,j);
-                if(logger!=null) {
-                    logger.close();
-                }
-                System.out.println();
-                System.out.println("done(s) = "+ (System.currentTimeMillis()-a)/1000);
-//                System.out.println("% of Time in redirecting Algs= " + (RedirectingAlgorithm.totalTime/(System.currentTimeMillis()-a))*100);
-//                System.out.println("% of Time in Server handle Events= " + (Server.totalTimeInServerHandleEvent /(System.currentTimeMillis()-a))*100);
-//                System.out.println("% of Time in Client handle Events= " + (Client.totalTimeINClientHandleEvent /(System.currentTimeMillis()-a))*100);
-//                System.out.println("% of Time in Link handle Events= " + (Link.totalTimeInLinkHandleEvent /(System.currentTimeMillis()-a))*100);
-//                System.out.println("% of Time in Brain= " + (Brain.totalTimeInBrain /(System.currentTimeMillis()-a))*100);
-//                System.out.println("% of Time in Request generation= " + (totalTimeInGenerateRequests /(System.currentTimeMillis()-a))*100);
-                System.out.println("% MaximumQueue= " + Server.maxQueue);
-//                RedirectingAlgorithm.totalTime = 0;
-//                Server.totalTimeInServerHandleEvent = 0;
-//                Server.maxQueue = 0;
-//                Link.totalTimeInLinkHandleEvent = 0;
-//                Client.totalTimeINClientHandleEvent = 0;
-//                Brain.totalTimeInBrain = 0;
-//                totalTimeInGenerateRequests = 0;
-//
+                simulate(numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, lambdaInOutRatio, costStatsForAllRuns, delayStatsForAllRuns, i, j, logger);
 
             }
             calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
@@ -232,6 +195,42 @@ public class ProjectRun {
         result.println("Duration(min): " + (finishTime - startTime)/60000);
 
         result.close();
+    }
+
+    private static void simulate(int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, float lambdaInOutRatio, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, int i, int j, PrintWriter logger) {
+//        double a = System.currentTimeMillis();
+//        System.out.println("initializing simulator");
+        initSimulator(numberOfFiles, numberOfServers, numberOfFilesPerServer , propagationDelay , bandwidth,sizeOfFiles );
+//        System.out.println("generating Requests");
+        generateRequests(numberOfRequests,numberOfFiles, numberOfServers , lambdaInOutRatio);
+//        System.out.println("handling Events");
+        Brain.handleEvents();
+//        System.out.println(NetworkGraph.networkGraph.c);
+//        System.out.println(NetworkGraph.networkGraph.t);
+//        System.out.println("gathering Stats");
+        gatherStats(costStatsForAllRuns, delayStatsForAllRuns, i,j);
+        if(logger!=null) {
+            logger.close();
+        }
+//        System.out.println();
+//        System.out.println("done(s) = "+ (System.currentTimeMillis()-a)/1000);
+//        System.out.println("% of Time in redirecting Algs= " + (RedirectingAlgorithm.totalTime/(System.currentTimeMillis()-a))*100);
+//                System.out.println("% of Time in Server handle Events= " + (Server.totalTimeInServerHandleEvent /(System.currentTimeMillis()-a))*100);
+//                System.out.println("% of Time in Client handle Events= " + (Client.totalTimeINClientHandleEvent /(System.currentTimeMillis()-a))*100);
+//                System.out.println("% of Time in Link handle Events= " + (Link.totalTimeInLinkHandleEvent /(System.currentTimeMillis()-a))*100);
+//                System.out.println("% of Time in Brain= " + (Brain.totalTimeInBrain /(System.currentTimeMillis()-a))*100);
+//                System.out.println("% of Time in Request generation= " + (totalTimeInGenerateRequests /(System.currentTimeMillis()-a))*100);
+//        System.out.println("% of Time in make Load List Ideally= " + (Server.totalTimeInMakeLoadListIdeally /(System.currentTimeMillis()-a))*100);
+//        System.out.println("% MaximumQueue= " + Server.maxQueue);
+//        RedirectingAlgorithm.totalTime = 0;
+//                Server.totalTimeInServerHandleEvent = 0;
+//        Server.maxQueue = 0;
+//                Link.totalTimeInLinkHandleEvent = 0;
+//                Client.totalTimeINClientHandleEvent = 0;
+//                Brain.totalTimeInBrain = 0;
+//                totalTimeInGenerateRequests = 0;
+//        Server.totalTimeInMakeLoadListIdeally = 0;
+//
     }
 
 
@@ -383,16 +382,11 @@ public class ProjectRun {
     }
 
     private static void assignFileListsToServers(int numberOfFiles, int numberOfServers, int numberOfFilesPerServer) {
-        int fileId;
+        int[][] serverContents = ZipfGenerator.returnFileList(1,numberOfFilesPerServer,numberOfFiles,numberOfServers);
         for (int i = 0; i < numberOfServers ; i++) {
-            List<IFile> fileList = new ArrayList<>(1);
-            for (int j = 0; j < numberOfFilesPerServer; j++) {
-                    fileId = i+j;
-                    if (fileId>=numberOfFiles){
-                        fileId-=numberOfFiles;
-                    }
-                    if (files.get(fileId)==null) throw new RuntimeException();
-                    fileList.add(files.get(fileId));
+            List<IFile> fileList = new LinkedList<>();
+            for (int j = 0; j < serverContents[i].length ; j++) {
+                fileList.add(files.get(serverContents[i][j]));
             }
             servers.get(i).setFiles(fileList);
         }

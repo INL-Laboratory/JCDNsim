@@ -14,10 +14,10 @@ import java.util.Random;
  * Created by hd on 2018/4/2 AD.
  */
 public class RedirectingAlgorithm {
-//    static float queryDelay = 0;
+    static float queryDelay = 0;
     public static Random rnd = new Random();
-    public static double totalTime = 0;
-    public static Server selectServerToRedirect( RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile , Map<Server, Integer> serverLoads ,Client client){
+//    public static double totalTime = 0;
+    public static Server selectServerToRedirect( RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile , Map<Server, Integer> serverLoads ,Client client, int totalLoad){
 //        double a = System.currentTimeMillis();
 
         Server selectedServer;
@@ -27,7 +27,7 @@ public class RedirectingAlgorithm {
                 selectedServer = selectPSSserver(client, serversHavingFile,serverLoads);
                 break;
             case WMC:
-                selectedServer = selectWMCserver(client, serversHavingFile,serverLoads);
+                selectedServer = selectWMCserver(client, serversHavingFile,serverLoads,totalLoad);
                 break;
             case MCS:
                 selectedServer = selectMCSserver(client, serversHavingFile,serverLoads);
@@ -35,7 +35,8 @@ public class RedirectingAlgorithm {
             default:
                 throw new RuntimeException("Redirecting Algorithm is not defined");
         }
-//         totalTime += System.currentTimeMillis()-a;
+
+//        totalTime += System.currentTimeMillis()-a;
         return selectedServer;
     }
     private static Server selectMCSserver(Client client, List<Server> serversHavingFile,Map<Server, Integer> serverLoads) {
@@ -46,9 +47,9 @@ public class RedirectingAlgorithm {
         return selectedServer;
     }
 
-    private static Server selectWMCserver(Client client, List<Server> serversHavingFile, Map<Server, Integer> serverLoads) {
+    private static Server selectWMCserver(Client client, List<Server> serversHavingFile, Map<Server, Integer> serverLoads, int totalLoad) {
         Server selectedServer;
-        selectedServer = NetworkGraph.networkGraph.getMostDesirableServer(serversHavingFile, serverLoads ,DefaultValues.WMC_ALPHA,client);
+        selectedServer = NetworkGraph.networkGraph.getMostDesirableServer(serversHavingFile, serverLoads ,DefaultValues.WMC_ALPHA,client,totalLoad);
         return selectedServer;
     }
 

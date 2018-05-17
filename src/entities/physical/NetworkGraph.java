@@ -68,6 +68,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
 
 
     Map<Pair, List<Server>> cachSortedLists = new HashMap<>();
+    Map<Pair, List<Server>> cachSortedListsNthPart = new HashMap<>();
     public int c = 0;
     public int t = 0;
     public List<Server> getNearestServers(int n, List<Server> preFilteredServers, EndDevice src, @Nullable Random rnd){
@@ -76,14 +77,19 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
          */
         List<Server> toReturnServers = new LinkedList<>();
         if (n<=0) return toReturnServers;
-        List<Server> newList;
-//        newList = cachSortedLists.get(new Pair(src,preFilteredServers));
-//        if(newList!=null) {
-//            c++;
-//        }
-        if (true ||newList==null) {
+        List<Server> newList, newListN;
+        newList = cachSortedLists.get(new Pair(src,preFilteredServers));
+        newListN = cachSortedListsNthPart.get(new Pair(src,preFilteredServers));
+        if (newListN!=null && newListN.size()!=0) {
+            Collections.shuffle(newListN);
+        }
+//        if (n == 10 && newList!=null && newList.size()<n-1)
+//            System.out.println();
+//
+        if (newList==null && newListN == null) {
             t++;
             newList = new LinkedList<>();
+            newListN = new LinkedList<>();
             for (Server server : preFilteredServers) {
                 newList.add(server);
             }
@@ -97,22 +103,54 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
                 return con ? -1 : (con2 ? 1 : 0);
                 //TODO: check whether the order is right
             });
-            cachSortedLists.put(new Pair( src,preFilteredServers), newList);
-        }
 
-        for (int i = 0; i <n ; i++) {
-            if (newList.size()==i) return toReturnServers;
-            toReturnServers.add(newList.get(i));
+            if (n<newList.size()-1){
+                int costNth= newList.get(n-1).getCommunicationCostTable().get(src);
+                int nextCost= newList.get(n).getCommunicationCostTable().get(src);
+                if( nextCost==costNth ) {
+                    for (Server werver : newList) {
+                        if (werver.getCommunicationCostTable().get(src).equals(costNth)) {
+                            newListN.add(werver);
+                        }
+                    }
+                    LinkedList<Server> toRemoveList = new LinkedList<>();
+                    for (int i = newList.size() - 1; i >= 0; i--) {
+                        toRemoveList.add(newList.get(i));
+                        if (((LinkedList<Server>) newListN).getFirst() == newList.get(i)) {
+                            break;
+                        }
+                    }
+                    newList.removeAll(toRemoveList);
+                }
+            }
+
+            cachSortedLists.put(new Pair( src,preFilteredServers), newList);
+            cachSortedListsNthPart.put(new Pair( src,preFilteredServers), newListN);
+        }else c++;
+
+
+
+        if (newList!=null) {
+            for (int i = 0; i < newList.size(); i++) {
+                if (toReturnServers.size()>=n) break;
+                toReturnServers.add(newList.get(i));
+            }        }
+        if (newListN!=null) {
+
+            for (int i = 0; i < newListN.size(); i++) {
+                if (toReturnServers.size()>=n) break;
+                toReturnServers.add(newListN.get(i));
+            }
         }
-            if (rnd==null)
+        if (rnd==null)
             Collections.shuffle(toReturnServers);
             else
                 Collections.shuffle(toReturnServers,rnd);
 
         return toReturnServers;
+
     }
 
-    Map<Pair, Server> cachedMinCostList = new HashMap<>();
 
 
     public Server getNearestServer(List<Server> preFilteredServers, Client src){
@@ -125,21 +163,22 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
             return directlyConnectedServer;
         }
 
-        int minCost= Integer.MAX_VALUE;
-        Server toReturnServer = null;
-        for (Server candidateServer:preFilteredServers) {
-            if (candidateServer.getCommunicationCostTable().get(src)<minCost){
-                minCost = candidateServer.getCommunicationCostTable().get(src);
+        Server toReturnServer;
+            int minCost = Integer.MAX_VALUE;
+            for (Server candidateServer : preFilteredServers) {
+                if (candidateServer.getCommunicationCostTable().get(src) < minCost) {
+                    minCost = candidateServer.getCommunicationCostTable().get(src);
 //                toReturnServer = candidateServer;
+                }
             }
-        }
-        List<Server> minLists = new ArrayList<>();
-        for (Server candidateServer:preFilteredServers) {
-            if (candidateServer.getCommunicationCostTable().get(src)==minCost){
-                minLists.add(candidateServer);
+            List<Server> minLists = new ArrayList<>();
+            for (Server candidateServer : preFilteredServers) {
+                if (candidateServer.getCommunicationCostTable().get(src) == minCost) {
+                    minLists.add(candidateServer);
+                }
             }
-        }
-        toReturnServer = minLists.get(new Random().nextInt(minLists.size()));
+
+            toReturnServer = minLists.get(new Random().nextInt(minLists.size()));
         return toReturnServer;
     }
     public List<Server> getServersHavingFile(int fileID){
@@ -196,7 +235,11 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         return toReturnServer;
     }
     static int maxLoad = 0;
-    public Server getMostDesirableServer(List<Server> preFilteredServers, Map<Server, Integer> serverLoads, float alpha, EndDevice src){
+
+    private Map<Pair,Integer> cachedTotalCost = new HashMap<>();
+
+
+    public Server getMostDesirableServer(List<Server> preFilteredServers, Map<Server, Integer> serverLoads, float alpha, EndDevice src, int totalLoad){
         /***
          * returns the least desirable server in a list of servers that might have been already filtered.
          */
@@ -204,12 +247,13 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         if (preFilteredServers.size()==0) return null;
         double minDesirability = Double.MAX_VALUE;
         Server toReturnServer = null;
-        int totalCosts = calculateTotalCosts(preFilteredServers, src);
-        int totalLoad = calculateTotalLoad(preFilteredServers,serverLoads);
-
-        if (totalLoad>maxLoad){
-            maxLoad = totalLoad;
+        Integer totalCosts;
+        totalCosts = cachedTotalCost.get(new Pair(src,preFilteredServers));
+        if(totalCosts== null){
+            totalCosts = calculateTotalCosts(preFilteredServers, src);
+            cachedTotalCost.put(new Pair(src,preFilteredServers),totalCosts);
         }
+//        int totalLoad = calculateTotalLoad(preFilteredServers,serverLoads);
 
 //        Logger.printWithoutTime(" total cost = "+ totalCosts + "  total Load = " + totalLoad);
         double serverDesirability;

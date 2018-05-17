@@ -49,7 +49,7 @@ public class Server extends EndDevice{
         }
 
     }
-    public static int maxQueue = 0;
+//    public static int maxQueue = 0;
     private void lookAtContent(float time, Segment segment) throws Exception {
         switch (segment.getSegmentType()) {
             case Request:
@@ -59,7 +59,7 @@ public class Server extends EndDevice{
                     serveRequest(time,request);
                 }else {
                     queue.add(request);
-                    if (queue.size()>maxQueue) maxQueue = queue.size();
+//                    if (queue.size()>maxQueue) maxQueue = queue.size();
 //                    Logger.print(this + " added to queue: " + request + " queueSize = " + queue.size(),time);
                 }
                 break;
@@ -159,7 +159,6 @@ public class Server extends EndDevice{
     public Server getSuitableServer( Request request) throws Exception {
         return getSuitableServer(request,0f);
     }
-
     public Server getSuitableServer( Request request , float time) throws Exception{
         /***
          *   finds a suitable server from graph to respond to the request
@@ -168,8 +167,8 @@ public class Server extends EndDevice{
         Client client = request.getSource();
         List<Server> serversHavingSpecificFile = serversHavingFile.get(fileId);
         if (serversHavingSpecificFile==null || serversHavingSpecificFile.size()==0) throw new OkayException(" No server has the file " + fileId + " requested in " + request , time);
-        makeLoadListIdeally(serversHavingSpecificFile,serverLoads);
-        Server selectedServer = RedirectingAlgorithm.selectServerToRedirect(SimulationParameters.redirectingAlgorithmType,serversHavingSpecificFile,serverLoads,client);
+        int totalLoad = makeLoadListIdeally(serversHavingSpecificFile,serverLoads);
+        Server selectedServer = RedirectingAlgorithm.selectServerToRedirect(SimulationParameters.redirectingAlgorithmType,serversHavingSpecificFile,serverLoads,client,totalLoad);
         return selectedServer;
     }
 
@@ -254,12 +253,18 @@ public class Server extends EndDevice{
         }
         return sb.toString();
     }
-
-    public static void makeLoadListIdeally(List<Server> serversHavingSpecificFile, Map<Server, Integer> serverLoads){
+//    public static double totalTimeInMakeLoadListIdeally = 0;
+    public static int makeLoadListIdeally(List<Server> serversHavingSpecificFile, Map<Server, Integer> serverLoads){
+//        double tempTime = System.currentTimeMillis();
+        int sum = 0;
         for (Server server:
              serversHavingSpecificFile) {
             serverLoads.put(server,server.getServerLoad());
+            sum+= server.getServerLoad();
+
         }
+//        totalTimeInMakeLoadListIdeally += System.currentTimeMillis() - tempTime;
+        return sum;
     }
 
     public void setServersHavingFile(Map<Integer, List<Server>> serversHavingFile) {

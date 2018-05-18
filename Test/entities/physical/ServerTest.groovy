@@ -6,6 +6,7 @@ import entities.logical.Event
 import entities.logical.EventType
 import entities.logical.EventsQueue
 import entities.logical.IFile
+import entities.logical.RedirectingAlgorithm
 import entities.logical.RedirectingAlgorithmType
 import entities.logical.Request
 import entities.logical.Segment
@@ -22,7 +23,6 @@ class ServerTest extends GroovyTestCase {
     List<IFile>  files= new ArrayList<>();
     List<Link>  links= new ArrayList<>();
     NetworkGraph networkGraph = NetworkGraph.networkGraph;
-
     void setUp() {
         super.setUp()
         IFile file1 = new IFile(1,100);
@@ -124,9 +124,15 @@ class ServerTest extends GroovyTestCase {
                 sb.append("  ").append(s);
             }
         }
+        for (int i = 0; i < 4 ; i++) {
+            for (int j = 0; j < 4; j++) {
+                servers.get(i).getServerLoadListss().put(servers.get(j),0);
+            }
+        }
         Logger.print(sb.toString(),0);
         println()
         networkGraph.buildRoutingTables();
+        ProjectRun.servers = servers;
 
         //topology:
         //                   server4
@@ -173,6 +179,10 @@ class ServerTest extends GroovyTestCase {
     }
 
     void testScenario1() {
+//        Logger.printWriter = new PrintWriter(System.out);
+//        Logger.printWriter.println("asd");
+
+
         EventsQueue.addEvent(
                 new Event(EventType.sendReq,clients.get(0),1f,null, 4)
         );
@@ -201,13 +211,32 @@ class ServerTest extends GroovyTestCase {
         Brain.handleEvents();
     }
 
+    void testScenario5() {
+        EventsQueue.addEvent(
+                new Event(EventType.sendReq,clients.get(0),1f,null, 3)
+        );
+        EventsQueue.addEvent(
+                new Event(EventType.sendReq,clients.get(0),1f,null, 3)
+        );
+        EventsQueue.addEvent(
+                new Event(EventType.sendReq,clients.get(1),1f,null, 3)
+        );
+        EventsQueue.addEvent(
+                new Event(EventType.sendReq,clients.get(0),12f,null, 3)
+        );
+        EventsQueue.addEvent(
+                new Event(EventType.sendReq,clients.get(0),12f,null, 3)
+        );
+        Brain.handleEvents();
+    }
+
     void testScenario4() {
         files.get(2).size = 100000000 ;
         EventsQueue.addEvent(
                 new Event(EventType.sendReq,clients.get(0),1f,null, 3)
         );
         EventsQueue.addEvent(
-                new Event(EventType.sendReq,clients.get(1),1f,null, 3)
+                new Event(EventType.sendReq,clients.get(0),1f,null, 3)
         );
         Brain.handleEvents();
     }

@@ -5,6 +5,9 @@ import entities.utilities.logger.Logger;
 
 import java.util.*;
 
+import static entities.logical.UpdateType.ideal;
+import static entities.logical.UpdateType.piggyBack;
+
 public class Server extends EndDevice{
     private Map<EndDevice,Link> links = new HashMap<>();
 //    private Link clientLink;
@@ -56,6 +59,7 @@ public class Server extends EndDevice{
                 Request request = (Request) segment.getOptionalContent();
                 if (queue.size()==0 && !this.isServerBusy)  {
 //                    Logger.print(this + " wasn't busy and goes to serve " + request,time);
+//                    System.out.println(this+" received request at "+ time);
                     serveRequest(time,request);
                 }else {
                     queue.add(request);
@@ -64,9 +68,23 @@ public class Server extends EndDevice{
                 }
                 break;
             case Data:
+                break;
+            case Update:
+//                System.out.println(this + "update package from "+ segment.getSource() +" received at "+ time  );
+                updateLoadList((Server) segment.getSource(),(int)segment.getOptionalContent());
+                break;
             default:
                 throw new OkayException(this + " received unexpected " +segment,time);
         }
+    }
+
+    private void updateLoadList(Server source, int load) {
+        serverLoads.put(source,load);
+        serverLoads.put(this,getServerLoad());
+//        System.out.println(this + "'s load list");
+//        for (Server s:serverLoads.keySet()) {
+//            System.out.println("      "+s + " : " + serverLoads.get(s));
+//        }
     }
 
     private void setTimeToPopNextRequestInQueue(float time , float delay, Request request) {
@@ -74,7 +92,7 @@ public class Server extends EndDevice{
          * releases an event which at current time + service time pops the queue
          */
             EventsQueue.addEvent(
-                    new Event<>(EventType.requestServed, this, time+delay, this, request)
+                    new Event<>(EventType.requestServed, this, (time+delay), this, request)
             );
 
     }
@@ -86,8 +104,10 @@ public class Server extends EndDevice{
 
         Client client = request.getSource();
         Request newRequest = new Request(client,selectedServer,request.getNeededFileID(),request.getId());
+        newRequest.setServerToPiggyBack(this);
         newRequest.setRedirect(true);
         Segment newSegment = new Segment(newRequest.getId(),this,selectedServer,DefaultValues.REQUEST_SIZE,SegmentType.Request,newRequest,request.getToleratedCost());
+
 //        Logger.print(this+ " redirects "+ request +" to " + selectedServer,time);
         forwardSegment(time, newSegment);
     }
@@ -110,14 +130,27 @@ public class Server extends EndDevice{
 //            Logger.print(this+ " directly serves the redirected" + request,time);
             sendFile(time, request, 0);
             delay = DefaultValues.SERVICE_TIME;
+            request.setShouldBePiggiedBack(true);
         }else {     //if the request is not redirected
             delay = serveUnredirectedRequest(time, request);
         }
         setTimeToPopNextRequestInQueue(time, delay, request);
+    }
+
+    private void piggyBack(float time, Request request) {
+        Server requestingServer = request.getServerToPiggyBack();
+        sendUpdateTo(time, request.getId(), requestingServer);
+//        System.out.println(this+ " : sends piggy back at "+ time);
 
     }
 
-    private float serveUnredirectedRequest(float time, Request request) throws Exception {
+    private void sendUpdateTo(float time, int  id, Server dst) {
+        Link link = routingTable.get(dst);
+        Segment updateSegment = new Segment(id,this, dst , DefaultValues.PIGGY_BACK_SIZE, SegmentType.Update,getServerLoad() , 0);
+        sendData(time, link, updateSegment);
+    }
+
+    private float serveUnredirectedRequest(float time, Request request ) throws Exception {
         float delay;
         float queryDelay = 0f; //TODO : update this
 //        Logger.print(this + " is looking for a suitable server to serve " + request, time);
@@ -147,7 +180,8 @@ public class Server extends EndDevice{
         if (neededFile== null) throw new OkayException(this+ "doesn't have the requested file"+request.getNeededFileID(), time);
         Segment fileSegment = new Segment(request.getId(), this, destination , neededFile.getSize() , SegmentType.Data, neededFile, request.getToleratedCost());
         delay = DefaultValues.SERVICE_TIME + queryDelay;
-//        Logger.print(this + " puts file " + neededFile + " in " + fileSegment,time + delay );
+//        Logger.print(this + " puts file " + neededFile + " in " + fileSegment + " at " + (time + delay),time  );
+//        System.out.println(this+ " will send file to "+ destination +" at "+time+delay);
         sendData(time + delay, link, fileSegment);
     }
 
@@ -167,8 +201,10 @@ public class Server extends EndDevice{
         Client client = request.getSource();
         List<Server> serversHavingSpecificFile = serversHavingFile.get(fileId);
         if (serversHavingSpecificFile==null || serversHavingSpecificFile.size()==0) throw new OkayException(" No server has the file " + fileId + " requested in " + request , time);
-        int totalLoad = makeLoadListIdeally(serversHavingSpecificFile,serverLoads);
-        Server selectedServer = RedirectingAlgorithm.selectServerToRedirect(SimulationParameters.redirectingAlgorithmType,serversHavingSpecificFile,serverLoads,client,totalLoad);
+        if (SimulationParameters.updateType==ideal)
+              makeLoadListIdeally(serversHavingSpecificFile,serverLoads);
+        serverLoads.put(this,getServerLoad());
+        Server selectedServer = RedirectingAlgorithm.selectServerToRedirect(SimulationParameters.redirectingAlgorithmType,serversHavingSpecificFile,serverLoads,client);
         return selectedServer;
     }
 
@@ -203,6 +239,9 @@ public class Server extends EndDevice{
         /***
          * Commands to serve the request then after a service delay serve the next request
          */
+        if (piggyBack == SimulationParameters.updateType  && servedRequest.getShouldBePiggiedBack() )
+            piggyBack(time,servedRequest);
+
         isServerBusy = false;
         if (queue.size()==0) {
 //            Logger.print(this + " has served the request " + servedRequest + " and is not busy now", time);
@@ -269,5 +308,22 @@ public class Server extends EndDevice{
 
     public void setServersHavingFile(Map<Integer, List<Server>> serversHavingFile) {
         this.serversHavingFile = serversHavingFile;
+    }
+
+    public Map<Server, Integer> getServerLoadListss() {
+        return serverLoads;
+    }
+
+    public void setServerLoadListss(Map<Server, Integer> serverLoads) {
+        this.serverLoads = serverLoads;
+    }
+
+    public void sendUpdateToAll(float time,List<Server> servers) {
+        int id = Client.generateId();
+        for (Server dst:servers) {
+            if (dst.equals(this)) continue;
+            sendUpdateTo(time,id,dst);
+        }
+
     }
 }

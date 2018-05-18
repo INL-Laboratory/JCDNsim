@@ -38,7 +38,7 @@ public class ProjectRun {
         final float bandwidth = 10000000f;
         final float propagationDelay = 0f;
         final int sizeOfFiles = 50;
-        final int numberOfRuns = 300;
+        final int numberOfRuns = 50;
         final float lambdaInOutRatio = 0.999f;
         String path = "results";
         new File( path).mkdir();
@@ -70,39 +70,40 @@ public class ProjectRun {
 
 //
         int numberOfPoints = 11;
+        SimulationParameters.updateType=UpdateType.ideal;
         Float[] costStats0 = new Float[numberOfPoints];
         Float[] delayStats0 = new Float[numberOfPoints];
         Float[][] costStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
         Float[][] delayStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
-        simulatePSS(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result0, costStatsForAllRuns0, delayStatsForAllRuns0, costStats0, delayStats0);
-
+        simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result0, costStatsForAllRuns0, delayStatsForAllRuns0, costStats0, delayStats0);
+        SimulationParameters.updateType=UpdateType.periodic;
         numberOfPoints = 11;
         Float[] costStats1 = new Float[numberOfPoints];
         Float[] delayStats1 = new Float[numberOfPoints];
         Float[][] delayStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
         Float[][] costStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
         simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result1, costStatsForAllRuns1, delayStatsForAllRuns1, costStats1, delayStats1);
-
-         numberOfPoints = numberOfServers-1;
-
-        Float[] costStats2 = new Float[numberOfPoints];
-        Float[] delayStats2 = new Float[numberOfPoints];
-        Float[][] costStatsForAllRuns2 = new Float[numberOfPoints][numberOfRuns];
-        Float[][] delayStatsForAllRuns2 = new Float[numberOfPoints][numberOfRuns];
-        simulateMCS(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result2, costStatsForAllRuns2, delayStatsForAllRuns2, costStats2, delayStats2);
+//
+//         numberOfPoints = numberOfServers-1;
+//
+//        Float[] costStats2 = new Float[numberOfPoints];
+//        Float[] delayStats2 = new Float[numberOfPoints];
+//        Float[][] costStatsForAllRuns2 = new Float[numberOfPoints][numberOfRuns];
+//        Float[][] delayStatsForAllRuns2 = new Float[numberOfPoints][numberOfRuns];
+//        simulateMCS(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result2, costStatsForAllRuns2, delayStatsForAllRuns2, costStats2, delayStats2);
 
 
 
 
         //Chart stuff
         String pathName = path+"/chart/photo.png" ,
-                seriesName0 = "PSS",
-                seriesName1 = "WMC",
+                seriesName0 = "WMC-Ideal",
+                seriesName1 = "WMC-periodic",
                 seriesName2 = "MCS";
         Chart.initiateChart(pathName);
         Chart.addSeries(seriesName0, costStats0, delayStats0);
         Chart.addSeries(seriesName1, costStats1, delayStats1);
-        Chart.addSeries(seriesName2, costStats2, delayStats2);
+//        Chart.addSeries(seriesName2, costStats2, delayStats2);
         Chart.main(args);
 
     }
@@ -303,6 +304,7 @@ public class ProjectRun {
         addLinksToGraph();
 
         fillServersHavingFile(serversHavingFile);
+        setServerLoadLists(numberOfServers);
         networkGraph.buildRoutingTables();
     }
 
@@ -380,6 +382,13 @@ public class ProjectRun {
             servers.get(i).setServersHavingFile(serversHavingFile);
         }
     }
+    private static void setServerLoadLists(int numberOfServers) {
+        for (int i = 0; i < numberOfServers ; i++) {
+            for (int j = 0; j < numberOfServers; j++) {
+                servers.get(i).getServerLoadListss().put(servers.get(j),0);
+            }
+        }
+    }
 
     private static void assignFileListsToServers(int numberOfFiles, int numberOfServers, int numberOfFilesPerServer) {
         int[][] serverContents = ZipfGenerator.returnFileList(1,numberOfFilesPerServer,numberOfFiles,numberOfServers);
@@ -398,11 +407,19 @@ public class ProjectRun {
         }
     }
 
+    public static void sendPeriodicUpdate(float time) {
+//        System.out.println(time + " periodic updates are being sent");
+        for (int i = 0; i < servers.size(); i++) {
+                servers.get(i).sendUpdateToAll(time,servers);
+        }
+    }
+
     private static void resetSimulatorSettings() {
         servers = new ArrayList<>();
         clients= new ArrayList<>();
         files= new ArrayList<>();
         links= new ArrayList<>();
+        EventsQueue.lastSentPeriod =0;
         NetworkGraph.renewNetworrkGraph();
         networkGraph = NetworkGraph.networkGraph;
         Client.generatedId=0;

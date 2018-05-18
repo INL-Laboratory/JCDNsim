@@ -6,9 +6,11 @@ import entities.physical.Server;
 public class Request {
     private Client source;
     private Server destination;
+    private Server serverToPiggyBack;
     private int neededFileID;
     private final int id;     //This must be the same id in segment
     private boolean isRedirect = false;
+    private boolean shouldBePiggiedBack = false;
     private int toleratedCost =0;
     public boolean isRedirected() {
         return isRedirect;
@@ -67,5 +69,21 @@ public class Request {
         sb.append(id);
         sb.append('}');
         return sb.toString();
+    }
+
+    public Server getServerToPiggyBack() {
+        return serverToPiggyBack;
+    }
+
+    public void setServerToPiggyBack(Server serverToPiggyBack) {
+        this.serverToPiggyBack = serverToPiggyBack;
+    }
+
+    public boolean getShouldBePiggiedBack() {
+        return shouldBePiggiedBack;
+    }
+
+    public void setShouldBePiggiedBack(boolean shouldBePiggiedBack) {
+        this.shouldBePiggiedBack = shouldBePiggiedBack;
     }
 }

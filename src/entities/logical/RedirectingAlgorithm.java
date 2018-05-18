@@ -16,8 +16,9 @@ import java.util.Random;
 public class RedirectingAlgorithm {
     static float queryDelay = 0;
     public static Random rnd = new Random();
+    public static float step = 5f;
 //    public static double totalTime = 0;
-    public static Server selectServerToRedirect( RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile , Map<Server, Integer> serverLoads ,Client client, int totalLoad){
+    public static Server selectServerToRedirect( RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile , Map<Server, Integer> serverLoads ,Client client){
 //        double a = System.currentTimeMillis();
 
         Server selectedServer;
@@ -27,7 +28,7 @@ public class RedirectingAlgorithm {
                 selectedServer = selectPSSserver(client, serversHavingFile,serverLoads);
                 break;
             case WMC:
-                selectedServer = selectWMCserver(client, serversHavingFile,serverLoads,totalLoad);
+                selectedServer = selectWMCserver(client, serversHavingFile,serverLoads);
                 break;
             case MCS:
                 selectedServer = selectMCSserver(client, serversHavingFile,serverLoads);
@@ -47,9 +48,9 @@ public class RedirectingAlgorithm {
         return selectedServer;
     }
 
-    private static Server selectWMCserver(Client client, List<Server> serversHavingFile, Map<Server, Integer> serverLoads, int totalLoad) {
+    private static Server selectWMCserver(Client client, List<Server> serversHavingFile, Map<Server, Integer> serverLoads) {
         Server selectedServer;
-        selectedServer = NetworkGraph.networkGraph.getMostDesirableServer(serversHavingFile, serverLoads ,DefaultValues.WMC_ALPHA,client,totalLoad);
+        selectedServer = NetworkGraph.networkGraph.getMostDesirableServer(serversHavingFile, serverLoads ,DefaultValues.WMC_ALPHA,client);
         return selectedServer;
     }
 
@@ -58,7 +59,7 @@ public class RedirectingAlgorithm {
         float randomFloat = DefaultValues.random.nextFloat();
         if (randomFloat<DefaultValues.PSS_PROBABILITY){
 //            Logger.printWithoutTime("*******PSS wants to find the nearest Server.");
-            selectedServer = NetworkGraph.networkGraph.getNearestServer(serversHavingFile,client);
+            selectedServer = NetworkGraph.networkGraph.getNearestServers(1,serversHavingFile,client,rnd).get(0);
         }else{
 //            Logger.printWithoutTime("*******PSS wants to find the least loaded Server.");
             selectedServer = NetworkGraph.networkGraph.getLeastLoadedServer(serversHavingFile, serverLoads);

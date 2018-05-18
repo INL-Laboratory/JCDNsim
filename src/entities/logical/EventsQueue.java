@@ -1,13 +1,11 @@
 package entities.logical;
 
+import entities.physical.ProjectRun;
 import entities.utilities.BinaryHeap;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class EventsQueue {
     private static BinaryHeap<Event> queue = new BinaryHeap<>(false);
-
+    public static float lastSentPeriod = 0;
     public static void addEvent(Event event){
 //        if(queue.() == 0){
 //            queue.add(event);
@@ -21,6 +19,7 @@ public class EventsQueue {
 //            }
 //        }
 //        queue.add(event);
+
         queue.add(event);
     }
 
@@ -30,8 +29,18 @@ public class EventsQueue {
 //        }
 //        return queue.remove(0);
 //        System.out.println( queue);
+        Event event = queue.peek();
 
-        return queue.remove();
+        if (UpdateType.periodic == SimulationParameters.updateType)
+            if (Float.compare(event.getTime(), lastSentPeriod)==1){
+                ProjectRun.sendPeriodicUpdate(lastSentPeriod);
+                lastSentPeriod +=RedirectingAlgorithm.step;
+
+        }
+        event = queue.remove();
+
+
+        return event;
     }
     public static boolean hasEvent(){
         return queue.length() > 0;

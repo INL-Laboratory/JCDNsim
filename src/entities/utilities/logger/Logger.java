@@ -19,11 +19,14 @@ public class Logger {
     public static void print(String toPrint, float time){
         if (!DefaultValues.LOGGER_ON) return;
 //        printWriter.flush();
-        printWriter.println(time + " " + toPrint);
+//        printWriter.println(time + " " + toPrint);
+        System.out.println(time + " " + toPrint);
     }
     public static void printWithoutTime(String toPrint){
         if (!DefaultValues.LOGGER_ON) return;
-        printWriter.println( toPrint);
+//        printWriter.println( toPrint);
+        System.out.println(toPrint);
+
     }
 
 

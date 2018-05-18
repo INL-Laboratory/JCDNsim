@@ -86,7 +86,7 @@ public class Client extends EndDevice {
 
     }
 
-    private int generateId(){
+    public static int generateId(){
         generatedId++;
         return generatedId;
     }

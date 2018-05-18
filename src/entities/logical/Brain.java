@@ -1,7 +1,10 @@
 package entities.logical;
 
+import entities.physical.ProjectRun;
 import entities.physical.Server;
 import entities.utilities.logger.Logger;
+
+import static entities.logical.EventsQueue.lastSentPeriod;
 
 public class Brain {
 
@@ -16,6 +19,7 @@ public class Brain {
 //                if (event.getType() == EventType.requestServed && ((Server)event.getRelatedEntity()).getServerLoad()>500){
 //                    System.out.println();
 //                }
+
                 event.getRelatedEntity().handleEvent(event);
 
             }

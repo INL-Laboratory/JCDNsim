@@ -239,7 +239,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
     private Map<Pair,Integer> cachedTotalCost = new HashMap<>();
 
 
-    public Server getMostDesirableServer(List<Server> preFilteredServers, Map<Server, Integer> serverLoads, float alpha, EndDevice src, int totalLoad){
+    public Server getMostDesirableServer(List<Server> preFilteredServers, Map<Server, Integer> serverLoads, float alpha, EndDevice src){
         /***
          * returns the least desirable server in a list of servers that might have been already filtered.
          */
@@ -253,7 +253,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
             totalCosts = calculateTotalCosts(preFilteredServers, src);
             cachedTotalCost.put(new Pair(src,preFilteredServers),totalCosts);
         }
-//        int totalLoad = calculateTotalLoad(preFilteredServers,serverLoads);
+        int totalLoad = calculateTotalLoad(preFilteredServers,serverLoads);
 
 //        Logger.printWithoutTime(" total cost = "+ totalCosts + "  total Load = " + totalLoad);
         double serverDesirability;

@@ -6,7 +6,7 @@ import java.util.Random;
  * Created by hd on 2018/3/31 AD.
  */
 public class DefaultValues {
-    public static final float PIGGY_BACK_SIZE = 0.01f;
+    public static final float PIGGY_BACK_SIZE = 1000f;
     public static  int CACHE_SIZE = 100000;        // 100 GB , 100000 MB
     public static  float REQUEST_SIZE = (float) 0.1;
     public static  float SERVICE_TIME = 10f;
@@ -21,6 +21,6 @@ public class DefaultValues {
 
 
 
-    public static final boolean LOGGER_ON = false ;
+    public static final boolean LOGGER_ON = true ;
     //Having it On takes over 850 MB of your disk for every 10 times making 20000 requests
 }

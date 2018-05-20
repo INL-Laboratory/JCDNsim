@@ -12,6 +12,7 @@ import entities.logical.Request
 import entities.logical.Segment
 import entities.logical.SegmentType
 import entities.logical.SimulationParameters
+import entities.logical.UpdateType
 import entities.utilities.logger.Logger
 
 /**
@@ -182,7 +183,7 @@ class ServerTest extends GroovyTestCase {
 //        Logger.printWriter = new PrintWriter(System.out);
 //        Logger.printWriter.println("asd");
 
-
+//        SimulationParameters.updateType = UpdateType.ideal;
         EventsQueue.addEvent(
                 new Event(EventType.sendReq,clients.get(0),1f,null, 4)
         );

@@ -22,7 +22,7 @@ public class EventsQueue {
 
         queue.add(event);
     }
-
+    public static float maximumTime = 0;
     public static Event popEvent(){
 //        if(queue.size() == 0){
 //            return null;
@@ -32,12 +32,15 @@ public class EventsQueue {
         Event event = queue.peek();
 
         if (UpdateType.periodic == SimulationParameters.updateType)
+            if( event.getOptionalData() instanceof Segment && ((Segment)event.getOptionalData()).getSegmentType()!=SegmentType.Update)
             if (Float.compare(event.getTime(), lastSentPeriod)==1){
                 ProjectRun.sendPeriodicUpdate(lastSentPeriod);
                 lastSentPeriod +=RedirectingAlgorithm.step;
 
         }
+
         event = queue.remove();
+        if (event.getTime()>maximumTime) maximumTime= event.getTime();
 
 
         return event;

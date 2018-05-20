@@ -16,7 +16,7 @@ import java.util.Random;
 public class RedirectingAlgorithm {
     static float queryDelay = 0;
     public static Random rnd = new Random();
-    public static float step = 5f;
+    public static float step = 10f;
 //    public static double totalTime = 0;
     public static Server selectServerToRedirect( RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile , Map<Server, Integer> serverLoads ,Client client){
 //        double a = System.currentTimeMillis();

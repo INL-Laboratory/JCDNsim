@@ -35,10 +35,10 @@ public class ProjectRun {
         final int numberOfServers = 35;
         final int numberOfFilesPerServer = 15;
         final int numberOfRequests =10000;
-        final float bandwidth = 10000000f;
-        final float propagationDelay = 0f;
-        final int sizeOfFiles = 50;
-        final int numberOfRuns = 50;
+        final float bandwidth = 9000f;
+        final float propagationDelay = 00.1f;
+        final int sizeOfFiles = 5000;
+        final int numberOfRuns = 100;
         final float lambdaInOutRatio = 0.999f;
         String path = "results";
         new File( path).mkdir();
@@ -144,15 +144,16 @@ public class ProjectRun {
         result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
         DefaultValues.WMC_ALPHA = 0;
         for (int i = 0; i < numberOfPoints; i++){
-            System.out.println(i);
 
             for (int j = 0; j < numberOfRuns ; j++) {
+
                 PrintWriter logger = null;
                 if (DefaultValues.LOGGER_ON) {
                     new File(path+"/logs/run"+j).mkdir();
                     logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i + ".txt"));
                     Logger.printWriter = logger;
                 }
+                System.out.println(i+" "+j);
                 DefaultValues.WMC_ALPHA = 0.1f*i;
                 simulate(numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, lambdaInOutRatio, costStatsForAllRuns, delayStatsForAllRuns, i, j, logger);
 
@@ -206,6 +207,8 @@ public class ProjectRun {
         generateRequests(numberOfRequests,numberOfFiles, numberOfServers , lambdaInOutRatio);
 //        System.out.println("handling Events");
         Brain.handleEvents();
+        System.out.println(EventsQueue.maximumTime);
+        EventsQueue.maximumTime=0;
 //        System.out.println(NetworkGraph.networkGraph.c);
 //        System.out.println(NetworkGraph.networkGraph.t);
 //        System.out.println("gathering Stats");

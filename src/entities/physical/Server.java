@@ -42,7 +42,7 @@ public class Server extends EndDevice{
         /***
          * takes suitable course of action according to the type of the segment
          */
-//        Logger.print(this+ " is parsing "+ segment, time);
+//            Logger.print(this+ " is parsing "+ segment, time);
         if (isThisDeviceDestined(segment)) {
 //            Logger.print(this + " is the destination of " + segment, time);
             lookAtContent(time, segment);
@@ -64,13 +64,17 @@ public class Server extends EndDevice{
                 }else {
                     queue.add(request);
 //                    if (queue.size()>maxQueue) maxQueue = queue.size();
+//
 //                    Logger.print(this + " added to queue: " + request + " queueSize = " + queue.size(),time);
+//
                 }
                 break;
             case Data:
                 break;
             case Update:
-//                System.out.println(this + "update package from "+ segment.getSource() +" received at "+ time  );
+//
+//                Logger.print(this + "update package from "+ segment.getSource() +" received ",time);
+//
                 updateLoadList((Server) segment.getSource(),(int)segment.getOptionalContent());
                 break;
             default:
@@ -81,9 +85,11 @@ public class Server extends EndDevice{
     private void updateLoadList(Server source, int load) {
         serverLoads.put(source,load);
         serverLoads.put(this,getServerLoad());
-//        System.out.println(this + "'s load list");
+//
+//        Logger.printWithoutTime("******"+this + "'s load list");
+//
 //        for (Server s:serverLoads.keySet()) {
-//            System.out.println("      "+s + " : " + serverLoads.get(s));
+//            Logger.printWithoutTime("      "+s + " : " + serverLoads.get(s));
 //        }
     }
 
@@ -107,8 +113,9 @@ public class Server extends EndDevice{
         newRequest.setServerToPiggyBack(this);
         newRequest.setRedirect(true);
         Segment newSegment = new Segment(newRequest.getId(),this,selectedServer,DefaultValues.REQUEST_SIZE,SegmentType.Request,newRequest,request.getToleratedCost());
-
+//
 //        Logger.print(this+ " redirects "+ request +" to " + selectedServer,time);
+//
         forwardSegment(time, newSegment);
     }
 
@@ -127,7 +134,9 @@ public class Server extends EndDevice{
          */
         float delay = 0f;
         if (request.isRedirected()){
+//
 //            Logger.print(this+ " directly serves the redirected" + request,time);
+//
             sendFile(time, request, 0);
             delay = DefaultValues.SERVICE_TIME;
             request.setShouldBePiggiedBack(true);
@@ -153,11 +162,15 @@ public class Server extends EndDevice{
     private float serveUnredirectedRequest(float time, Request request ) throws Exception {
         float delay;
         float queryDelay = 0f; //TODO : update this
+//
 //        Logger.print(this + " is looking for a suitable server to serve " + request, time);
+//
         Server selectedServer = getSuitableServer(request);
         if (selectedServer == null)
             throw new OkayException("At " + this + " no server was selected to serve " + request , time);
+//
 //        Logger.print(this + " selected " + selectedServer + " to serve " + request, time);
+//
         if (selectedServer.equals(this)) {              //If this server is selected
             sendFile(time, request, queryDelay);
             delay = DefaultValues.SERVICE_TIME + queryDelay;
@@ -180,8 +193,10 @@ public class Server extends EndDevice{
         if (neededFile== null) throw new OkayException(this+ "doesn't have the requested file"+request.getNeededFileID(), time);
         Segment fileSegment = new Segment(request.getId(), this, destination , neededFile.getSize() , SegmentType.Data, neededFile, request.getToleratedCost());
         delay = DefaultValues.SERVICE_TIME + queryDelay;
+//
 //        Logger.print(this + " puts file " + neededFile + " in " + fileSegment + " at " + (time + delay),time  );
-//        System.out.println(this+ " will send file to "+ destination +" at "+time+delay);
+//
+        //        System.out.println(this+ " will send file to "+ destination +" at "+time+delay);
         sendData(time + delay, link, fileSegment);
     }
 
@@ -244,11 +259,15 @@ public class Server extends EndDevice{
 
         isServerBusy = false;
         if (queue.size()==0) {
+//
 //            Logger.print(this + " has served the request " + servedRequest + " and is not busy now", time);
+//
             return;
         }
         Request nextRequest = queue.remove(); //popping action
+//
 //        Logger.print(this + " has served the request " + servedRequest + " and goes to serve " + nextRequest  , time);
+//
         serveRequest(time, nextRequest);
     }
 

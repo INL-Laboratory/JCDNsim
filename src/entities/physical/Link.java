@@ -20,9 +20,6 @@ public class Link extends IEventHandler{
         return weight;
     }
 
-    public void setWeight(int weight) {
-        this.weight = weight;
-    }
 
     public Link(float propagationDelay, float bw){
         segmentsFromA = new ArrayList<>();
@@ -114,16 +111,16 @@ public class Link extends IEventHandler{
     private void checkForSendData(float time) {
 
         if(segmentsFromA.size()>0 && !isSendingFromA){
-            float eventTime = time + propagationDelay + segmentsFromA.get(0).getSize()/bw;
-//            float eventTime = time ;
+//            float eventTime = time + propagationDelay + segmentsFromA.get(0).getSize()/bw;
+            float eventTime = time ;
             Event<Link> event = new Event<>(EventType.dataSent, this, eventTime, this, segmentsFromA.get(0));
             EventsQueue.addEvent(event);
 
             isSendingFromA = true;
         }
         else if(segmentsFromB.size()> 0 && !isSendingFromB){
-            float eventTime = time + propagationDelay + segmentsFromB.get(0).getSize()/bw;
-//            float eventTime = time ;
+//            float eventTime = time + propagationDelay + segmentsFromB.get(0).getSize()/bw;
+            float eventTime = time ;
             Event<Link> event = new Event<>(EventType.dataSent, this, eventTime, this, segmentsFromB.get(0));
             EventsQueue.addEvent(event);
 

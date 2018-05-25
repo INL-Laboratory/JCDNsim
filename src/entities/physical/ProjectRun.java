@@ -34,7 +34,7 @@ public class ProjectRun {
         final int numberOfFiles = 35;
         final int numberOfServers = 35;
         final int numberOfFilesPerServer = 15;
-        final int numberOfRequests =10000;
+        final int numberOfRequests =50000;
         final float bandwidth = 9000f;
         final float propagationDelay = 00.1f;
         final int sizeOfFiles = 5000;
@@ -56,7 +56,8 @@ public class ProjectRun {
         parametersFile.println("# of Files: " + numberOfFiles);
         parametersFile.println("# of Files per Server: " + numberOfFilesPerServer);
         parametersFile.println("Size of Files(KB): " + sizeOfFiles);
-        parametersFile.println("Request Size(KB) : " + DefaultValues.REQUEST_SIZE);
+        parametersFile.println("Request Size(KB) : " + DefaultValues.PIGGY_BACK_SIZE);
+        parametersFile.println("update package Size(KB) : " + DefaultValues.REQUEST_SIZE);
         parametersFile.println("Service Time(ms) " + DefaultValues.SERVICE_TIME);
         parametersFile.println("Request generation average interval(ms): float[0,1]*2* " + DefaultValues.SERVICE_TIME/numberOfServers/lambdaInOutRatio);
         parametersFile.println("lambdaInPerOutRatio: " + lambdaInOutRatio);
@@ -70,14 +71,14 @@ public class ProjectRun {
 
 //
         int numberOfPoints = 11;
+//        SimulationParameters.updateType=UpdateType.ideal;
+//        Float[] costStats0 = new Float[numberOfPoints];
+//        Float[] delayStats0 = new Float[numberOfPoints];
+//        Float[][] costStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
+//        Float[][] delayStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
+//        simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result0, costStatsForAllRuns0, delayStatsForAllRuns0, costStats0, delayStats0);
         SimulationParameters.updateType=UpdateType.ideal;
-        Float[] costStats0 = new Float[numberOfPoints];
-        Float[] delayStats0 = new Float[numberOfPoints];
-        Float[][] costStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
-        Float[][] delayStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
-        simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result0, costStatsForAllRuns0, delayStatsForAllRuns0, costStats0, delayStats0);
-        SimulationParameters.updateType=UpdateType.periodic;
-        numberOfPoints = 11;
+        numberOfPoints = 4;
         Float[] costStats1 = new Float[numberOfPoints];
         Float[] delayStats1 = new Float[numberOfPoints];
         Float[][] delayStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
@@ -101,7 +102,7 @@ public class ProjectRun {
                 seriesName1 = "WMC-periodic",
                 seriesName2 = "MCS";
         Chart.initiateChart(pathName);
-        Chart.addSeries(seriesName0, costStats0, delayStats0);
+//        Chart.addSeries(seriesName0, costStats0, delayStats0);
         Chart.addSeries(seriesName1, costStats1, delayStats1);
 //        Chart.addSeries(seriesName2, costStats2, delayStats2);
         Chart.main(args);
@@ -122,7 +123,7 @@ public class ProjectRun {
                     logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i + ".txt"));
                     Logger.printWriter = logger;
                 }
-                DefaultValues.PSS_PROBABILITY = 0.1f*i;
+                DefaultValues.PSS_PROBABILITY = 0.1d*i;
                 simulate(numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, lambdaInOutRatio, costStatsForAllRuns, delayStatsForAllRuns, i, j, logger);
 
             }
@@ -143,6 +144,8 @@ public class ProjectRun {
         SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.WMC;
         result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
         DefaultValues.WMC_ALPHA = 0;
+        double a[] = {0.2d,0.1d,0.01d,0d};
+//        float a = 0.2f;
         for (int i = 0; i < numberOfPoints; i++){
 
             for (int j = 0; j < numberOfRuns ; j++) {
@@ -154,7 +157,8 @@ public class ProjectRun {
                     Logger.printWriter = logger;
                 }
                 System.out.println(i+" "+j);
-                DefaultValues.WMC_ALPHA = 0.1f*i;
+                DefaultValues.WMC_ALPHA = a[i];
+//                DefaultValues.WMC_ALPHA = a - 0.02f*i;
                 simulate(numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, lambdaInOutRatio, costStatsForAllRuns, delayStatsForAllRuns, i, j, logger);
 
             }

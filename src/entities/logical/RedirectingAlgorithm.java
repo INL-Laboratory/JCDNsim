@@ -56,8 +56,8 @@ public class RedirectingAlgorithm {
 
     private static Server selectPSSserver(Client client, List<Server> serversHavingFile, Map<Server, Integer> serverLoads) {
         Server selectedServer;
-        float randomFloat = DefaultValues.random.nextFloat();
-        if (randomFloat<DefaultValues.PSS_PROBABILITY){
+        double randomFloat = DefaultValues.random.nextDouble();
+        if (Double.compare(randomFloat,DefaultValues.PSS_PROBABILITY)==-1){
 //            Logger.printWithoutTime("*******PSS wants to find the nearest Server.");
             selectedServer = NetworkGraph.networkGraph.getNearestServers(1,serversHavingFile,client,rnd).get(0);
         }else{

@@ -213,6 +213,7 @@ class ServerTest extends GroovyTestCase {
     }
 
     void testScenario5() {
+        SimulationParameters.updateType = UpdateType.piggyBack;
         EventsQueue.addEvent(
                 new Event(EventType.sendReq,clients.get(0),1f,null, 3)
         );
@@ -223,10 +224,10 @@ class ServerTest extends GroovyTestCase {
                 new Event(EventType.sendReq,clients.get(1),1f,null, 3)
         );
         EventsQueue.addEvent(
-                new Event(EventType.sendReq,clients.get(0),12f,null, 3)
+                new Event(EventType.sendReq,clients.get(0),11f,null, 3)
         );
         EventsQueue.addEvent(
-                new Event(EventType.sendReq,clients.get(0),12f,null, 3)
+                new Event(EventType.sendReq,clients.get(0),11f,null, 3)
         );
         Brain.handleEvents();
     }

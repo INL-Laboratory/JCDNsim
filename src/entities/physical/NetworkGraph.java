@@ -239,7 +239,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
     private Map<Pair,Integer> cachedTotalCost = new HashMap<>();
 
 
-    public Server getMostDesirableServer(List<Server> preFilteredServers, Map<Server, Integer> serverLoads, float alpha, EndDevice src){
+    public Server getMostDesirableServer(List<Server> preFilteredServers, Map<Server, Integer> serverLoads, double alpha, EndDevice src){
         /***
          * returns the least desirable server in a list of servers that might have been already filtered.
          */
@@ -260,7 +260,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         for (Server candidateServer:preFilteredServers) {
             serverDesirability = calculateDesirability(totalCosts, totalLoad, candidateServer,serverLoads.get(candidateServer), alpha, src);
 //            Logger.printWithoutTime(candidateServer.toString()+" queueSize = "+serverLoads.get(candidateServer)+ " cost = " + candidateServer.getCommunicationCostTable().get(src) + "desirability = " + serverDesirability);
-            if (serverDesirability<minDesirability){
+            if (Double.compare(serverDesirability,minDesirability)==-1){
 //                toReturnServer = candidateServer;
                 minDesirability = serverDesirability;
             }
@@ -295,10 +295,10 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         return sum;
     }
 
-    private double calculateDesirability(int totalCost, int totalLoad, Server server, Integer load, float alpha, EndDevice src) {
+    private double calculateDesirability(int totalCost, int totalLoad, Server server, Integer load, double alpha, EndDevice src) {
         int cost = server.getCommunicationCostTable().get(src);
-        if (totalLoad==0) totalLoad = 1;
-        double desirability = alpha *( ((double)cost)/((double)totalCost)) + (1-alpha)*(((double)load)/((double)totalLoad));
+        if (totalLoad==0) totalLoad = 1; if (totalCost==0) totalCost = 1;
+        double desirability = alpha *( ((double)cost)/totalCost) + (1-alpha)*(((double)load)/totalLoad);
         return desirability;
     }
 

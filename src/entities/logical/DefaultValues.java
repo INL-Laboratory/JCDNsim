@@ -7,7 +7,7 @@ import java.util.Random;
  */
 public class DefaultValues {
     public static final float PIGGY_BACK_SIZE = 1000f;
-    public static  int CACHE_SIZE = 100000;        // 100 GB , 100000 MB
+//    public static  int CACHE_SIZE = 100000;        // 100 GB , 100000 MB
     public static  float REQUEST_SIZE = (float) 0.1;
     public static  float SERVICE_TIME = 10f;
     public static  double PSS_PROBABILITY = 0.5f;
@@ -21,6 +21,7 @@ public class DefaultValues {
 
 
 
+    public static final boolean LINK_DELAY_ALLOWED= false;
     public static final boolean LOGGER_ON = false ;
     //Having it On takes over 850 MB of your disk for every 10 times making 20000 requests
 }

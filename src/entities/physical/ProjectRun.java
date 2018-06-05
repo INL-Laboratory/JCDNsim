@@ -1,5 +1,7 @@
 package entities.physical;
 
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import entities.logical.*;
 import entities.utilities.Chart;
@@ -10,6 +12,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -30,16 +33,8 @@ public class ProjectRun {
     private static LocalDateTime now = LocalDateTime.now();
 
 
-    public static void main(String[] args) throws IOException {
-        final int numberOfFiles = 35;
-        final int numberOfServers = 35;
-        final int numberOfFilesPerServer = 15;
-        final int numberOfRequests =50000;
-        final float bandwidth = 9000f;
-        final float propagationDelay = 00.1f;
-        final int sizeOfFiles = 5000;
-        final int numberOfRuns = 100;
-        final float lambdaInOutRatio = 0.999f;
+    public static void main(String[] args) throws IOException, NoSuchFieldException, IllegalAccessException {
+        Configuration configuration = new Configuration();
         String path = "results";
         new File( path).mkdir();
         path = "results/"+dtf.format(now);
@@ -47,94 +42,305 @@ public class ProjectRun {
         new File(path+"/logs").mkdir();
         new File(path+"/chart").mkdir();
         PrintWriter parametersFile = new PrintWriter(new FileWriter(path+"/parameters.txt"));
-        PrintWriter result0 = new PrintWriter(new FileWriter(path+"/resultPSS.txt"));
-        PrintWriter result1 = new PrintWriter(new FileWriter(path+"/resultWMC.txt"));
-        PrintWriter result2 = new PrintWriter(new FileWriter(path+"/resultMCS.txt"));
-        parametersFile.println("# of Servers: " + numberOfServers);
-        parametersFile.println("# of Run for each point: " + numberOfRuns);
-        parametersFile.println("# of Requests: " + numberOfRequests);
-        parametersFile.println("# of Files: " + numberOfFiles);
-        parametersFile.println("# of Files per Server: " + numberOfFilesPerServer);
-        parametersFile.println("Size of Files(KB): " + sizeOfFiles);
+        parametersFile.println("# of Servers: " + configuration.numberOfServers);
+        parametersFile.println("# of Run for each point: " + configuration.numberOfRuns);
+        parametersFile.println("# of Requests: " + configuration.numberOfRequests);
+        parametersFile.println("# of Files: " + configuration.numberOfFiles);
+        parametersFile.println("# of Files per Server: " + configuration.numberOfFilesPerServer);
+        parametersFile.println("Size of Files(KB): " + configuration.sizeOfFiles);
         parametersFile.println("Request Size(KB) : " + DefaultValues.REQUEST_SIZE);
         parametersFile.println("Update Package Size(KB) : " + DefaultValues.PIGGY_BACK_SIZE);
-        parametersFile.println("Update Period(In case of periodic update)(ms) : " + RedirectingAlgorithm.step);
+        parametersFile.println("Update Period(In case of periodic update)(ms) : " + DefaultValues.periodicStep);
         parametersFile.println("Service Time(ms) " + DefaultValues.SERVICE_TIME);
-        parametersFile.println("Request generation average interval(ms): Every " + DefaultValues.SERVICE_TIME/numberOfServers/lambdaInOutRatio);
-        parametersFile.println("lambdaInPerOutRatio: " + lambdaInOutRatio);
-        parametersFile.println("Propagation Delay(ms):" + (DefaultValues.LINK_DELAY_ALLOWED?propagationDelay:" inoperative."));
-        parametersFile.println("BandWidth(KB/ms):" + (DefaultValues.LINK_DELAY_ALLOWED?bandwidth: " inoperative."));
+        parametersFile.println("Request generation average interval(ms): Every " + DefaultValues.SERVICE_TIME/configuration.numberOfServers/configuration.lambdaInOutRatio);
+        parametersFile.println("lambdaInPerOutRatio: " + configuration.lambdaInOutRatio);
+        parametersFile.println("Propagation Delay(ms):" + (DefaultValues.LINK_DELAY_ALLOWED?configuration.propagationDelay:" inoperative."));
+        parametersFile.println("BandWidth(KB/ms):" + (DefaultValues.LINK_DELAY_ALLOWED?configuration.bandwidth: " inoperative."));
         parametersFile.println("Time out(ms):  " + (DefaultValues.IS_TIME_OUT_ACTIVATED?DefaultValues.TIME_OUT:"Disabled"));
         parametersFile.close();
 
+        String photoPathName = path+"/chart/photo.png";
+        Chart.initiateChart(photoPathName);
 
 
+        Number[] points = {0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0};
+//        run("WMC",null,"periodic",300,points,configuration,path);
+//        run("WMC",null,"periodic",300,points,configuration,path);
+//        run("WMC",null,"periodic",100,points,configuration,path);
+//        run("WMC",null,"periodic",50,points,configuration,path);
+//        run("WMC",null,"periodic",20,points,configuration,path);
+        run("WMC",null,"periodic",500,points,configuration,path);
+        run("WMC",null,"piggyBack",null,points,configuration,path);
+//        run("HONEYBEE",0.2,"piggyBack",null,points,configuration,path);
+//        run("WMC",null,"periodic",5,points,configuration,path);
+
+
+//        SimulationParameters.updateType=UpdateType.periodic;
+//        RedirectingAlgorithm.periodicStep = 15;
+//        Float[] costStats0 = new Float[numberOfPoints];
+//        Float[] delayStats0 = new Float[numberOfPoints];
+//        Float[][] costStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
+//        Float[][] delayStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
+//        simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result0, costStatsForAllRuns0, delayStatsForAllRuns0, costStats0, delayStats0);
 //
-        int numberOfPoints = 11;
-        SimulationParameters.updateType=UpdateType.ideal;
-        Float[] costStats0 = new Float[numberOfPoints];
-        Float[] delayStats0 = new Float[numberOfPoints];
-        Float[][] costStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
-        Float[][] delayStatsForAllRuns0 = new Float[numberOfPoints][numberOfRuns];
-        simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result0, costStatsForAllRuns0, delayStatsForAllRuns0, costStats0, delayStats0);
-
-
-        SimulationParameters.updateType=UpdateType.piggyBack;
-        numberOfPoints = 11;
-        Float[] costStats1 = new Float[numberOfPoints];
-        Float[] delayStats1 = new Float[numberOfPoints];
-        Float[][] delayStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
-        Float[][] costStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
-        simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result1, costStatsForAllRuns1, delayStatsForAllRuns1, costStats1, delayStats1);
-
-        SimulationParameters.updateType=UpdateType.periodic;
-         numberOfPoints = 11;
-
-        Float[] costStats2 = new Float[numberOfPoints];
-        Float[] delayStats2 = new Float[numberOfPoints];
-        Float[][] costStatsForAllRuns2 = new Float[numberOfPoints][numberOfRuns];
-        Float[][] delayStatsForAllRuns2 = new Float[numberOfPoints][numberOfRuns];
-        simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result2, costStatsForAllRuns2, delayStatsForAllRuns2, costStats2, delayStats2);
+////
+//
+//
+//        SimulationParameters.updateType=UpdateType.piggyBack;
+//        DefaultValues.HONEY_BEE_SEARCH_PROBABILITY=0.2;
+//        numberOfPoints = 11;
+//        Float[] costStats1 = new Float[numberOfPoints];
+//        Float[] delayStats1 = new Float[numberOfPoints];
+//        Float[][] delayStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
+//        Float[][] costStatsForAllRuns1 = new Float[numberOfPoints][numberOfRuns];
+//        simulateHoneyBee(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result1, costStatsForAllRuns1, delayStatsForAllRuns1, costStats1, delayStats1);
+//
+//        SimulationParameters.updateType=UpdateType.periodic;
+//        RedirectingAlgorithm.periodicStep = 1000;
+////        DefaultValues.HONEY_BEE_SEARCH_PROBABILITY=0.2;
+//        numberOfPoints = 11;
+//        Float[] costStats2 = new Float[numberOfPoints];
+//        Float[] delayStats2 = new Float[numberOfPoints];
+//        Float[][] delayStatsForAllRuns2 = new Float[numberOfPoints][numberOfRuns];
+//        Float[][] costStatsForAllRuns2 = new Float[numberOfPoints][numberOfRuns];
+//        simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result1, costStatsForAllRuns2, delayStatsForAllRuns2, costStats2, delayStats2);
+//
+//        SimulationParameters.updateType=UpdateType.periodic;
+//        RedirectingAlgorithm.periodicStep = 200;
+//        numberOfPoints = 11;
+//        Float[] costStats3 = new Float[numberOfPoints];
+//        Float[] delayStats3 = new Float[numberOfPoints];
+//        Float[][] delayStatsForAllRuns3 = new Float[numberOfPoints][numberOfRuns];
+//        Float[][] costStatsForAllRuns3 = new Float[numberOfPoints][numberOfRuns];
+//        simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result1, costStatsForAllRuns3, delayStatsForAllRuns3, costStats3, delayStats3);
+////
+//
+//        SimulationParameters.updateType=UpdateType.periodic;
+//        DefaultValues.HONEY_BEE_SEARCH_PROBABILITY=50;
+//        numberOfPoints = 11;
+//        Float[] costStats4 = new Float[numberOfPoints];
+//        Float[] delayStats4 = new Float[numberOfPoints];
+//        Float[][] delayStatsForAllRuns4 = new Float[numberOfPoints][numberOfRuns];
+//        Float[][] costStatsForAllRuns4 = new Float[numberOfPoints][numberOfRuns];
+//        simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result1, costStatsForAllRuns4, delayStatsForAllRuns4, costStats4, delayStats4);
+//
+//
+//
+//        SimulationParameters.updateType=UpdateType.piggyBack;
+//        DefaultValues.HONEY_BEE_SEARCH_PROBABILITY=30;
+//        numberOfPoints = 11;
+//        Float[] costStats5 = new Float[numberOfPoints];
+//        Float[] delayStats5 = new Float[numberOfPoints];
+//        Float[][] costStatsForAllRuns5 = new Float[numberOfPoints][numberOfRuns];
+//        Float[][] delayStatsForAllRuns5 = new Float[numberOfPoints][numberOfRuns];
+//        simulateWMC(numberOfPoints,numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, numberOfRuns, lambdaInOutRatio, path, result2, costStatsForAllRuns5, delayStatsForAllRuns5, costStats5, delayStats5);
 
 
 
 
         //Chart stuff
-        String pathName = path+"/chart/photo.png" ,
-                seriesName0 = "WMC-Ideal",
-                seriesName1 = "WMC-piggyback",
-                seriesName2 = "WMC-periodic";
-        Chart.initiateChart(pathName);
+//        String pathName = path+"/chart/photo.png" ,
+//                seriesName0 = "WMC-Ideal",
+//                seriesName1 = "Honeybee- 0.1",
+//                seriesName2 = "WMC-piggyback",
+//                seriesName3 = "WMC-periodic",
+//                seriesName4 = "Honeybee- 0.7",
+//                seriesName5 = "Honeybee- 0.95";
+//        Chart.initiateChart(pathName);
 //        Chart.addSeries(seriesName0, costStats0, delayStats0);
-        Chart.addSeries(seriesName1, costStats1, delayStats1);
+//        Chart.addSeries(seriesName1, costStats1, delayStats1);
 //        Chart.addSeries(seriesName2, costStats2, delayStats2);
+//        Chart.addSeries(seriesName3, costStats3, delayStats3);
+//        Chart.addSeries(seriesName4, costStats4, delayStats4);
+//        Chart.addSeries(seriesName5, costStats5, delayStats5);
         Chart.main(args);
 
     }
-    private static void simulatePSS(int numberOfPoints,int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, int numberOfRuns, float lambdaInOutRatio, String path, PrintWriter result, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, Float[] costStats, Float[] delayStats) throws IOException {
-        double startTime = System.currentTimeMillis();
-        SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.PSS;
-        result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
-        DefaultValues.PSS_PROBABILITY = 0;
-        for (int i = 0; i < numberOfPoints; i++){
-            System.out.println(i);
+//    private static void simulatePSS(int numberOfPoints,int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, int numberOfRuns, float lambdaInOutRatio, String path, PrintWriter result, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, Float[] costStats, Float[] delayStats) throws IOException {
+//        double startTime = System.currentTimeMillis();
+//        SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.PSS;
+//        result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
+//        DefaultValues.PSS_PROBABILITY = 0;
+//        for (int i = 0; i < numberOfPoints; i++){
+//            System.out.println(i);
+//
+//            for (int j = 0; j < numberOfRuns ; j++) {
+//                PrintWriter logger = null;
+//                if (DefaultValues.LOGGER_ON) {
+//                    new File(path+"/logs/run"+j).mkdir();
+//                    logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i + ".txt"));
+//                    Logger.printWriter = logger;
+//                }
+//                DefaultValues.PSS_PROBABILITY = 0.1d*i;
+//                simulate(numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, lambdaInOutRatio, costStatsForAllRuns, delayStatsForAllRuns, i, j, logger);
+//
+//            }
+//            calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
+//            result.print(DefaultValues.PSS_PROBABILITY);
+//            result.print("\t cost: "+costStats[i]+ "\t delay: " + delayStats[i]+"\n");
+//        }
+//
+//        double finishTime = System.currentTimeMillis();
+//        result.println("Duration(min): " + (finishTime - startTime)/60000);
+//
+//        result.close();
+//    }
+//
 
-            for (int j = 0; j < numberOfRuns ; j++) {
+//    private static void simulateWMC(int numberOfPoints,int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, int numberOfRuns, float lambdaInOutRatio, String path, PrintWriter result, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, Float[] costStats, Float[] delayStats) throws IOException {
+//        double startTime = System.currentTimeMillis();
+//        SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.WMC;
+//        result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
+//        DefaultValues.WMC_ALPHA = 0;
+////        double a[] = {0.2d,0.1d,0.01d,0d};
+////        float a = 0.2f;
+//        for (int i = 0; i < numberOfPoints; i++){
+//
+//            for (int j = 0; j < numberOfRuns ; j++) {
+//
+//                PrintWriter logger = null;
+//                if (DefaultValues.LOGGER_ON) {
+//                    new File(path+"/logs/run"+j).mkdir();
+//                    logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i + ".txt"));
+//                    Logger.printWriter = logger;
+//                }
+//                System.out.println(i+" "+j);
+////                DefaultValues.WMC_ALPHA = a[i];
+////                DefaultValues.WMC_ALPHA = a - 0.02f*i;
+//                DefaultValues.WMC_ALPHA = i*0.1f;
+//                simulate(numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, lambdaInOutRatio, costStatsForAllRuns, delayStatsForAllRuns, i, j, logger);
+//
+//            }
+//            calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
+//            result.print(DefaultValues.WMC_ALPHA);
+//            result.print("\t cost: "+costStats[i]+ "\t delay: " + delayStats[i]+"\n");
+//        }
+//
+//        double finishTime = System.currentTimeMillis();
+//        result.println("Duration(min): " + (finishTime - startTime)/60000);
+//
+//        result.close();
+//    }
+//
+//    private static void simulateHoneyBee(int numberOfPoints,int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, int numberOfRuns, float lambdaInOutRatio, String path, PrintWriter result, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, Float[] costStats, Float[] delayStats) throws IOException {
+//        double startTime = System.currentTimeMillis();
+//        SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.HONEYBEE;
+//        result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
+//        DefaultValues.WMC_ALPHA = 0;
+////        double a[] = {0.2d,0.1d,0.01d,0d};
+////        float a = 0.2f;
+//        for (int i = 0; i < numberOfPoints; i++){
+//
+//            for (int j = 0; j < numberOfRuns ; j++) {
+//
+//                PrintWriter logger = null;
+//                if (DefaultValues.LOGGER_ON) {
+//                    new File(path+"/logs/run"+j).mkdir();
+//                    logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i + ".txt"));
+//                    Logger.printWriter = logger;
+//                }
+//                System.out.println(i+" "+j);
+////                DefaultValues.WMC_ALPHA = a[i];
+////                DefaultValues.WMC_ALPHA = a - 0.02f*i;
+//                DefaultValues.WMC_ALPHA = i*0.1f;
+//                simulate(numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, lambdaInOutRatio, costStatsForAllRuns, delayStatsForAllRuns, i, j, logger);
+//
+//            }
+//            calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
+//            result.print(DefaultValues.WMC_ALPHA);
+//            result.print("\t cost: "+costStats[i]+ "\t delay: " + delayStats[i]+"\n");
+//        }
+//
+//        double finishTime = System.currentTimeMillis();
+//        result.println("Duration(min): " + (finishTime - startTime)/60000);
+//
+//        result.close();
+//    }
+
+
+
+    private static void run(@NotNull String algorithm, @Nullable Number honeyBeeProb , @NotNull String updateType , @Nullable Number periodicStep , Number[] points, Configuration configuration , String path) throws IOException, NoSuchFieldException, IllegalAccessException {
+        Float[] costStats = new Float[points.length];
+        Float[] delayStats = new Float[points.length];
+        Float[][] costStatsForAllRuns = new Float[points.length][configuration.numberOfRuns];
+        Float[][] delayStatsForAllRuns = new Float[points.length][configuration.numberOfRuns];
+        String simulationName = algorithm+(honeyBeeProb==null?"":"-"+honeyBeeProb)+"-"+updateType+(periodicStep==null?"":"-"+periodicStep);
+
+        double startTime = System.currentTimeMillis();
+        PrintWriter result = new PrintWriter(new FileWriter(path+"/result"+simulationName+".txt"));
+        String paramName = null ;
+        String secParamName = null ;
+        String terParamName = null ;
+        switch (algorithm){
+            case "WMC":
+                paramName = "WMC_ALPHA";
+                break;
+            case "PSS":
+                paramName = "PSS_PROBABILITY";
+                break;
+            case "MCS":
+                paramName = "MCS_DELTA";
+                break;
+            case "HONEYBEE":
+                paramName = "WMC_ALPHA";
+                secParamName = "HONEY_BEE_SEARCH_PROBABILITY";
+                break;
+        }
+
+        switch (updateType){
+            case "piggyBack":
+                break;
+            case "periodic":
+                terParamName = "periodicStep";
+                break;
+            case "ideal":
+                break;
+        }
+
+        Field algParam = DefaultValues.class.getField(paramName);
+        try {
+            Field secParam = DefaultValues.class.getField(secParamName);
+            secParam.set(null, honeyBeeProb);
+        }catch (Exception e){
+
+
+        }
+
+        try {
+            Field terParam = DefaultValues.class.getField(terParamName);
+            terParam.set(null, periodicStep);
+        }catch (Exception e){
+
+
+        }
+
+        SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.valueOf(algorithm);
+        SimulationParameters.updateType = UpdateType.valueOf(updateType);
+        result.println("Redirecting Algorithm : " + algorithm+"\n");
+        if (secParamName!=null){result.println(secParamName+" : " + honeyBeeProb);}
+        if (terParamName!=null){result.println(terParamName+" : " + periodicStep);}
+
+        for (int i = 0; i < points.length; i++){
+
+            for (int j = 0; j < configuration.numberOfRuns ; j++) {
                 PrintWriter logger = null;
                 if (DefaultValues.LOGGER_ON) {
                     new File(path+"/logs/run"+j).mkdir();
                     logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i + ".txt"));
                     Logger.printWriter = logger;
                 }
-                DefaultValues.PSS_PROBABILITY = 0.1d*i;
-                simulate(numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, lambdaInOutRatio, costStatsForAllRuns, delayStatsForAllRuns, i, j, logger);
+                System.out.println(paramName+"  "+i+"  "+"Run : "+j);
+                algParam.set(null, points[i]);
+                simulate(configuration, costStatsForAllRuns, delayStatsForAllRuns, i, j, logger);
 
             }
             calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
-            result.print(DefaultValues.PSS_PROBABILITY);
-            result.print("\t cost: "+costStats[i]+ "\t delay: " + delayStats[i]+"\n");
+            result.print(points[i]);
+            result.printf("%10s %10f %10s %10f" ,"cost: ",costStats[i], "delay: ",delayStats[i]);
+            result.println("");
         }
 
+        Chart.addSeries(simulationName, costStats, delayStats);
         double finishTime = System.currentTimeMillis();
         result.println("Duration(min): " + (finishTime - startTime)/60000);
 
@@ -142,80 +348,46 @@ public class ProjectRun {
     }
 
 
-    private static void simulateWMC(int numberOfPoints,int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, int numberOfRuns, float lambdaInOutRatio, String path, PrintWriter result, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, Float[] costStats, Float[] delayStats) throws IOException {
-        double startTime = System.currentTimeMillis();
-        SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.WMC;
-        result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
-        DefaultValues.WMC_ALPHA = 0;
-//        double a[] = {0.2d,0.1d,0.01d,0d};
-//        float a = 0.2f;
-        for (int i = 0; i < numberOfPoints; i++){
 
-            for (int j = 0; j < numberOfRuns ; j++) {
+//    private static void simulateMCS(int numberOfPoints,int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, int numberOfRuns, float lambdaInOutRatio, String path, PrintWriter result, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, Float[] costStats, Float[] delayStats) throws IOException {
+//        double startTime = System.currentTimeMillis();
+//        SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.MCS;
+//        result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
+//        for (int i = 0; i <numberOfPoints ; i++){
+////                saeed = i;
+//            System.out.println(i);
+//            for (int j = 0; j < numberOfRuns ; j++) {
+//                PrintWriter logger = null;
+//                if (DefaultValues.LOGGER_ON) {
+//                    new File(path+"/logs/run"+j).mkdir();
+//                    logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i+1 + ".txt"));
+//                    Logger.printWriter = logger;
+//                }
+//                DefaultValues.MCS_DELTA =  i+1;
+//                simulate(numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, lambdaInOutRatio, costStatsForAllRuns, delayStatsForAllRuns, i, j, logger);
+//
+//            }
+//            calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
+//            result.print(DefaultValues.MCS_DELTA);
+//
+//            result.print("\t cost: "+costStats[i]+ "\t delay: " + delayStats[i]+"\n");
+//        }
+//
+//        double finishTime = System.currentTimeMillis();
+//        result.println("Duration(min): " + (finishTime - startTime)/60000);
+//
+//        result.close();
+//    }
 
-                PrintWriter logger = null;
-                if (DefaultValues.LOGGER_ON) {
-                    new File(path+"/logs/run"+j).mkdir();
-                    logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i + ".txt"));
-                    Logger.printWriter = logger;
-                }
-                System.out.println(i+" "+j);
-//                DefaultValues.WMC_ALPHA = a[i];
-//                DefaultValues.WMC_ALPHA = a - 0.02f*i;
-                DefaultValues.WMC_ALPHA = i*0.1f;
-                simulate(numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, lambdaInOutRatio, costStatsForAllRuns, delayStatsForAllRuns, i, j, logger);
-
-            }
-            calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
-            result.print(DefaultValues.WMC_ALPHA);
-            result.print("\t cost: "+costStats[i]+ "\t delay: " + delayStats[i]+"\n");
-        }
-
-        double finishTime = System.currentTimeMillis();
-        result.println("Duration(min): " + (finishTime - startTime)/60000);
-
-        result.close();
-    }
-
-    private static void simulateMCS(int numberOfPoints,int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, int numberOfRuns, float lambdaInOutRatio, String path, PrintWriter result, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, Float[] costStats, Float[] delayStats) throws IOException {
-        double startTime = System.currentTimeMillis();
-        SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.MCS;
-        result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
-        for (int i = 0; i <numberOfPoints ; i++){
-//                saeed = i;
-            System.out.println(i);
-            for (int j = 0; j < numberOfRuns ; j++) {
-                PrintWriter logger = null;
-                if (DefaultValues.LOGGER_ON) {
-                    new File(path+"/logs/run"+j).mkdir();
-                    logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i+1 + ".txt"));
-                    Logger.printWriter = logger;
-                }
-                DefaultValues.MCS_DELTA =  i+1;
-                simulate(numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, lambdaInOutRatio, costStatsForAllRuns, delayStatsForAllRuns, i, j, logger);
-
-            }
-            calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
-            result.print(DefaultValues.MCS_DELTA);
-
-            result.print("\t cost: "+costStats[i]+ "\t delay: " + delayStats[i]+"\n");
-        }
-
-        double finishTime = System.currentTimeMillis();
-        result.println("Duration(min): " + (finishTime - startTime)/60000);
-
-        result.close();
-    }
-
-    private static void simulate(int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, float lambdaInOutRatio, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, int i, int j, PrintWriter logger) {
+    private static void simulate(Configuration configuration, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, int i, int j, PrintWriter logger) {
 //        double a = System.currentTimeMillis();
 //        System.out.println("initializing simulator");
-        initSimulator(numberOfFiles, numberOfServers, numberOfFilesPerServer , propagationDelay , bandwidth,sizeOfFiles );
+        initSimulator(configuration );
 //        System.out.println("generating Requests");
-        generateRequests(numberOfRequests,numberOfFiles, numberOfServers , lambdaInOutRatio);
+        generateRequests(configuration);
 //        System.out.println("handling Events");
         Brain.handleEvents();
-        System.out.println(EventsQueue.maximumTime);
+//        System.out.println(EventsQueue.maximumTime);
         EventsQueue.maximumTime=0;
 //        System.out.println(NetworkGraph.networkGraph.c);
 //        System.out.println(NetworkGraph.networkGraph.t);
@@ -277,17 +449,17 @@ public class ProjectRun {
         delayStats[i][j]= totalDelay/counter;
     }
     public static double totalTimeInGenerateRequests = 0;
-    private static void generateRequests(int numberOfRequests, int numberOfFiles, int numberOfServers, float ratio) {
+    private static void generateRequests(Configuration configuration) {
 //        double tempTime = System.currentTimeMillis();
         int reqFileId, requestingClientID;
         Random random = new Random();
         float reqTime = 0f;
-        for (int  j= 0; j < numberOfRequests; j++) {
+        for (int  j= 0; j < configuration.numberOfRequests; j++) {
 
-            requestingClientID = DefaultValues.random.nextInt(numberOfServers);
-            reqFileId = DefaultValues.random.nextInt(numberOfFiles);
+            requestingClientID = DefaultValues.random.nextInt(configuration.numberOfServers);
+            reqFileId = DefaultValues.random.nextInt(configuration.numberOfFiles);
 
-            reqTime += random.nextFloat()*2*DefaultValues.SERVICE_TIME/numberOfServers/ratio;
+            reqTime += random.nextFloat()*2*DefaultValues.SERVICE_TIME/configuration.numberOfServers/configuration.lambdaInOutRatio;
             EventsQueue.addEvent(
                     new Event(EventType.sendReq, clients.get(requestingClientID), reqTime, null, reqFileId)
             );
@@ -296,26 +468,26 @@ public class ProjectRun {
 
     }
 
-    private static void initSimulator(int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, float propDelay, float bw, int sizeOfFiles) {
+    private static void initSimulator(Configuration configuration) {
         resetSimulatorSettings();
 
-        createFiles(numberOfFiles, sizeOfFiles);
+        createFiles(configuration.numberOfFiles, configuration.sizeOfFiles);
 
 
-        initiateServesAndClients(numberOfServers, propDelay, bw);
+        initiateServesAndClients(configuration.numberOfServers, configuration.propagationDelay, configuration.bandwidth);
 
         Map<Integer, List<Server>> serversHavingFile = new HashMap<>();
 
-        setServersHavingFile(numberOfServers, serversHavingFile);
+        setServersHavingFile(configuration.numberOfServers, serversHavingFile);
 
-        assignFileListsToServers(numberOfFiles, numberOfServers, numberOfFilesPerServer);
+        assignFileListsToServers(configuration.numberOfFiles,configuration. numberOfServers,configuration. numberOfFilesPerServer);
 
-        createSimpleTopology(numberOfServers, propDelay, bw);
+        createSimpleTopology(configuration.numberOfServers,configuration. propagationDelay,configuration. bandwidth);
 
         addLinksToGraph();
 
         fillServersHavingFile(serversHavingFile);
-        setServerLoadLists(numberOfServers);
+        setServerLoadLists(configuration.numberOfServers);
         networkGraph.buildRoutingTables();
     }
 

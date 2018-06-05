@@ -35,7 +35,7 @@ public class EventsQueue {
             if( event.getOptionalData() instanceof Segment && ((Segment)event.getOptionalData()).getSegmentType()!=SegmentType.Update)
             if (Float.compare(event.getTime(), lastSentPeriod)==1){
                 ProjectRun.sendPeriodicUpdate(lastSentPeriod);
-                lastSentPeriod +=RedirectingAlgorithm.step;
+                lastSentPeriod +=DefaultValues.periodicStep;
 
         }
 

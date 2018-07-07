@@ -1,13 +1,13 @@
 package entities.physical;
 
 public class Configuration {
-    final int numberOfFiles = 35;
-    final int numberOfServers = 35;
-    final int numberOfFilesPerServer = 15;
-    final int numberOfRequests =50000;
-    final float bandwidth = 9000f;
-    final float propagationDelay = 00.1f;
-    final int sizeOfFiles = 5000;
-    final int numberOfRuns = 10;
-    final float lambdaInOutRatio = 0.999f;
+    final int numberOfFiles = 50;
+    final int numberOfServers = 50;
+    final int numberOfFilesPerServer = 10;
+    final int numberOfRequests =100000;
+    final float bandwidth = 15f;
+    final float propagationDelay = 0.1f;
+    final int sizeOfFiles = 1000;
+    final int numberOfRuns = 20;
+    final float lambdaInOutRatio = 0.5f;
 }

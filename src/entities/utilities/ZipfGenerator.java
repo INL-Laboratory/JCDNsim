@@ -146,7 +146,7 @@ public class ZipfGenerator {
 
     private static boolean isEffic(double skew, int instances, int files, int servers) {
         ZipfGenerator generator = new ZipfGenerator(files, skew);
-        return generator.getProbability(files)*instances*servers>=3.0;
+        return generator.getProbability(files)*instances*servers>=1.0;
 
     }
 

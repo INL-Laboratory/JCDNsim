@@ -68,17 +68,19 @@ public class ProjectRun {
         for (int i = 1; i <=configuration.numberOfServers ; i++) {
             points1[i-1] = i;
         }
-//        run("WMC",null,"periodic",1000,points,configuration,path);
+        run("WMC",null,"periodic",400,points,configuration,path);
+        run("WMC",null,"periodic",450,points,configuration,path);
+        run("WMC",null,"periodic",500,points,configuration,path);
 //        run("WMC",null,"periodic",500,points,configuration,path);
 //        run("WMC",null,"periodic",200,points,configuration,path);
 //        run("WMC",null,"periodic",50,points,configuration,path);
 //        run("WMC",null,"periodic",20,points,configuration,path);
 //        run("WMC",null,"periodic",10,points,configuration,path);
-//        run("HONEYBEE",0.15,"piggyBack",null,points,configuration,path);
+        run("HONEYBEE",0.15,"piggyBack",null,points,configuration,path);
 //        run("WMC",null,"piggyBack",null,points,configuration,path);
 //        run("PSS",null,"ideal",null,points,configuration,path);
 //        run("WMC",null,"ideal",null,points,configuration,path);
-        run("MCS",null,"ideal",null,points1,configuration,path);
+//        run("MCS",null,"ideal",null,points1,configuration,path);
 
 
 //        SimulationParameters.updateType=UpdateType.periodic;

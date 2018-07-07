@@ -50,7 +50,7 @@ public class ProjectRun {
         parametersFile.println("Size of Files(KB): " + configuration.sizeOfFiles);
         parametersFile.println("Request Size(KB) : " + DefaultValues.REQUEST_SIZE);
         parametersFile.println("Update Package Size(KB) : " + DefaultValues.PIGGY_BACK_SIZE);
-        parametersFile.println("Update Period(In case of periodic update)(ms) : " + DefaultValues.periodicStep);
+//        parametersFile.println("Update Period(In case of periodic update)(ms) : " + DefaultValues.periodicStep);
         parametersFile.println("Service Time(ms) " + DefaultValues.SERVICE_TIME);
         parametersFile.println("Request generation average interval(ms): Every " + DefaultValues.SERVICE_TIME/configuration.numberOfServers/configuration.lambdaInOutRatio);
         parametersFile.println("lambdaInPerOutRatio: " + configuration.lambdaInOutRatio);
@@ -64,15 +64,21 @@ public class ProjectRun {
 
 
         Number[] points = {0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0};
-//        run("WMC",null,"periodic",300,points,configuration,path);
-//        run("WMC",null,"periodic",300,points,configuration,path);
-//        run("WMC",null,"periodic",100,points,configuration,path);
+        Number[] points1 = new Number[configuration.numberOfServers];
+        for (int i = 1; i <=configuration.numberOfServers ; i++) {
+            points1[i-1] = i;
+        }
+//        run("WMC",null,"periodic",1000,points,configuration,path);
+//        run("WMC",null,"periodic",500,points,configuration,path);
+//        run("WMC",null,"periodic",200,points,configuration,path);
 //        run("WMC",null,"periodic",50,points,configuration,path);
 //        run("WMC",null,"periodic",20,points,configuration,path);
-        run("WMC",null,"periodic",500,points,configuration,path);
-        run("WMC",null,"piggyBack",null,points,configuration,path);
-//        run("HONEYBEE",0.2,"piggyBack",null,points,configuration,path);
-//        run("WMC",null,"periodic",5,points,configuration,path);
+//        run("WMC",null,"periodic",10,points,configuration,path);
+//        run("HONEYBEE",0.15,"piggyBack",null,points,configuration,path);
+//        run("WMC",null,"piggyBack",null,points,configuration,path);
+//        run("PSS",null,"ideal",null,points,configuration,path);
+//        run("WMC",null,"ideal",null,points,configuration,path);
+        run("MCS",null,"ideal",null,points1,configuration,path);
 
 
 //        SimulationParameters.updateType=UpdateType.periodic;
@@ -321,7 +327,6 @@ public class ProjectRun {
         if (terParamName!=null){result.println(terParamName+" : " + periodicStep);}
 
         for (int i = 0; i < points.length; i++){
-
             for (int j = 0; j < configuration.numberOfRuns ; j++) {
                 PrintWriter logger = null;
                 if (DefaultValues.LOGGER_ON) {
@@ -329,7 +334,7 @@ public class ProjectRun {
                     logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i + ".txt"));
                     Logger.printWriter = logger;
                 }
-                System.out.println(paramName+"  "+i+"  "+"Run : "+j);
+                System.out.println(simulationName+"  "+i+"  "+"Run : "+j);
                 algParam.set(null, points[i]);
                 simulate(configuration, costStatsForAllRuns, delayStatsForAllRuns, i, j, logger);
 
@@ -381,12 +386,19 @@ public class ProjectRun {
 
     private static void simulate(Configuration configuration, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, int i, int j, PrintWriter logger) {
 //        double a = System.currentTimeMillis();
-//        System.out.println("initializing simulator");
         initSimulator(configuration );
-//        System.out.println("generating Requests");
+//        double b = System.currentTimeMillis();
+//        System.out.println("initializing simulator :"+ (b-a));
+
         generateRequests(configuration);
+
+//        double c = System.currentTimeMillis();
+//        System.out.println("generating Requests : "+(c-b));
 //        System.out.println("handling Events");
         Brain.handleEvents();
+//        double d = System.currentTimeMillis();
+
+//        System.out.println("Handle Events : "+(d-c));
 //        System.out.println(EventsQueue.maximumTime);
         EventsQueue.maximumTime=0;
 //        System.out.println(NetworkGraph.networkGraph.c);
@@ -404,6 +416,7 @@ public class ProjectRun {
 //                System.out.println("% of Time in Link handle Events= " + (Link.totalTimeInLinkHandleEvent /(System.currentTimeMillis()-a))*100);
 //                System.out.println("% of Time in Brain= " + (Brain.totalTimeInBrain /(System.currentTimeMillis()-a))*100);
 //                System.out.println("% of Time in Request generation= " + (totalTimeInGenerateRequests /(System.currentTimeMillis()-a))*100);
+//                System.out.println("% of Time in initaion= " + (initiationTime /(System.currentTimeMillis()-a))*100);
 //        System.out.println("% of Time in make Load List Ideally= " + (Server.totalTimeInMakeLoadListIdeally /(System.currentTimeMillis()-a))*100);
 //        System.out.println("% MaximumQueue= " + Server.maxQueue);
 //        RedirectingAlgorithm.totalTime = 0;
@@ -415,6 +428,7 @@ public class ProjectRun {
 //                totalTimeInGenerateRequests = 0;
 //        Server.totalTimeInMakeLoadListIdeally = 0;
 //
+
     }
 
 
@@ -453,13 +467,16 @@ public class ProjectRun {
 //        double tempTime = System.currentTimeMillis();
         int reqFileId, requestingClientID;
         Random random = new Random();
+        double timePerReq=  DefaultValues.SERVICE_TIME / configuration.numberOfServers / configuration.lambdaInOutRatio;
+        double lambda = 1d/timePerReq;
+        Poisson poisson = new Poisson(lambda,random);
         float reqTime = 0f;
         for (int  j= 0; j < configuration.numberOfRequests; j++) {
 
             requestingClientID = DefaultValues.random.nextInt(configuration.numberOfServers);
             reqFileId = DefaultValues.random.nextInt(configuration.numberOfFiles);
 
-            reqTime += random.nextFloat()*2*DefaultValues.SERVICE_TIME/configuration.numberOfServers/configuration.lambdaInOutRatio;
+            reqTime = getInterarrivalTime( random, reqTime , lambda, poisson);
             EventsQueue.addEvent(
                     new Event(EventType.sendReq, clients.get(requestingClientID), reqTime, null, reqFileId)
             );
@@ -468,7 +485,19 @@ public class ProjectRun {
 
     }
 
+    private static float getInterarrivalTime( Random random, float reqTime , double lambda , Poisson poisson) {
+        if(!DefaultValues.poissonArrivalsActivated) {
+            reqTime += random.nextFloat() * 2 * (1d/lambda);
+        }else
+            reqTime+= poisson.getNextTime();
+        return reqTime;
+    }
+
+    static double initiationTime;
+
     private static void initSimulator(Configuration configuration) {
+         double EnteringTime = System.currentTimeMillis();
+
         resetSimulatorSettings();
 
         createFiles(configuration.numberOfFiles, configuration.sizeOfFiles);
@@ -489,6 +518,8 @@ public class ProjectRun {
         fillServersHavingFile(serversHavingFile);
         setServerLoadLists(configuration.numberOfServers);
         networkGraph.buildRoutingTables();
+         initiationTime = System.currentTimeMillis() - EnteringTime;
+
     }
 
     private static void fillServersHavingFile(Map<Integer, List<Server>> serversHavingFile) {

@@ -1,12 +1,12 @@
 package entities.physical;
 
 import entities.logical.*;
-import entities.utilities.logger.Logger;
 
 import java.util.*;
 
 import static entities.logical.UpdateType.ideal;
 import static entities.logical.UpdateType.piggyBack;
+import static entities.logical.UpdateType.piggyGroupedPeriodic;
 
 public class Server extends EndDevice{
     private Map<EndDevice,Link> links = new HashMap<>();
@@ -18,7 +18,7 @@ public class Server extends EndDevice{
     private boolean isServerBusy;
     private Map<Integer, List<Server>> serversHavingFile = new HashMap<>();
     private Map<Server, Integer> serverLoads = new HashMap<>();
-
+    private Site site ;
     public Server(int number, List<IFile> files, Map<Integer, List<Server>> serversHavingFile) {
         this(number);
         this.files = files;
@@ -75,15 +75,15 @@ public class Server extends EndDevice{
 //
 //                Logger.print(this + "update package from "+ segment.getSource() +" received ",time);
 //
-                updateLoadList((Server) segment.getSource(),(int)segment.getOptionalContent());
+                updateLoadList((HashMap<Server, Integer>) segment.getOptionalContent());
                 break;
             default:
                 throw new OkayException(this + " received unexpected " +segment,time);
         }
     }
 
-    private void updateLoadList(Server source, int load) {
-        serverLoads.put(source,load);
+    private void updateLoadList(HashMap<Server, Integer> loads) {
+        serverLoads.putAll(loads);
         serverLoads.put(this,getServerLoad());
 //
 //        Logger.printWithoutTime("******"+this + "'s load list");
@@ -146,18 +146,26 @@ public class Server extends EndDevice{
         setTimeToPopNextRequestInQueue(time, delay, request);
     }
 
-    private void piggyBack(float time, Request request) {
+    private void piggyBack(float time, Request request , boolean sendSiteUpdate) {
         Server requestingServer = request.getServerToPiggyBack();
-        sendUpdateTo(time, request.getId(), requestingServer);
+        sendUpdateTo(time, request.getId(), requestingServer , sendSiteUpdate);
 //        System.out.println(this+ " : sends piggy back at "+ time);
 
     }
 
-    private void sendUpdateTo(float time, int  id, Server dst) {
+    private void sendUpdateTo(float time, int  id, Server dst, boolean sendSiteUpdate) {
         Link link = routingTable.get(dst);
-        Segment updateSegment = new Segment(id,this, dst , DefaultValues.PIGGY_BACK_SIZE, SegmentType.Update,getServerLoad() , 0);
+        HashMap<Server, Integer> updateHashMap= new HashMap<>();
+        if (sendSiteUpdate) {
+            updateHashMap.putAll(site.getLoads());
+        }else {
+            updateHashMap.put(this,getServerLoad());
+        }
+        Segment updateSegment = new Segment(id,this, dst , DefaultValues.PIGGY_BACK_SIZE, SegmentType.Update,updateHashMap , 0);
         sendData(time, link, updateSegment);
     }
+
+
 
     private float serveUnredirectedRequest(float time, Request request ) throws Exception {
         float delay;
@@ -200,7 +208,7 @@ public class Server extends EndDevice{
         sendData(time + delay, link, fileSegment);
     }
 
-    private int getServerLoad(){
+    int getServerLoad(){
         return queue.size();
     }
 
@@ -254,9 +262,10 @@ public class Server extends EndDevice{
         /***
          * Commands to serve the request then after a service delay serve the next request
          */
-        if (piggyBack == SimulationParameters.updateType  && servedRequest.getShouldBePiggiedBack() )
-            piggyBack(time,servedRequest);
+        if (servedRequest.getShouldBePiggiedBack() ) {
+            piggyBack(time, servedRequest , piggyGroupedPeriodic == SimulationParameters.updateType);
 
+        }
         isServerBusy = false;
         if (queue.size()==0) {
 //
@@ -325,6 +334,14 @@ public class Server extends EndDevice{
         return sum;
     }
 
+    public Site getSite() {
+        return site;
+    }
+
+    public void setSite(Site site) {
+        this.site = site;
+    }
+
     public void setServersHavingFile(Map<Integer, List<Server>> serversHavingFile) {
         this.serversHavingFile = serversHavingFile;
     }
@@ -341,7 +358,7 @@ public class Server extends EndDevice{
         int id = Client.generateId();
         for (Server dst:servers) {
             if (dst.equals(this)) continue;
-            sendUpdateTo(time,id,dst);
+            sendUpdateTo(time,id,dst, false);
         }
 
     }

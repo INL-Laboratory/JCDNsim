@@ -10,14 +10,14 @@ public class IFile {
 
 
     private int id;
-    private int size;
+    private float size;
 
-    public IFile(int id, int size){
+    public IFile(int id, float size){
         this.id = id;
         this.size = size;
     }
 
-    public int getSize() {
+    public float getSize() {
         return size;
     }
 

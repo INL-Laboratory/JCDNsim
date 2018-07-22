@@ -22,6 +22,7 @@ import java.util.*;
  */
 public class ProjectRun {
     static List<Server> servers = new ArrayList<>();
+    static List<Site> sites = new ArrayList<>();
     static List<Client>  clients= new ArrayList<>();
     static List<IFile>  files= new ArrayList<>();
     static List<Link>  links= new ArrayList<>();
@@ -68,17 +69,22 @@ public class ProjectRun {
         for (int i = 1; i <=configuration.numberOfServers ; i++) {
             points1[i-1] = i;
         }
-//        run("WMC",null,"periodic",1000,points,configuration,path);
-//        run("WMC",null,"periodic",500,points,configuration,path);
+//        DefaultValues.PIGGY_BACK_SIZE = 1f;
+//        DefaultValues.PIGGY_BACK_SIZE = 10f;
+//        run("WMC",null,"periodic",3000,points,configuration,path);
+//        DefaultValues.PIGGY_BACK_SIZE = 100f;
 //        run("WMC",null,"periodic",200,points,configuration,path);
 //        run("WMC",null,"periodic",50,points,configuration,path);
 //        run("WMC",null,"periodic",20,points,configuration,path);
 //        run("WMC",null,"periodic",10,points,configuration,path);
-//        run("HONEYBEE",0.15,"piggyBack",null,points,configuration,path);
+        run("WMC",null,"periodic",300,points,configuration,path);
+        run("WMC",null,"periodic",200,points,configuration,path);
+//        run("HONEYBEE",0.15,"piggyGroupedPeriodic",1000,points,configuration,path);
 //        run("WMC",null,"piggyBack",null,points,configuration,path);
 //        run("PSS",null,"ideal",null,points,configuration,path);
 //        run("WMC",null,"ideal",null,points,configuration,path);
-        run("MCS",null,"ideal",null,points1,configuration,path);
+//        run("WMC",null,"periodic",1000,points,configuration,path);
+//        run("MCS",null,"ideal",null,points1,configuration,path);
 
 
 //        SimulationParameters.updateType=UpdateType.periodic;
@@ -297,6 +303,7 @@ public class ProjectRun {
             case "piggyBack":
                 break;
             case "periodic":
+            case "piggyGroupedPeriodic":
                 terParamName = "periodicStep";
                 break;
             case "ideal":
@@ -504,6 +511,7 @@ public class ProjectRun {
 
 
         initiateServesAndClients(configuration.numberOfServers, configuration.propagationDelay, configuration.bandwidth);
+        initiateSites(configuration.numberOfServers, configuration.numberofSites);
 
         Map<Integer, List<Server>> serversHavingFile = new HashMap<>();
 
@@ -519,6 +527,25 @@ public class ProjectRun {
         setServerLoadLists(configuration.numberOfServers);
         networkGraph.buildRoutingTables();
          initiationTime = System.currentTimeMillis() - EnteringTime;
+
+    }
+
+    private static void initiateSites(int numberOfServers, int numberofSites) {
+        ArrayList<Server> serverArrayList = new ArrayList<>(servers.size());
+
+        for (int i = 0; i < numberOfServers; i++) {
+            serverArrayList.add(servers.get(i));
+        }
+
+        for (int i = 0; i < numberofSites ; i++) {
+            if (serverArrayList.size()==0) break;
+            Site site = new Site(i);
+            sites.add(site);
+            for (int j = 0; j < numberOfServers / numberofSites ; j++) {
+                if (serverArrayList.size()==0) break;
+                site.addServer(serverArrayList.remove(0));
+            }
+        }
 
     }
 
@@ -541,11 +568,11 @@ public class ProjectRun {
     private static void addLinksToGraph() {
         for (Server s:servers){
             networkGraph.addVertex(s);
-            try {
-                if (s.getLinks().size() != 7) throw new RuntimeException();
-            }catch (Exception e){
-                System.out.println();
-            }
+//            try {
+//                if (s.getLinks().size() != 7) throw new RuntimeException();
+//            }catch (Exception e){
+//                System.out.println();
+//            }
 
         }
         for (Client c:clients){
@@ -615,16 +642,19 @@ public class ProjectRun {
         }
     }
 
-    private static void createFiles(int numberOfFiles, int sizeOfFiles) {
+    private static void createFiles(int numberOfFiles, float sizeOfFiles) {
         for (int i = 0; i < numberOfFiles; i++) {
             files.add(new IFile(i,sizeOfFiles));
         }
     }
 
-    public static void sendPeriodicUpdate(float time) {
+    public static void sendPeriodicUpdate(float time, boolean groupedPeriodic) {
 //        System.out.println(time + " periodic updates are being sent");
         for (int i = 0; i < servers.size(); i++) {
-                servers.get(i).sendUpdateToAll(time,servers);
+                if (!groupedPeriodic) servers.get(i).sendUpdateToAll(time,servers);
+                else {
+                    servers.get(i).sendUpdateToAll(time, servers.get(i).getSite().getServers());
+                }
         }
     }
 

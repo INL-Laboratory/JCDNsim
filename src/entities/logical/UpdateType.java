@@ -1,5 +1,5 @@
 package entities.logical;
 
 public enum UpdateType {
-    piggyBack, ideal, periodic
+    piggyBack, ideal, periodic , piggyGroupedPeriodic
 }

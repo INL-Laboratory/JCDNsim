@@ -6,7 +6,7 @@ import java.util.Random;
  * Created by hd on 2018/3/31 AD.
  */
 public class DefaultValues {
-    public static final float PIGGY_BACK_SIZE = 1f;
+    public static  float PIGGY_BACK_SIZE = 1f;
 //    public static  int CACHE_SIZE = 100000;        // 100 GB , 100000 MB
     public static  float REQUEST_SIZE = (float) 1;
     public static  float SERVICE_TIME = 50f;

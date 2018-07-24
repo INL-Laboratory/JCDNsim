@@ -77,9 +77,12 @@ public class ProjectRun {
 //        run("WMC",null,"periodic",50,points,configuration,path);
 //        run("WMC",null,"periodic",20,points,configuration,path);
 //        run("WMC",null,"periodic",10,points,configuration,path);
-        run("WMC",null,"periodic",300,points,configuration,path);
-        run("WMC",null,"periodic",200,points,configuration,path);
-//        run("HONEYBEE",0.15,"piggyGroupedPeriodic",1000,points,configuration,path);
+//        run("WMC",null,"periodic",100,points,configuration,path);
+//        run("WMC",null,"periodic",300,points,configuration,path);
+//        run("HONEYBEE",0.01,"piggyGroupedPeriodic",300,points,configuration,path);
+//        run("HONEYBEE",0.0001,"piggyGroupedPeriodic",300,points,configuration,path);
+//        run("HONEYBEE",0.001,"piggyGroupedPeriodic",300,points,configuration,path);
+        run("HONEYBEE",0.001,"piggyGroupedPeriodic",300,points,configuration,path);
 //        run("WMC",null,"piggyBack",null,points,configuration,path);
 //        run("PSS",null,"ideal",null,points,configuration,path);
 //        run("WMC",null,"ideal",null,points,configuration,path);

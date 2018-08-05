@@ -19,13 +19,13 @@ public class Server extends EndDevice{
     private Map<Integer, List<Server>> serversHavingFile = new HashMap<>();
     private Map<Server, Integer> serverLoads = new HashMap<>();
     private Site site ;
-    public Server(int number, List<IFile> files, Map<Integer, List<Server>> serversHavingFile) {
-        this(number);
+    public Server(int number, List<IFile> files, Map<Integer, List<Server>> serversHavingFile , EventsQueue eventsQueue) {
+        this(number, eventsQueue);
         this.files = files;
         this.serversHavingFile = serversHavingFile;
     }
-    public Server(int number) {
-        super(number);
+    public Server(int number, EventsQueue eventsQueue) {
+        super(number,eventsQueue);
     }
 
 
@@ -75,15 +75,15 @@ public class Server extends EndDevice{
 //
 //                Logger.print(this + "update package from "+ segment.getSource() +" received ",time);
 //
-                updateLoadList((HashMap<Server, Integer>) segment.getOptionalContent());
+                updateLoadList((loadPair) segment.getOptionalContent());
                 break;
             default:
                 throw new OkayException(this + " received unexpected " +segment,time);
         }
     }
 
-    private void updateLoadList(HashMap<Server, Integer> loads) {
-        serverLoads.putAll(loads);
+    private void updateLoadList(loadPair loads) {
+        serverLoads.put(loads.server,loads.load);
         serverLoads.put(this,getServerLoad());
 //
 //        Logger.printWithoutTime("******"+this + "'s load list");
@@ -97,7 +97,7 @@ public class Server extends EndDevice{
         /***
          * releases an event which at current time + service time pops the queue
          */
-            EventsQueue.addEvent(
+            eventsQueue.addEvent(
                     new Event<>(EventType.requestServed, this, (time+delay), this, request)
             );
 
@@ -155,14 +155,23 @@ public class Server extends EndDevice{
 
     private void sendUpdateTo(float time, int  id, Server dst, boolean sendSiteUpdate) {
         Link link = routingTable.get(dst);
-        HashMap<Server, Integer> updateHashMap= new HashMap<>();
+//        HashMap<Server, Integer> updateHashMap= new HashMap<>();
+//        if (sendSiteUpdate) {
+//            updateHashMap.putAll(site.getLoads());
+//        }else {
+//            updateHashMap.put(this,getServerLoad());
+//        }
         if (sendSiteUpdate) {
-            updateHashMap.putAll(site.getLoads());
+            for (Server server:site.getLoads().keySet()) {
+                loadPair pair =new loadPair (server,site.getLoads().get(server));
+                Segment updateSegment = new Segment(id,this, dst , DefaultValues.PIGGY_BACK_SIZE, SegmentType.Update,pair , 0);
+                sendData(time, link, updateSegment);
+            }
         }else {
-            updateHashMap.put(this,getServerLoad());
+            loadPair pair =new loadPair (this,getServerLoad());
+            Segment updateSegment = new Segment(id,this, dst , DefaultValues.PIGGY_BACK_SIZE, SegmentType.Update,pair , 0);
+            sendData(time, link, updateSegment);
         }
-        Segment updateSegment = new Segment(id,this, dst , DefaultValues.PIGGY_BACK_SIZE, SegmentType.Update,updateHashMap , 0);
-        sendData(time, link, updateSegment);
     }
 
 
@@ -216,6 +225,9 @@ public class Server extends EndDevice{
     public Server getSuitableServer( Request request) throws Exception {
         return getSuitableServer(request,0f);
     }
+
+    RedirectingAlgorithm redirectingAlgorithm;
+
     public Server getSuitableServer( Request request , float time) throws Exception{
         /***
          *   finds a suitable server from graph to respond to the request
@@ -227,7 +239,7 @@ public class Server extends EndDevice{
         if (SimulationParameters.updateType==ideal)
               makeLoadListIdeally(serversHavingSpecificFile,serverLoads);
         serverLoads.put(this,getServerLoad());
-        Server selectedServer = RedirectingAlgorithm.selectServerToRedirect(SimulationParameters.redirectingAlgorithmType,serversHavingSpecificFile,serverLoads,client);
+        Server selectedServer = redirectingAlgorithm.selectServerToRedirect(SimulationParameters.redirectingAlgorithmType,serversHavingSpecificFile,serverLoads,client);
         return selectedServer;
     }
 
@@ -243,7 +255,7 @@ public class Server extends EndDevice{
         }
         return null;
     }
-    public static double totalTimeInServerHandleEvent = 0;
+//    public static double totalTimeInServerHandleEvent = 0;
     @Override
     public void handleEvent(Event event) throws Exception {
 //        double tempTime = System.currentTimeMillis();
@@ -362,4 +374,8 @@ public class Server extends EndDevice{
         }
 
     }
+
+
+
 }
+

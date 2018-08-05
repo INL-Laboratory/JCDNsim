@@ -4,6 +4,7 @@ import entities.logical.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Link extends IEventHandler{
     private EndDevice endPointA;
@@ -15,21 +16,23 @@ public class Link extends IEventHandler{
     private boolean isSendingFromA;
     private boolean isSendingFromB;
     private int weight = 1; //number of intervening ASes between endpointA and B+1
+    private EventsQueue eventsQueue;
 
     public int getWeight() {
         return weight;
     }
 
 
-    public Link(float propagationDelay, float bw){
+    public Link(float propagationDelay, float bw, EventsQueue eventsQueue){
         segmentsFromA = new ArrayList<>();
         segmentsFromB = new ArrayList<>();
         this.propagationDelay = propagationDelay;
         this.bw = bw;
+        this.eventsQueue = eventsQueue;
     }
 
-    public Link(EndDevice endPointA, EndDevice endPointB, float propagationDelay, float bw, int weight) {
-        this(propagationDelay, bw);
+    public Link(EndDevice endPointA, EndDevice endPointB, float propagationDelay, float bw, int weight, EventsQueue eventsQueue) {
+        this(propagationDelay, bw, eventsQueue);
         this.endPointA = endPointA;
         this.endPointB = endPointB;
         this.weight = weight;
@@ -66,7 +69,7 @@ public class Link extends IEventHandler{
     public void setEndPointB(EndDevice endPointB) {
         this.endPointB = endPointB;
     }
-    public static double totalTimeInLinkHandleEvent = 0;
+//    public static double totalTimeInLinkHandleEvent = 0;
 
     @Override
     public void handleEvent(Event event) throws Exception {
@@ -100,7 +103,7 @@ public class Link extends IEventHandler{
             //Create Event for receiver
             Event e = new Event<>(EventType.receiveSegment,
                     (isInA)? endPointB : endPointA, event.getTime(), this, sentSegment );
-            EventsQueue.addEvent(e);
+            eventsQueue.addEvent(e);
 //            System.out.println(event.getTime()+" "+(Segment) event.getOptionalData() + " sent by " + this);
             //SendNextSegment
             checkForSendData(event.getTime());
@@ -113,14 +116,14 @@ public class Link extends IEventHandler{
         if(segmentsFromA.size()>0 && !isSendingFromA){
             float eventTime =DefaultValues.LINK_DELAY_ALLOWED? time + propagationDelay + segmentsFromA.get(0).getSize()/bw:time;
             Event<Link> event = new Event<>(EventType.dataSent, this, eventTime, this, segmentsFromA.get(0));
-            EventsQueue.addEvent(event);
+            eventsQueue.addEvent(event);
 
             isSendingFromA = true;
         }
         else if(segmentsFromB.size()> 0 && !isSendingFromB){
             float eventTime = DefaultValues.LINK_DELAY_ALLOWED? time + propagationDelay + segmentsFromB.get(0).getSize()/bw:time;
             Event<Link> event = new Event<>(EventType.dataSent, this, eventTime, this, segmentsFromB.get(0));
-            EventsQueue.addEvent(event);
+            eventsQueue.addEvent(event);
 
             isSendingFromB = true;
         }
@@ -137,5 +140,20 @@ public class Link extends IEventHandler{
         sb.append(", endPointB=").append(endPointB.toString());
         sb.append('}');
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Link link = (Link) o;
+        return Objects.equals(endPointA, link.endPointA) &&
+                Objects.equals(endPointB, link.endPointB);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(endPointA, endPointB);
     }
 }

@@ -4,9 +4,10 @@ import entities.physical.ProjectRun;
 import entities.utilities.BinaryHeap;
 
 public class EventsQueue {
-    private static BinaryHeap<Event> queue = new BinaryHeap<>(false);
-    public static float lastSentPeriod = 0;
-    public static void addEvent(Event event){
+    private BinaryHeap<Event> queue = new BinaryHeap<>(false);
+    public float lastSentPeriod = 0;
+    ProjectRun projectRun;
+    public void addEvent(Event event){
 //        if(queue.() == 0){
 //            queue.add(event);
 //            return;
@@ -22,8 +23,8 @@ public class EventsQueue {
 
         queue.add(event);
     }
-    public static float maximumTime = 0;
-    public static Event popEvent() {
+    public float maximumTime = 0;
+    public  Event popEvent() {
 //        if(queue.size() == 0){
 //            return null;
 //        }
@@ -35,7 +36,7 @@ public class EventsQueue {
         if ( isPeriodic || isPiggyGroupedPeriodic )
             if (event.getOptionalData() instanceof Segment && ((Segment) event.getOptionalData()).getSegmentType() != SegmentType.Update)
                 if (Float.compare(event.getTime(), lastSentPeriod) == 1) {
-                    ProjectRun.sendPeriodicUpdate(lastSentPeriod, isPiggyGroupedPeriodic);
+                    projectRun.sendPeriodicUpdate(lastSentPeriod, isPiggyGroupedPeriodic);
                     lastSentPeriod += DefaultValues.periodicStep;
 
         }
@@ -46,13 +47,16 @@ public class EventsQueue {
 
 
         event = queue.remove();
-        if (event.getTime()>maximumTime) maximumTime= event.getTime();
+//        if (event.getTime()>maximumTime) maximumTime= event.getTime();
 
 
         return event;
     }
-    public static boolean hasEvent(){
+    public boolean hasEvent(){
         return queue.length() > 0;
     }
 
+    public EventsQueue(ProjectRun projectRun) {
+        this.projectRun = projectRun;
+    }
 }

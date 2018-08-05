@@ -21,13 +21,13 @@ import java.util.*;
  * Created by hd on 2018/4/21 AD.
  */
 public class ProjectRun {
-    static List<Server> servers = new ArrayList<>();
-    static List<Site> sites = new ArrayList<>();
-    static List<Client>  clients= new ArrayList<>();
-    static List<IFile>  files= new ArrayList<>();
-    static List<Link>  links= new ArrayList<>();
-    static NetworkGraph networkGraph = NetworkGraph.networkGraph;
-
+    List<Server> servers = new ArrayList<>();
+    List<Site> sites = new ArrayList<>();
+    List<Client>  clients= new ArrayList<>();
+    List<IFile>  files= new ArrayList<>();
+    List<Link>  links= new ArrayList<>();
+    NetworkGraph networkGraph = new NetworkGraph();
+    EventsQueue eventsQueue = new EventsQueue(this);
 
 
     private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("d MMM uuuu HH:mm:ss");
@@ -78,14 +78,16 @@ public class ProjectRun {
 //        run("WMC",null,"periodic",20,points,configuration,path);
 //        run("WMC",null,"periodic",10,points,configuration,path);
 //        run("WMC",null,"periodic",100,points,configuration,path);
-//        run("WMC",null,"periodic",300,points,configuration,path);
 //        run("HONEYBEE",0.01,"piggyGroupedPeriodic",300,points,configuration,path);
 //        run("HONEYBEE",0.0001,"piggyGroupedPeriodic",300,points,configuration,path);
 //        run("HONEYBEE",0.001,"piggyGroupedPeriodic",300,points,configuration,path);
-        run("HONEYBEE",0.001,"piggyGroupedPeriodic",300,points,configuration,path);
-//        run("WMC",null,"piggyBack",null,points,configuration,path);
-//        run("PSS",null,"ideal",null,points,configuration,path);
-//        run("WMC",null,"ideal",null,points,configuration,path);
+        ProjectRun projectRun= new ProjectRun();
+
+        projectRun.run("WMC",null,"periodic",300,points,configuration,path);
+        projectRun.run("HONEYBEE",0.01,"piggyGroupedPeriodic",800,points,configuration,path);
+        projectRun.run("WMC",null,"piggyBack",null,points,configuration,path);
+        projectRun.run("WMC",null,"ideal",null,points,configuration,path);
+//        projectRun.run("PSS",null,"ideal",null,points,configuration,path);
 //        run("WMC",null,"periodic",1000,points,configuration,path);
 //        run("MCS",null,"ideal",null,points1,configuration,path);
 
@@ -274,7 +276,7 @@ public class ProjectRun {
 
 
 
-    private static void run(@NotNull String algorithm, @Nullable Number honeyBeeProb , @NotNull String updateType , @Nullable Number periodicStep , Number[] points, Configuration configuration , String path) throws IOException, NoSuchFieldException, IllegalAccessException {
+    private void run(@NotNull String algorithm, @Nullable Number honeyBeeProb , @NotNull String updateType , @Nullable Number periodicStep , Number[] points, Configuration configuration , String path) throws IOException, NoSuchFieldException, IllegalAccessException {
         Float[] costStats = new Float[points.length];
         Float[] delayStats = new Float[points.length];
         Float[][] costStatsForAllRuns = new Float[points.length][configuration.numberOfRuns];
@@ -394,7 +396,7 @@ public class ProjectRun {
 //        result.close();
 //    }
 
-    private static void simulate(Configuration configuration, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, int i, int j, PrintWriter logger) {
+    private void simulate(Configuration configuration, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, int i, int j, PrintWriter logger) {
 //        double a = System.currentTimeMillis();
         initSimulator(configuration );
 //        double b = System.currentTimeMillis();
@@ -405,12 +407,16 @@ public class ProjectRun {
 //        double c = System.currentTimeMillis();
 //        System.out.println("generating Requests : "+(c-b));
 //        System.out.println("handling Events");
-        Brain.handleEvents();
+        Brain brain = new Brain();
+        brain.eventsQueue= eventsQueue;
+        brain.handleEvents();
 //        double d = System.currentTimeMillis();
 
 //        System.out.println("Handle Events : "+(d-c));
 //        System.out.println(EventsQueue.maximumTime);
-        EventsQueue.maximumTime=0;
+
+//        EventsQueue.maximumTime=0;
+
 //        System.out.println(NetworkGraph.networkGraph.c);
 //        System.out.println(NetworkGraph.networkGraph.t);
 //        System.out.println("gathering Stats");
@@ -454,7 +460,7 @@ public class ProjectRun {
     }
 
 
-    private static void gatherStats(Float[][] costStats, Float[][] delayStats, int i,int j) {
+    private void gatherStats(Float[][] costStats, Float[][] delayStats, int i,int j) {
         int totalCost = 0;
         float counter = 0;
         float totalDelay = 0f;
@@ -472,8 +478,8 @@ public class ProjectRun {
         costStats[i][j] = totalCost/counter;
         delayStats[i][j]= totalDelay/counter;
     }
-    public static double totalTimeInGenerateRequests = 0;
-    private static void generateRequests(Configuration configuration) {
+//    public static double totalTimeInGenerateRequests = 0;
+    private void generateRequests(Configuration configuration) {
 //        double tempTime = System.currentTimeMillis();
         int reqFileId, requestingClientID;
         Random random = new Random();
@@ -487,7 +493,7 @@ public class ProjectRun {
             reqFileId = DefaultValues.random.nextInt(configuration.numberOfFiles);
 
             reqTime = getInterarrivalTime( random, reqTime , lambda, poisson);
-            EventsQueue.addEvent(
+            eventsQueue.addEvent(
                     new Event(EventType.sendReq, clients.get(requestingClientID), reqTime, null, reqFileId)
             );
         }
@@ -505,7 +511,7 @@ public class ProjectRun {
 
     static double initiationTime;
 
-    private static void initSimulator(Configuration configuration) {
+    private void initSimulator(Configuration configuration) {
          double EnteringTime = System.currentTimeMillis();
 
         resetSimulatorSettings();
@@ -529,11 +535,12 @@ public class ProjectRun {
         fillServersHavingFile(serversHavingFile);
         setServerLoadLists(configuration.numberOfServers);
         networkGraph.buildRoutingTables();
-         initiationTime = System.currentTimeMillis() - EnteringTime;
+        RedirectingAlgorithm.networkGraph = networkGraph;
+        initiationTime = System.currentTimeMillis() - EnteringTime;
 
     }
 
-    private static void initiateSites(int numberOfServers, int numberofSites) {
+    private void initiateSites(int numberOfServers, int numberofSites) {
         ArrayList<Server> serverArrayList = new ArrayList<>(servers.size());
 
         for (int i = 0; i < numberOfServers; i++) {
@@ -552,7 +559,7 @@ public class ProjectRun {
 
     }
 
-    private static void fillServersHavingFile(Map<Integer, List<Server>> serversHavingFile) {
+    private void fillServersHavingFile(Map<Integer, List<Server>> serversHavingFile) {
         StringBuffer sb = new StringBuffer();
         List<Server> serversss ;
 //        sb.append(" ***** Files ***** ");
@@ -568,7 +575,7 @@ public class ProjectRun {
 //        Logger.print(sb.toString(),0);
     }
 
-    private static void addLinksToGraph() {
+    private void addLinksToGraph() {
         for (Server s:servers){
             networkGraph.addVertex(s);
 //            try {
@@ -586,7 +593,7 @@ public class ProjectRun {
         }
     }
 
-    private static void createSimpleTopology(int numberOfServers, float propDelay, float bw) {
+    private void createSimpleTopology(int numberOfServers, float propDelay, float bw) {
         int targetServerId;
         for (int i = 0; i < numberOfServers; i++) {
             Server server =  servers.get(i);
@@ -599,7 +606,7 @@ public class ProjectRun {
                     targetServerId++;
                 }
                 Server targetServer = servers.get(targetServerId);
-                Link link = new Link(server,targetServer,propDelay,bw,1);
+                Link link = new Link(server,targetServer,propDelay,bw,1, eventsQueue);
                 targetServer.getLinks().put(server,link);
                 server.getLinks().put(targetServer,link);
                 links.add(link);
@@ -607,26 +614,26 @@ public class ProjectRun {
         }
     }
 
-    private static void initiateServesAndClients(int numberOfServers, float propDelay, float bw) {
+    private void initiateServesAndClients(int numberOfServers, float propDelay, float bw) {
         for (int i = 0; i < numberOfServers ; i++) {
 
-            Server server = new Server(i);
+            Server server = new Server(i,eventsQueue);
             servers.add(server);
-            Client client = new Client(i);
+            Client client = new Client(-i, eventsQueue);
             clients.add(client);
-            Link link = new Link(client,server,propDelay,bw,1);
+            Link link = new Link(client,server,propDelay,bw,1, eventsQueue);
             links.add(link);
             client.setLink(link);
             server.getLinks().put(client,link);
         }
     }
 
-    private static void setServersHavingFile(int numberOfServers, Map<Integer, List<Server>> serversHavingFile) {
+    private void setServersHavingFile(int numberOfServers, Map<Integer, List<Server>> serversHavingFile) {
         for (int i = 0; i < numberOfServers ; i++) {
             servers.get(i).setServersHavingFile(serversHavingFile);
         }
     }
-    private static void setServerLoadLists(int numberOfServers) {
+    private void setServerLoadLists(int numberOfServers) {
         for (int i = 0; i < numberOfServers ; i++) {
             for (int j = 0; j < numberOfServers; j++) {
                 servers.get(i).getServerLoadListss().put(servers.get(j),0);
@@ -634,7 +641,7 @@ public class ProjectRun {
         }
     }
 
-    private static void assignFileListsToServers(int numberOfFiles, int numberOfServers, int numberOfFilesPerServer) {
+    private void assignFileListsToServers(int numberOfFiles, int numberOfServers, int numberOfFilesPerServer) {
         int[][] serverContents = ZipfGenerator.returnFileList(1,numberOfFilesPerServer,numberOfFiles,numberOfServers);
         for (int i = 0; i < numberOfServers ; i++) {
             List<IFile> fileList = new LinkedList<>();
@@ -645,32 +652,40 @@ public class ProjectRun {
         }
     }
 
-    private static void createFiles(int numberOfFiles, float sizeOfFiles) {
+    private void createFiles(int numberOfFiles, float sizeOfFiles) {
         for (int i = 0; i < numberOfFiles; i++) {
             files.add(new IFile(i,sizeOfFiles));
         }
     }
 
-    public static void sendPeriodicUpdate(float time, boolean groupedPeriodic) {
+    public void sendPeriodicUpdate(float time, boolean groupedPeriodic) {
 //        System.out.println(time + " periodic updates are being sent");
         for (int i = 0; i < servers.size(); i++) {
                 if (!groupedPeriodic) servers.get(i).sendUpdateToAll(time,servers);
                 else {
-                    servers.get(i).sendUpdateToAll(time, servers.get(i).getSite().getServers());
+                    try {
+                        servers.get(i).sendUpdateToAll(time, servers.get(i).getSite().getServers());
+                    }catch (Exception e){
+                        System.out.println("d");
+                    }
                 }
         }
     }
 
-    private static void resetSimulatorSettings() {
+    private void resetSimulatorSettings() {
         servers = new ArrayList<>();
         clients= new ArrayList<>();
         files= new ArrayList<>();
         links= new ArrayList<>();
-        EventsQueue.lastSentPeriod =0;
-        NetworkGraph.renewNetworrkGraph();
-        networkGraph = NetworkGraph.networkGraph;
+        sites = new ArrayList<>();
+//        EventsQueue.lastSentPeriod =0;
+//        NetworkGraph.renewNetworrkGraph();
+         networkGraph = new NetworkGraph();
+//        networkGraph = NetworkGraph.networkGraph;
+        eventsQueue = new EventsQueue(this);
         Client.generatedId=0;
         RedirectingAlgorithm.rnd = new Random() ;
         DefaultValues.random = new Random() ;
+        System.gc();
     }
 }

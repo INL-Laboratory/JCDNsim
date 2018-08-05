@@ -4,16 +4,15 @@ import entities.physical.ProjectRun;
 import entities.physical.Server;
 import entities.utilities.logger.Logger;
 
-import static entities.logical.EventsQueue.lastSentPeriod;
 
 public class Brain {
-
+    public EventsQueue eventsQueue;
 //    EventsQueue eventsQueue;
-    public static double totalTimeInBrain=0;
-    public static void handleEvents(){
+//    public static double totalTimeInBrain=0;
+    public void handleEvents(){
 //            double tempTime = System.currentTimeMillis();
-        while (EventsQueue.hasEvent()){
-            Event event = EventsQueue.popEvent();
+        while (eventsQueue.hasEvent()){
+            Event event = eventsQueue.popEvent();
             try {
 //                Logger.ePrint("Event is being handled:" + event.toString(),event.getTime());
 //                if (event.getType() == EventType.requestServed && ((Server)event.getRelatedEntity()).getServerLoad()>500){
@@ -33,10 +32,6 @@ public class Brain {
             }
         }
 //                totalTimeInBrain+= System.currentTimeMillis() - tempTime;
-
-    }
-
-    public static void main(String[] args) {
 
     }
 

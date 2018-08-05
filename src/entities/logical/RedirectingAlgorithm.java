@@ -15,6 +15,7 @@ import java.util.Random;
 public class RedirectingAlgorithm {
     static float queryDelay = 0;
     public static Random rnd = new Random();
+    public static NetworkGraph networkGraph;
 //    public static double totalTime = 0;
     public static Server selectServerToRedirect( RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile , Map<Server, Integer> serverLoads ,Client client){
 //        double a = System.currentTimeMillis();
@@ -43,15 +44,15 @@ public class RedirectingAlgorithm {
     }
     private static Server selectMCSserver(Client client, List<Server> serversHavingFile,Map<Server, Integer> serverLoads) {
         Server selectedServer;
-        List<Server> nearestServers= NetworkGraph.networkGraph.getNearestServers(DefaultValues.MCS_DELTA.intValue(),serversHavingFile,client, rnd);
+        List<Server> nearestServers= networkGraph.getNearestServers(DefaultValues.MCS_DELTA.intValue(),serversHavingFile,client, rnd);
         if (nearestServers==null || nearestServers.size()==0) throw new RuntimeException();
-        selectedServer = NetworkGraph.networkGraph.getLeastLoadedServer(nearestServers,serverLoads);
+        selectedServer = networkGraph.getLeastLoadedServer(nearestServers,serverLoads);
         return selectedServer;
     }
 
     private static Server selectWMCserver(Client client, List<Server> serversHavingFile, Map<Server, Integer> serverLoads) {
         Server selectedServer;
-        selectedServer = NetworkGraph.networkGraph.getMostDesirableServer(serversHavingFile, serverLoads ,DefaultValues.WMC_ALPHA.doubleValue(),client);
+        selectedServer = networkGraph.getMostDesirableServer(serversHavingFile, serverLoads ,DefaultValues.WMC_ALPHA.doubleValue(),client);
         return selectedServer;
     }
 
@@ -73,10 +74,10 @@ public class RedirectingAlgorithm {
         double randomFloat = DefaultValues.random.nextDouble();
         if (Double.compare(randomFloat,DefaultValues.PSS_PROBABILITY.doubleValue())==-1){
 //            Logger.printWithoutTime("*******PSS wants to find the nearest Server.");
-            selectedServer = NetworkGraph.networkGraph.getNearestServers(1,serversHavingFile,client,rnd).get(0);
+            selectedServer = networkGraph.getNearestServers(1,serversHavingFile,client,rnd).get(0);
         }else{
 //            Logger.printWithoutTime("*******PSS wants to find the least loaded Server.");
-            selectedServer = NetworkGraph.networkGraph.getLeastLoadedServer(serversHavingFile, serverLoads);
+            selectedServer = networkGraph.getLeastLoadedServer(serversHavingFile, serverLoads);
         }
 //        Logger.printWithoutTime("*******Servers Having File:");
 //        for (Server serverHavingFile:serversHavingFile) {

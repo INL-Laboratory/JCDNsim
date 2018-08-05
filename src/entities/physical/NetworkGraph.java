@@ -5,6 +5,7 @@ import edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import entities.logical.Pair;
 import entities.utilities.logger.Logger;
+import org.apache.commons.collections15.Transformer;
 
 import java.util.*;
 
@@ -13,13 +14,13 @@ import java.util.*;
  */
 public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
     //it's like singleton design pattern
-    public static NetworkGraph networkGraph = new NetworkGraph();
+//    public NetworkGraph networkGraph = new NetworkGraph();
 
-    public static void renewNetworrkGraph(){
-        networkGraph = new NetworkGraph();
-    }
+//    public void renewNetworrkGraph(){
+//        networkGraph = new NetworkGraph();
+//    }
 
-    private NetworkGraph() {
+    public NetworkGraph() {
     }
 
     public void buildRoutingTables() {
@@ -32,7 +33,12 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
             src = (Server) end;
             DijkstraShortestPath<EndDevice, Link> algorithm =
                     new DijkstraShortestPath<EndDevice, Link>(
-                            this, link -> link.getWeight()
+                            this, new Transformer<Link, Number>() {
+                        @Override
+                        public Number transform(Link link) {
+                            return link.getWeight();
+                        }
+                    }
                     );
 //            Server dest;
             List<Link> path;
@@ -71,7 +77,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
     Map<Pair, List<Server>> cachSortedListsNthPart = new HashMap<>();
     public int c = 0;
     public int t = 0;
-    public List<Server> getNearestServers(int n, List<Server> preFilteredServers, EndDevice src, @Nullable Random rnd){
+    public List<Server> getNearestServers(int n, List<Server> preFilteredServers, final EndDevice src, @Nullable Random rnd){
         /***
          * returns the n nearest servers to the src in a list of servers that might have been already filtered.
          */
@@ -95,13 +101,16 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
             }
             Collections.shuffle(newList);
 
-            Collections.sort(newList, (Comparator<Server>) (o1, o2) -> {
-                int o1Cost = o1.getCommunicationCostTable().get(src);
-                int o2Cost = o2.getCommunicationCostTable().get(src);
-                boolean con = o1Cost < o2Cost;
-                boolean con2 = o1Cost > o2Cost;
-                return con ? -1 : (con2 ? 1 : 0);
-                //TODO: check whether the order is right
+            Collections.sort(newList, new Comparator<Server>() {
+                @Override
+                public int compare(Server o1, Server o2) {
+                    int o1Cost = o1.getCommunicationCostTable().get(src);
+                    int o2Cost = o2.getCommunicationCostTable().get(src);
+                    boolean con = o1Cost < o2Cost;
+                    boolean con2 = o1Cost > o2Cost;
+                    return con ? -1 : (con2 ? 1 : 0);
+                    //TODO: check whether the order is right
+                }
             });
 
             if (n<newList.size()-1){
@@ -234,7 +243,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
 
         return toReturnServer;
     }
-    static int maxLoad = 0;
+//    static int maxLoad = 0;
 
     private Map<Pair,Integer> cachedTotalCost = new HashMap<>();
 

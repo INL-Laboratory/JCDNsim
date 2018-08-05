@@ -14,10 +14,10 @@ import java.util.Map;
 public class SimulationParameters {
     public static  RedirectingAlgorithmType redirectingAlgorithmType = RedirectingAlgorithmType.WMC;
     public static  UpdateType updateType = UpdateType.periodic;
-    public static File links;
-    public static File topology;
-    public static File serverContents;
-    public static File requests;
+//    public static File links;
+//    public static File topology;
+//    public static File serverContents;
+//    public static File requests;
 
 
 }

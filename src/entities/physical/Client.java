@@ -1,7 +1,6 @@
 package entities.physical;
 
 import entities.logical.*;
-import entities.utilities.logger.Logger;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -19,8 +18,8 @@ public class Client extends EndDevice {
     private final HashMap<Integer, Float> servedRequestsTime = new HashMap<>(); //Maps the successfully served requests' id to the time the response has been received
     private final HashMap<Integer, Integer> servedRequestsCost = new HashMap<>(); //Maps the successfully served requests' id to the time the response has been received
     private final List<Integer> unansweredRequests = new LinkedList<>();
-    public Client(int number) {
-        super(number);
+    public Client(int number, EventsQueue eventsQueue) {
+        super(number, eventsQueue);
     }
 
     public Link getLink() {
@@ -44,7 +43,7 @@ public class Client extends EndDevice {
     }
 
 
-    public static double totalTimeINClientHandleEvent = 0;
+//    public static double totalTimeINClientHandleEvent = 0;
     @Override
     public void handleEvent(Event event) throws Exception {
 //        double tempTime = System.currentTimeMillis();
@@ -79,7 +78,7 @@ public class Client extends EndDevice {
 //        Logger.print(this + "makes " + request+ " for file " +fileID+" , puts in " + segment,time);
         sendData(time,link,segment);
         if (DefaultValues.IS_TIME_OUT_ACTIVATED) {
-            EventsQueue.addEvent(
+            eventsQueue.addEvent(
                     new Event<>(EventType.timeOut, this, time + DefaultValues.TIME_OUT, this, segment.getId())
             );
         }

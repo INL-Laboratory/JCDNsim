@@ -83,8 +83,8 @@ public class ProjectRun {
 //        run("HONEYBEE",0.001,"piggyGroupedPeriodic",300,points,configuration,path);
         ProjectRun projectRun= new ProjectRun();
 
-        projectRun.run("WMC",null,"periodic",300,points,configuration,path);
-        projectRun.run("HONEYBEE",0.01,"piggyGroupedPeriodic",800,points,configuration,path);
+        projectRun.run("WMC",null,"periodic",50,points,configuration,path);
+        projectRun.run("HONEYBEE",0.001,"piggyGroupedPeriodic",300,points,configuration,path);
         projectRun.run("WMC",null,"piggyBack",null,points,configuration,path);
         projectRun.run("WMC",null,"ideal",null,points,configuration,path);
 //        projectRun.run("PSS",null,"ideal",null,points,configuration,path);

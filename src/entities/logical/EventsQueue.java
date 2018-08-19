@@ -1,6 +1,5 @@
 package entities.logical;
 
-import entities.physical.ProjectRun;
 import entities.utilities.BinaryHeap;
 
 public class EventsQueue {

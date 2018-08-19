@@ -1,10 +1,15 @@
-package entities.physical;
+package entities.logical;
 
+import com.jmatio.io.MatFileWriter;
+import com.jmatio.types.MLArray;
+import com.jmatio.types.MLCell;
+import com.jmatio.types.MLDouble;
 import com.sun.istack.internal.NotNull;
 import com.sun.istack.internal.Nullable;
 import edu.uci.ics.jung.graph.util.EdgeType;
-import entities.logical.*;
+import entities.physical.*;
 import entities.utilities.Chart;
+import entities.utilities.Poisson;
 import entities.utilities.ZipfGenerator;
 import entities.utilities.logger.Logger;
 
@@ -83,10 +88,10 @@ public class ProjectRun {
 //        run("HONEYBEE",0.001,"piggyGroupedPeriodic",300,points,configuration,path);
         ProjectRun projectRun= new ProjectRun();
 
-        projectRun.run("WMC",null,"periodic",50,points,configuration,path);
-        projectRun.run("HONEYBEE",0.001,"piggyGroupedPeriodic",300,points,configuration,path);
-        projectRun.run("WMC",null,"piggyBack",null,points,configuration,path);
-        projectRun.run("WMC",null,"ideal",null,points,configuration,path);
+        projectRun.run("WMC",null,"periodic",400,points,configuration,path);
+//        projectRun.run("HONEYBEE",0.001,"piggyGroupedPeriodic",300,points,configuration,path);
+//        projectRun.run("WMC",null,"piggyBack",null,points,configuration,path);
+//        projectRun.run("WMC",null,"ideal",null,points,configuration,path);
 //        projectRun.run("PSS",null,"ideal",null,points,configuration,path);
 //        run("WMC",null,"periodic",1000,points,configuration,path);
 //        run("MCS",null,"ideal",null,points1,configuration,path);
@@ -170,7 +175,12 @@ public class ProjectRun {
 //        Chart.addSeries(seriesName3, costStats3, delayStats3);
 //        Chart.addSeries(seriesName4, costStats4, delayStats4);
 //        Chart.addSeries(seriesName5, costStats5, delayStats5);
-        Chart.main(args);
+        try {
+            Chart.main(args);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
 
     }
 //    private static void simulatePSS(int numberOfPoints,int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, int numberOfRuns, float lambdaInOutRatio, String path, PrintWriter result, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, Float[] costStats, Float[] delayStats) throws IOException {
@@ -358,12 +368,27 @@ public class ProjectRun {
         }
 
         Chart.addSeries(simulationName, costStats, delayStats);
+//        produceMatFile(simulationName,dtf.format(now), costStats, delayStats);
         double finishTime = System.currentTimeMillis();
         result.println("Duration(min): " + (finishTime - startTime)/60000);
 
         result.close();
     }
 
+
+//    private MatFileWriter produceMatFile(String simulationName, ArrayList<Number[]> xValues, ArrayList<Number[]> yValues, String[] seriesNames){
+//        for (int i = 0; i < xValues.size() ; i++) {
+//            int sizeOf
+//            MLDouble seriesData = new MLDouble(seriesNames[i], new int[] {.length,2});
+//            for (int j = 0; j <xValues[i].length ; j++) {
+//            }
+//        }
+//        for (int i = 0; i < 100; i++) {
+//            seriesData.set((double)i, );
+//        }
+//        MatFileWriter writer = new MatFileWriter();
+//
+//    }
 
 
 //    private static void simulateMCS(int numberOfPoints,int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, int numberOfRuns, float lambdaInOutRatio, String path, PrintWriter result, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, Float[] costStats, Float[] delayStats) throws IOException {

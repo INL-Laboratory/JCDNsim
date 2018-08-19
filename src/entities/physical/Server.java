@@ -5,7 +5,6 @@ import entities.logical.*;
 import java.util.*;
 
 import static entities.logical.UpdateType.ideal;
-import static entities.logical.UpdateType.piggyBack;
 import static entities.logical.UpdateType.piggyGroupedPeriodic;
 
 public class Server extends EndDevice{
@@ -205,16 +204,18 @@ public class Server extends EndDevice{
         float delay;
 //        Logger.print(this + "starts to serve the " + request, time);
         EndDevice destination = request.getSource();
-        Link link = routingTable.get(destination);
+        Link link = ((Client) destination).getLink();
         IFile neededFile= findFile(request.getNeededFileID());
         if (neededFile== null) throw new OkayException(this+ "doesn't have the requested file"+request.getNeededFileID(), time);
         Segment fileSegment = new Segment(request.getId(), this, destination , neededFile.getSize() , SegmentType.Data, neededFile, request.getToleratedCost());
-        delay = DefaultValues.SERVICE_TIME + queryDelay;
+        delay = DefaultValues.SERVICE_TIME+100;
 //
 //        Logger.print(this + " puts file " + neededFile + " in " + fileSegment + " at " + (time + delay),time  );
 //
         //        System.out.println(this+ " will send file to "+ destination +" at "+time+delay);
-        sendData(time + delay, link, fileSegment);
+        eventsQueue.addEvent(
+                new Event<>(EventType.sendData, link, time+delay, link.getEndPointB() , fileSegment)
+        );
     }
 
     int getServerLoad(){

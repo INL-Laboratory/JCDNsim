@@ -82,7 +82,8 @@ public class Link extends IEventHandler{
         if(event.getType() == EventType.sendData){
             if(event.getCreator().equals(endPointA))
                 segmentsFromA.add((Segment) event.getOptionalData());
-            else segmentsFromB.add((Segment) event.getOptionalData());
+            else if (event.getCreator().equals(endPointB)) segmentsFromB.add((Segment) event.getOptionalData());
+            else throw new Exception("Illegal received segment.");
 //            System.out.println(event.getTime()+" "+(Segment) event.getOptionalData() +"is being sent by " + this);
             checkForSendData(event.getTime());
         }

@@ -1,4 +1,4 @@
-package entities.logical;
+package entities.physical;
 
 import entities.physical.Server;
 

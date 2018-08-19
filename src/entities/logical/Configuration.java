@@ -1,4 +1,4 @@
-package entities.physical;
+package entities.logical;
 
 public class Configuration {
     final int numberOfFiles = 50;
@@ -9,6 +9,6 @@ public class Configuration {
     final float bandwidth = 5f;
     final float propagationDelay = 0.1f;
     final float sizeOfFiles = 0.1f;
-    final int numberOfRuns = 20;
+    final int numberOfRuns = 1;
     final float lambdaInOutRatio = 0.9f;
 }

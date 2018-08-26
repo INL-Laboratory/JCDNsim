@@ -5,7 +5,7 @@ import entities.logical.Brain
 import entities.logical.Event
 import entities.logical.EventType
 import entities.logical.EventsQueue
-import entities.logical.ProjectRun
+import entities.logical.UnitSimulation
 import entities.logical.RedirectingAlgorithmType
 import entities.logical.Request
 import entities.logical.Segment
@@ -132,7 +132,7 @@ class ServerTest extends GroovyTestCase {
         Logger.print(sb.toString(),0);
         println()
         networkGraph.buildRoutingTables();
-        ProjectRun.servers = servers;
+        UnitSimulation.servers = servers;
 
         //topology:
         //                   server4

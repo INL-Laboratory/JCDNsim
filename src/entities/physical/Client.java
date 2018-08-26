@@ -8,7 +8,7 @@ import java.util.List;
 
 
 public class Client extends EndDevice {
-    public static int generatedId = 0;         //In order to have unique IDs I changed this to static.
+//    public static int generatedId = 0;         //In order to have unique IDs I changed this to static.
 
 
     private Link link;
@@ -18,8 +18,9 @@ public class Client extends EndDevice {
     private final HashMap<Integer, Float> servedRequestsTime = new HashMap<>(); //Maps the successfully served requests' id to the time the response has been received
     private final HashMap<Integer, Integer> servedRequestsCost = new HashMap<>(); //Maps the successfully served requests' id to the time the response has been received
     private final List<Integer> unansweredRequests = new LinkedList<>();
-    public Client(int number, EventsQueue eventsQueue) {
-        super(number, eventsQueue);
+
+    public Client(int number, EventsQueue eventsQueue, AlgorithmData algorithmData) {
+        super(number, eventsQueue, algorithmData);
     }
 
     public Link getLink() {
@@ -68,13 +69,13 @@ public class Client extends EndDevice {
     private void sendFileRequest(float time, int fileID) {
         Server dstServer = (Server)link.getOtherEndPoint(this);
         generateId();
-        Request request = new Request(this,dstServer, fileID , generatedId);
+        Request request = new Request(this,dstServer, fileID , algorithmData.generatedId);
         Segment segment = new Segment(
-                generatedId, this, dstServer , DefaultValues.REQUEST_SIZE,
+                algorithmData.generatedId, this, dstServer , DefaultValues.REQUEST_SIZE,
                 SegmentType.Request,request,0
         );
-        sentRequestsTime.put(generatedId,time);
-        sentRequestsFileId.put(generatedId,fileID);
+        sentRequestsTime.put(algorithmData.generatedId,time);
+        sentRequestsFileId.put(algorithmData.generatedId,fileID);
 //        Logger.print(this + "makes " + request+ " for file " +fileID+" , puts in " + segment,time);
         sendData(time,link,segment);
         if (DefaultValues.IS_TIME_OUT_ACTIVATED) {
@@ -85,9 +86,9 @@ public class Client extends EndDevice {
 
     }
 
-    public static int generateId(){
-        generatedId++;
-        return generatedId;
+    public int generateId(){
+        algorithmData.generatedId++;
+        return algorithmData.generatedId;
     }
 
 

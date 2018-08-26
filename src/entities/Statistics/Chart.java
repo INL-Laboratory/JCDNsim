@@ -1,13 +1,11 @@
-package entities.utilities;
+package entities.Statistics;
 
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Scene;
-import javafx.scene.SnapshotParameters;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.effect.FloatMap;
 import javafx.scene.image.WritableImage;
 import javafx.stage.Stage;
 
@@ -15,7 +13,6 @@ import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 
 public class Chart extends Application {

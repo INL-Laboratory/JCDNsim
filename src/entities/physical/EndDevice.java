@@ -10,10 +10,12 @@ public abstract class EndDevice extends IEventHandler{
      */
     protected int number;
     protected EventsQueue eventsQueue;
+    protected   AlgorithmData algorithmData;
 
-    public EndDevice(int number, EventsQueue eventsQueue) {
+    public EndDevice(int number, EventsQueue eventsQueue, AlgorithmData algorithmData) {
         this.number = number;
         this.eventsQueue = eventsQueue;
+        this.algorithmData = algorithmData;
     }
 
     public int getNumber() {

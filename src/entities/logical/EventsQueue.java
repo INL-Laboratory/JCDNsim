@@ -5,7 +5,7 @@ import entities.utilities.BinaryHeap;
 public class EventsQueue {
     private BinaryHeap<Event> queue = new BinaryHeap<>(false);
     public float lastSentPeriod = 0;
-    ProjectRun projectRun;
+    UnitSimulation unitSimulation;
     public void addEvent(Event event){
 //        if(queue.() == 0){
 //            queue.add(event);
@@ -30,13 +30,13 @@ public class EventsQueue {
 //        return queue.remove(0);
 //        System.out.println( queue);
         Event event = queue.peek();
-        boolean isPeriodic = UpdateType.periodic == SimulationParameters.updateType;
-        boolean isPiggyGroupedPeriodic = UpdateType.piggyGroupedPeriodic == SimulationParameters.updateType;
+        boolean isPeriodic = UpdateType.periodic == unitSimulation.algorithmData.updateType;
+        boolean isPiggyGroupedPeriodic = UpdateType.piggyGroupedPeriodic == unitSimulation.algorithmData.updateType;
         if ( isPeriodic || isPiggyGroupedPeriodic )
             if (event.getOptionalData() instanceof Segment && ((Segment) event.getOptionalData()).getSegmentType() != SegmentType.Update)
                 if (Float.compare(event.getTime(), lastSentPeriod) == 1) {
-                    projectRun.sendPeriodicUpdate(lastSentPeriod, isPiggyGroupedPeriodic);
-                    lastSentPeriod += DefaultValues.periodicStep;
+                    unitSimulation.sendPeriodicUpdate(lastSentPeriod, isPiggyGroupedPeriodic);
+                    lastSentPeriod += unitSimulation.algorithmData.periodicStep;
 
         }
 
@@ -55,7 +55,7 @@ public class EventsQueue {
         return queue.length() > 0;
     }
 
-    public EventsQueue(ProjectRun projectRun) {
-        this.projectRun = projectRun;
+    public EventsQueue(UnitSimulation unitSimulation) {
+        this.unitSimulation = unitSimulation;
     }
 }

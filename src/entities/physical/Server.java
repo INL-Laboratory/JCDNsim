@@ -18,13 +18,20 @@ public class Server extends EndDevice{
     private Map<Integer, List<Server>> serversHavingFile = new HashMap<>();
     private Map<Server, Integer> serverLoads = new HashMap<>();
     private Site site ;
-    public Server(int number, List<IFile> files, Map<Integer, List<Server>> serversHavingFile , EventsQueue eventsQueue) {
-        this(number, eventsQueue);
+    RedirectingAlgorithm redirectingAlgorithm;
+
+
+
+
+    public Server(int number, List<IFile> files, Map<Integer, List<Server>> serversHavingFile , EventsQueue eventsQueue,AlgorithmData algorithmData, RedirectingAlgorithm redirectingAlgorithm) {
+        this(number, eventsQueue, algorithmData, redirectingAlgorithm);
         this.files = files;
         this.serversHavingFile = serversHavingFile;
     }
-    public Server(int number, EventsQueue eventsQueue) {
-        super(number,eventsQueue);
+    public Server(int number, EventsQueue eventsQueue, AlgorithmData algorithmData,RedirectingAlgorithm redirectingAlgorithm) {
+        super(number,eventsQueue,algorithmData);
+        this.redirectingAlgorithm = redirectingAlgorithm;
+
     }
 
 
@@ -227,7 +234,6 @@ public class Server extends EndDevice{
         return getSuitableServer(request,0f);
     }
 
-    RedirectingAlgorithm redirectingAlgorithm;
 
     public Server getSuitableServer( Request request , float time) throws Exception{
         /***
@@ -237,10 +243,10 @@ public class Server extends EndDevice{
         Client client = request.getSource();
         List<Server> serversHavingSpecificFile = serversHavingFile.get(fileId);
         if (serversHavingSpecificFile==null || serversHavingSpecificFile.size()==0) throw new OkayException(" No server has the file " + fileId + " requested in " + request , time);
-        if (SimulationParameters.updateType==ideal)
+        if (algorithmData.updateType==ideal)
               makeLoadListIdeally(serversHavingSpecificFile,serverLoads);
         serverLoads.put(this,getServerLoad());
-        Server selectedServer = redirectingAlgorithm.selectServerToRedirect(SimulationParameters.redirectingAlgorithmType,serversHavingSpecificFile,serverLoads,client);
+        Server selectedServer = redirectingAlgorithm.selectServerToRedirect(algorithmData.redirectingAlgorithmType,serversHavingSpecificFile,serverLoads,client);
         return selectedServer;
     }
 
@@ -276,7 +282,7 @@ public class Server extends EndDevice{
          * Commands to serve the request then after a service delay serve the next request
          */
         if (servedRequest.getShouldBePiggiedBack() ) {
-            piggyBack(time, servedRequest , piggyGroupedPeriodic == SimulationParameters.updateType);
+            piggyBack(time, servedRequest , piggyGroupedPeriodic == algorithmData.updateType);
 
         }
         isServerBusy = false;
@@ -368,7 +374,8 @@ public class Server extends EndDevice{
     }
 
     public void sendUpdateToAll(float time,List<Server> servers) {
-        int id = Client.generateId();
+        algorithmData.generatedId++;
+        int id = algorithmData.generatedId;
         for (Server dst:servers) {
             if (dst.equals(this)) continue;
             sendUpdateTo(time,id,dst, false);

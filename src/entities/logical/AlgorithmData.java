@@ -32,7 +32,5 @@ public class AlgorithmData {
     public int generatedId= 0;
 
 
-
-
-
+    public int Radius = 1 ;
 }

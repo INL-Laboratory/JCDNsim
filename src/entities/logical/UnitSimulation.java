@@ -365,7 +365,11 @@ public class UnitSimulation implements Callable<Float[]> {
                 }
         }
     }
-
+    public void setShares() {
+        for (int i = 0; i < servers.size(); i++) {
+//            servers.get(i).setShares();
+        }
+    }
     private void resetSimulatorSettings() {
 //        EventsQueue.lastSentPeriod =0;
 //        NetworkGraph.renewNetworrkGraph();

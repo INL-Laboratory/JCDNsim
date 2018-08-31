@@ -4,6 +4,7 @@ import entities.physical.Client;
 import entities.physical.NetworkGraph;
 import entities.physical.Server;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -24,7 +25,7 @@ public class RedirectingAlgorithm {
         this.algorithmData = algorithmData;
     }
 
-    public Server selectServerToRedirect(RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile , Map<Server, Integer> serverLoads , Client client){
+    public Server selectServerToRedirect(RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile, Map<Server, Integer> serverLoads, Client client, Map<Server, Integer> serverShares){
 //        double a = System.currentTimeMillis();
 
         Server selectedServer;
@@ -39,6 +40,9 @@ public class RedirectingAlgorithm {
             case MCS:
                 selectedServer = selectMCSserver(client, serversHavingFile,serverLoads);
                 break;
+            case CostBased:
+                selectedServer = selectCostBasedserver(client, serversHavingFile,serverShares,serverLoads);
+                break;
             case HONEYBEE:
                 selectedServer = selectHoneyBeeServer(client, serversHavingFile,serverLoads);
                 break;
@@ -49,6 +53,68 @@ public class RedirectingAlgorithm {
 //        totalTime += System.currentTimeMillis()-a;
         return selectedServer;
     }
+
+    private Server selectCostBasedserver(Client client, List<Server> serversHavingFile, Map<Server,Integer> serverShares,Map<Server,Integer> serverLoads) {
+        //TODO: that guy's algorithm
+        Server selectedServer;
+        List<Server> finallyQualifiedServers ;
+        Server connectedServer = (Server)client.getLink().getOtherEndPoint(client);
+        List<Server> nearestServers= networkGraph.getNearerServers(algorithmData.Radius,serversHavingFile,client, rnd);
+        if (!(nearestServers==null || nearestServers.size()==0) ){
+            finallyQualifiedServers =createQualifiedList(serverShares, nearestServers,connectedServer);
+            if (!(finallyQualifiedServers==null || finallyQualifiedServers.size()==0)){
+                return selectByShares(serverShares, finallyQualifiedServers);
+            }
+        }
+        selectedServer = networkGraph.getLeastLoadedServer(serversHavingFile,serverLoads);
+        return selectedServer;
+    }
+
+    private List<Server> createQualifiedList(Map<Server, Integer> serverShares, List<Server> nearestServers, Server connectedServer) {
+        List<Server> finallyQualifiedServers = new ArrayList<>();
+        for (Server candidateServer:nearestServers) {
+            int candidateLoad =serverShares.get(candidateServer);
+            if (candidateLoad<0){
+                finallyQualifiedServers.add(candidateServer);
+            }
+        }
+        if (finallyQualifiedServers.size()==0 && nearestServers.contains(connectedServer)){
+            finallyQualifiedServers.add(connectedServer);
+        }
+        return finallyQualifiedServers;
+    }
+
+    private Server selectByShares(Map<Server, Integer> serverShares, List<Server> finallyQualifiedServers) {
+        Server selectedServer;
+        List<Float> maxims = new ArrayList<>();
+        setShares(finallyQualifiedServers, serverShares , maxims);
+        selectedServer=randomlySelects(finallyQualifiedServers,maxims);
+        if (selectedServer==null) throw new RuntimeException();
+        return selectedServer;
+    }
+
+    private void setShares(List<Server> finalList, Map<Server, Integer> serverShares, List<Float> maxims) {
+        int sum = 0;
+        for (int i = 0; i < finalList.size() ; i++) {
+            sum +=serverShares.get(finalList.get(i));
+        }
+        float cum = 0;
+        for (int i = 0; i < finalList.size() ; i++) {
+            cum+=((float)serverShares.get(finalList.get(i)))/sum;
+            maxims.add(cum);
+        }
+
+
+    }
+
+    private Server randomlySelects(List<Server> finalList, List<Float> maxims) {
+        float rnd = new Random().nextFloat();
+        for (int i = 0; i < maxims.size() ; i++) {
+            if (rnd<maxims.get(i)) return finalList.get(i);
+        }
+        return finalList.get(finalList.size()-1);
+    }
+
     private Server selectMCSserver(Client client, List<Server> serversHavingFile,Map<Server, Integer> serverLoads) {
         Server selectedServer;
         List<Server> nearestServers= networkGraph.getNearestServers(algorithmData.MCS_DELTA.intValue(),serversHavingFile,client, rnd);

@@ -36,6 +36,9 @@ public class EventsQueue {
             if (event.getOptionalData() instanceof Segment && ((Segment) event.getOptionalData()).getSegmentType() != SegmentType.Update)
                 if (Float.compare(event.getTime(), lastSentPeriod) == 1) {
                     unitSimulation.sendPeriodicUpdate(lastSentPeriod, isPiggyGroupedPeriodic);
+                    //TODO that guy's algorithm
+                    if (unitSimulation.algorithmData.redirectingAlgorithmType==RedirectingAlgorithmType.CostBased)
+                        unitSimulation.setShares();
                     lastSentPeriod += unitSimulation.algorithmData.periodicStep;
 
         }

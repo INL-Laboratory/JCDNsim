@@ -36,6 +36,7 @@ public class RunSimulator {
         parametersFile.println("# of Servers: " + configuration.numberOfServers);
         parametersFile.println("# of Run for each point: " + configuration.numberOfRuns);
         parametersFile.println("# of Requests: " + configuration.numberOfRequests);
+        parametersFile.println("# of sites: " + configuration.numberofSites);
         parametersFile.println("# of Files: " + configuration.numberOfFiles);
         parametersFile.println("# of Files per Server: " + configuration.numberOfFilesPerServer);
         parametersFile.println("Size of Files(KB): " + configuration.sizeOfFiles);
@@ -56,10 +57,16 @@ public class RunSimulator {
 
 
         Number[] points = {0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0};
+//        Number[] points = {0.5};
         Number[] points1 = new Number[configuration.numberOfServers];
         for (int i = 1; i <=configuration.numberOfServers ; i++) {
             points1[i-1] = i;
         }
+//        Number[] points2 = new Number[20];
+//        for (int i = 1; i <=20 ; i++) {
+//            points2[i-1] = i;
+//        }
+        Number[] points2 = {0.1,0.2,0.3};
 //        DefaultValues.PIGGY_BACK_SIZE = 1f;
 //        DefaultValues.PIGGY_BACK_SIZE = 10f;
 //        run("WMC",null,"periodic",3000,points,configuration,path);
@@ -74,14 +81,37 @@ public class RunSimulator {
 //        run("HONEYBEE",0.001,"piggyGroupedPeriodic",300,points,configuration,path);
         RunSimulator runSimulator= new RunSimulator();
 
-//        runSimulator.run("WMC",null,"periodic",400,points,configuration,path);
-        runSimulator.run("HONEYBEE",0.001,"piggyGroupedPeriodic",1000,points,configuration,path);
-//        projectRun.run("WMC",null,"piggyBack",null,points,configuration,path);
-        runSimulator.run("WMC",null,"ideal",null,points,configuration,path);
+//        runSimulator.run("WMC",null,"periodic",1200,points,configuration,path);
+//        runSimulator.run("WMC",null,"piggyBack",null,points,configuration,path);
+//        runSimulator.run("WMC",null,"ideal",null,points,configuration,path);
+//        runSimulator.run("WMC",null,"periodic",1000,points,configuration,path);
+//        runSimulator.run("WMC",null,"periodic",1200,points,configuration,path);
+//        runSimulator.run("WMC",null,"periodic",800,points,configuration,path);
+//        runSimulator.run("WMC",null,"periodic",600,points,configuration,path);
+//        runSimulator.run("WMC",null,"periodic",320,points,configuration,path);
+//        runSimulator.run("WMC",null,"periodic",340,points,configuration,path);
+//        runSimulator.run("WMC",null,"periodic",360,points,configuration,path);
+//        runSimulator.run("WMC",null,"periodic",380,points,configuration,path);
+//        runSimulator.run("WMC",null,"periodic",800,points,configuration,path);
+//        runSimulator.run("WMC",null,"periodic",900,points,configuration,path);
+//        runSimulator.run("WMC",null,"periodic",1000,points,configuration,path);
+//        runSimulator.run("WMC",null,"periodic",1100,points,configuration,path);
+//        runSimulator.run("WMC",null,"periodic",1200,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0,"piggyGroupedPeriodic",5000,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0.001,"piggyGroupedPeriodic",5000,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0.002,"piggyGroupedPeriodic",5000,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0.003,"piggyGroupedPeriodic",5000,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0.004,"piggyGroupedPeriodic",5000,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0.005,"piggyGroupedPeriodic",5000,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0.006,"piggyGroupedPeriodic",5000,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0.007,"piggyGroupedPeriodic",5000,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0.009,"piggyGroupedPeriodic",5000,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0.010,"piggyGroupedPeriodic",5000,points,configuration,path);
 //        projectRun.run("PSS",null,"ideal",null,points,configuration,path);
 //        run("WMC",null,"periodic",1000,points,configuration,path);
 //        run("MCS",null,"ideal",null,points1,configuration,path);
 
+        runSimulator.run("CostBased",null,"periodic",500,points,configuration,path);
 
 //        SimulationParameters.updateType=UpdateType.periodic;
 //        RedirectingAlgorithm.periodicStep = 15;
@@ -214,7 +244,7 @@ public class RunSimulator {
     private void submitFuture() throws ExecutionException, InterruptedException {
         int availableProccerssors = Runtime.getRuntime().availableProcessors();
         System.out.println("available proccessors: "+ availableProccerssors);
-        ExecutorService pool = Executors.newFixedThreadPool((int)(availableProccerssors*1.5));
+        ExecutorService pool = Executors.newFixedThreadPool((int)(availableProccerssors));
         while (!simulationsToBeRun.isEmpty()){
             Callable<Float[]> callable = simulationsToBeRun.removeFirst();
             UnitSimulation uSim = (UnitSimulation) callable;
@@ -398,8 +428,6 @@ public class RunSimulator {
 
     private String setAlgorithmNameParam(@NotNull String algorithm) {
         String paramName = null ;
-
-
         switch (algorithm){
             case "WMC":
                 paramName = "WMC_ALPHA";
@@ -409,6 +437,9 @@ public class RunSimulator {
                 break;
             case "MCS":
                 paramName = "MCS_DELTA";
+                break;
+            case "CostBased":
+                paramName = "Radius";
                 break;
             case "HONEYBEE":
                 paramName = "WMC_ALPHA";

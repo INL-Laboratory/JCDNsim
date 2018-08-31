@@ -17,6 +17,7 @@ public class Server extends EndDevice{
     private boolean isServerBusy;
     private Map<Integer, List<Server>> serversHavingFile = new HashMap<>();
     private Map<Server, Integer> serverLoads = new HashMap<>();
+    private Map<Server, Integer> serverShares = new HashMap<>();
     private Site site ;
     RedirectingAlgorithm redirectingAlgorithm;
 
@@ -246,7 +247,8 @@ public class Server extends EndDevice{
         if (algorithmData.updateType==ideal)
               makeLoadListIdeally(serversHavingSpecificFile,serverLoads);
         serverLoads.put(this,getServerLoad());
-        Server selectedServer = redirectingAlgorithm.selectServerToRedirect(algorithmData.redirectingAlgorithmType,serversHavingSpecificFile,serverLoads,client);
+        setShares();
+        Server selectedServer = redirectingAlgorithm.selectServerToRedirect(algorithmData.redirectingAlgorithmType,serversHavingSpecificFile,serverLoads,client, serverShares);
         return selectedServer;
     }
 
@@ -383,6 +385,11 @@ public class Server extends EndDevice{
 
     }
 
+    public void setShares() {
+        for(Server server:serverLoads.keySet()) {
+            serverShares.put(server,serverLoads.get(server)-this.getServerLoad());
+        }
+    }
 
 
 }

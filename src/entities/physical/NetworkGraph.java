@@ -109,7 +109,6 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
                     boolean con = o1Cost < o2Cost;
                     boolean con2 = o1Cost > o2Cost;
                     return con ? -1 : (con2 ? 1 : 0);
-                    //TODO: check whether the order is right
                 }
             });
 
@@ -311,4 +310,19 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         return desirability;
     }
 
+    public List<Server> getNearerServers(int D, List<Server> preFilteredServers, Client src, Random rnd) {
+        if (preFilteredServers.size()==0) return null;
+        Collections.shuffle(preFilteredServers);
+        ArrayList<Server> toReturnServers = new ArrayList<>();
+        Server connectedServer = (Server) src.getLink().getOtherEndPoint(src);
+        for (Server candidateServer:preFilteredServers) {
+            if (connectedServer.equals(candidateServer) ) toReturnServers.add(candidateServer);
+            else if (connectedServer.getCommunicationCostTable().get(candidateServer)<=D){
+                  toReturnServers.add(candidateServer);
+            }
+        }
+
+        return toReturnServers;
+
+    }
 }

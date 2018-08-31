@@ -7,5 +7,6 @@ public enum RedirectingAlgorithmType {
     PSS,//Probabilistic Scheme Switching
     WMC,//Weighted Metrics Combination
     MCS, //Multiple Choices Scheme
-    HONEYBEE
+    HONEYBEE,
+    CostBased
 }

@@ -54,6 +54,10 @@ public class Link extends IEventHandler{
         this.bw = bw;
     }
 
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
+
     public EndDevice getEndPointA() {
         return endPointA;
     }

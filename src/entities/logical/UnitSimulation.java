@@ -215,6 +215,7 @@ public class UnitSimulation implements Callable<Float[]> {
 
         initiateServesAndClients(configuration.numberOfServers, configuration.propagationDelay, configuration.bandwidth);
         initiateSites(configuration.numberOfServers, configuration.numberofSites);
+        correctLinksWeights();
 
         Map<Integer, List<Server>> serversHavingFile = new HashMap<>();
 
@@ -232,6 +233,19 @@ public class UnitSimulation implements Callable<Float[]> {
         redirectingAlgorithm.networkGraph = networkGraph;
         initiationTime = System.currentTimeMillis() - EnteringTime;
 
+    }
+
+    private void correctLinksWeights() {
+        for (Link link:links) {
+            EndDevice endDevice1 = link.getEndPointA();
+            EndDevice endDevice2 = link.getEndPointB();
+            if (endDevice1 instanceof Server && endDevice2 instanceof Server){
+                if (((Server) endDevice1).getSite().equals(((Server) endDevice2).getSite()))
+                    link.setWeight(DefaultValues.SERVER_SERVER_LOCAL_WEIGHT);
+                else
+                    link.setWeight(DefaultValues.SERVER_SERVER_INTERSITE_WEIGHT);
+            }else link.setWeight(DefaultValues.SERVER_CLIENT_WEIGHT);
+        }
     }
 
     private void initiateSites(int numberOfServers, int numberofSites) {

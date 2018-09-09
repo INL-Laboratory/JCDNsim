@@ -1,13 +1,8 @@
 package entities.logical;
 
-import entities.physical.Client;
-import entities.physical.NetworkGraph;
-import entities.physical.Server;
+import entities.physical.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 
 /**
@@ -25,7 +20,7 @@ public class RedirectingAlgorithm {
         this.algorithmData = algorithmData;
     }
 
-    public Server selectServerToRedirect(RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile, Map<Server, Integer> serverLoads, Client client, Map<Server, Integer> serverShares){
+    public Server selectServerToRedirect(RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile, Map<Server, Integer> serverLoads, Client client, Map<Server, Integer> serverShares, List<Site> sitesHavingFile){
 //        double a = System.currentTimeMillis();
 
         Server selectedServer;
@@ -35,7 +30,7 @@ public class RedirectingAlgorithm {
                 selectedServer = selectPSSserver(client, serversHavingFile,serverLoads);
                 break;
             case WMC:
-                selectedServer = selectWMCserver(client, serversHavingFile,serverLoads);
+                selectedServer = (Server) selectWMCServerOrSite(client, (List)serversHavingFile,(Map)serverLoads);
                 break;
             case MCS:
                 selectedServer = selectMCSserver(client, serversHavingFile,serverLoads);
@@ -44,7 +39,7 @@ public class RedirectingAlgorithm {
                 selectedServer = selectCostBasedserver(client, serversHavingFile,serverShares,serverLoads);
                 break;
             case HONEYBEE:
-                selectedServer = selectHoneyBeeServer(client, serversHavingFile,serverLoads);
+                selectedServer = selectHoneyBeeServer(client ,serversHavingFile,sitesHavingFile,serverLoads);
                 break;
             default:
                 throw new RuntimeException("Redirecting Algorithm is not defined");
@@ -53,6 +48,38 @@ public class RedirectingAlgorithm {
 //        totalTime += System.currentTimeMillis()-a;
         return selectedServer;
     }
+
+    private Server selectWMCsiteThenServer(Client client, List<Server> serversHavingFile, Map<Server,Integer> serverLoads, List<Site> sitesHavingFile) {
+        Site selectedSite = (Site)selectWMCServerOrSite(client,(List)sitesHavingFile,(Map)getTotalSiteLoads(serverLoads,sitesHavingFile));
+        List<Server> serverList = new LinkedList<>();
+        for (Server server:selectedSite.getServers()) {
+            if (serversHavingFile.contains(server)){
+                serverList.add(server);
+            }
+        }
+        if (serverList.size()==0) throw new RuntimeException();
+        Server selectedServer = (Server) selectWMCServerOrSite(client,(List)serverList,(Map)serverLoads);
+        return selectedServer;
+    }
+
+
+    public int calulateTotalLoad(Map<Server,Integer> serverLoads, Site site){
+        int size = site.getServers().size();
+        int sum = 0;
+        for (Server server:site.getServers()) {
+            sum+=serverLoads.get(server);
+        }
+        return sum;
+    }
+    public Map<Site,Integer> getTotalSiteLoads(Map<Server,Integer> serverLoads, List<Site> sites){
+        Map<Site,Integer> map = new HashMap<>();
+        for (Site site:sites) {
+            map.put(site,calulateTotalLoad(serverLoads,site));
+        }
+        return map;
+    }
+
+
 
     private Server selectCostBasedserver(Client client, List<Server> serversHavingFile, Map<Server,Integer> serverShares,Map<Server,Integer> serverLoads) {
         //TODO: that guy's algorithm
@@ -115,32 +142,50 @@ public class RedirectingAlgorithm {
         return finalList.get(finalList.size()-1);
     }
 
-    private Server selectMCSserver(Client client, List<Server> serversHavingFile,Map<Server, Integer> serverLoads) {
+    private Server selectMCSserver(Client client, List<Server> preFilteredServers,Map<Server, Integer> serverLoads) {
         Server selectedServer;
-        List<Server> nearestServers= networkGraph.getNearestServers(algorithmData.MCS_DELTA.intValue(),serversHavingFile,client, rnd);
+        List<Server> nearestServers= networkGraph.getNearestServers(algorithmData.MCS_DELTA.intValue(),preFilteredServers,client, rnd);
         if (nearestServers==null || nearestServers.size()==0) throw new RuntimeException();
         selectedServer = networkGraph.getLeastLoadedServer(nearestServers,serverLoads);
         return selectedServer;
     }
 
-    private Server selectWMCserver(Client client, List<Server> serversHavingFile, Map<Server, Integer> serverLoads) {
-        Server selectedServer;
-        selectedServer = networkGraph.getMostDesirableServer(serversHavingFile, serverLoads ,algorithmData.WMC_ALPHA.doubleValue(),client);
+    private HasLoadAndCost selectWMCServerOrSite(Client client, List<HasLoadAndCost> havingFile, Map<HasLoadAndCost, Integer> loads) {
+        HasLoadAndCost selectedServer;
+        selectedServer = networkGraph.getMostDesirableServerOrSite(havingFile, loads ,algorithmData.WMC_ALPHA.doubleValue(),client);
         return selectedServer;
     }
 
-    private Server selectHoneyBeeServer(Client client, List<Server> serversHavingFile, Map<Server, Integer> serverLoads) {
+//    private Server selectWMCsite(Client client, List<Server> serversHavingFile, Map<Server, Integer> serverLoads) {
+//        Server selectedServer;
+//        Map<Site, >
+//        for (Server server:serversHavingFile) {
+//            server.getSite()
+//        }
+//
+//
+//        selectedServer = networkGraph.getMostDesirableServerOrSite(serversHavingFile, serverLoads ,algorithmData.WMC_ALPHA.doubleValue(),client);
+//        return selectedServer;
+//    }
+
+    private Server selectHoneyBeeServer(Client client, List<Server> serversHavingFile, List<Site> sitesHavingFile,Map<Server, Integer> serverLoads) {
         Server selectedServer;
         double randomDouble = algorithmData.random.nextDouble();
         if (randomDouble<algorithmData.HONEY_BEE_SEARCH_PROBABILITY.doubleValue())
             selectedServer = serversHavingFile.get(new Random().nextInt(serversHavingFile.size()));
-            else
-            selectedServer = selectWMCserver(client,serversHavingFile,serverLoads);
+        else {
+            selectedServer = selectWMCsiteThenServer(client, serversHavingFile, serverLoads, sitesHavingFile);
+        }
+
         return selectedServer;
 
 
     }
 
+//            }
+//            Server ser = (Server) selectWMCServerOrSite(client, (List)serversHavingFile, (Map)serverLoads);
+//            if (!selectedServer.equals(ser)){
+//                System.out.println();
 
     private Server selectPSSserver(Client client, List<Server> serversHavingFile, Map<Server, Integer> serverLoads) {
         Server selectedServer;

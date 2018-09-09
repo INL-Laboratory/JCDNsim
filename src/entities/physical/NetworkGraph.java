@@ -204,6 +204,21 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         }
         return toReturnServers;
     }
+    public List<Site> getSitesHavingFile(int fileID){
+        /***
+         * returns the servers who have the file with fileId.
+         */
+        Server candidateServer;
+        LinkedList<Site> toReturnSites = new LinkedList<>();
+        for (EndDevice end:getVertices()) {
+            if (!(end instanceof Server)) continue;
+            candidateServer= (Server) end;
+            if ((!toReturnSites.contains(candidateServer.getSite())) && candidateServer.findFile(fileID)!=null){
+                toReturnSites.add(candidateServer.getSite());
+            }
+        }
+        return toReturnSites;
+    }
     public List<Server> getLeastLoadedServers(int n, List<Server> preFilteredServers){
         /***
          * returns the n least loaded servers in a list of servers that might have been already filtered.
@@ -247,65 +262,72 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
     private Map<Pair,Integer> cachedTotalCost = new HashMap<>();
 
 
-    public Server getMostDesirableServer(List<Server> preFilteredServers, Map<Server, Integer> serverLoads, double alpha, EndDevice src){
+    public HasLoadAndCost getMostDesirableServerOrSite(List<HasLoadAndCost> preFilteredS, Map<HasLoadAndCost,Integer> loads, double alpha, EndDevice src){
         /***
          * returns the least desirable server in a list of servers that might have been already filtered.
          */
 //        Logger.printWithoutTime("*******Servers Having File:");
-        if (preFilteredServers.size()==0) return null;
+        if (preFilteredS.size()==0) return null;
         double minDesirability = Double.MAX_VALUE;
-        Server toReturnServer = null;
+        HasLoadAndCost toReturnS = null;
         Integer totalCosts;
-        totalCosts = cachedTotalCost.get(new Pair(src,preFilteredServers));
-        if(totalCosts== null){
-            totalCosts = calculateTotalCosts(preFilteredServers, src);
-            cachedTotalCost.put(new Pair(src,preFilteredServers),totalCosts);
-        }
-        int totalLoad = calculateTotalLoad(preFilteredServers,serverLoads);
+        totalCosts = getTotalCost(preFilteredS, src);
+        int totalLoad = calculateTotalLoad(preFilteredS,loads);
 
 //        Logger.printWithoutTime(" total cost = "+ totalCosts + "  total Load = " + totalLoad);
-        double serverDesirability;
-        for (Server candidateServer:preFilteredServers) {
-            serverDesirability = calculateDesirability(totalCosts, totalLoad, candidateServer,serverLoads.get(candidateServer), alpha, src);
-//            Logger.printWithoutTime(candidateServer.toString()+" queueSize = "+serverLoads.get(candidateServer)+ " cost = " + candidateServer.getCommunicationCostTable().get(src) + "desirability = " + serverDesirability);
-            if (Double.compare(serverDesirability,minDesirability)==-1){
-//                toReturnServer = candidateServer;
-                minDesirability = serverDesirability;
+        double sDesirability;
+        for (HasLoadAndCost candidateS:preFilteredS) {
+            sDesirability = calculateDesirability(totalCosts, totalLoad, candidateS,loads.get(candidateS), alpha, src);
+//            Logger.printWithoutTime(candidateS.toString()+" queueSize = "+loads.get(candidateS)+ " cost = " + candidateS.getCommunicationCostTable().get(src) + "desirability = " + serverDesirability);
+            if (Double.compare(sDesirability,minDesirability)==-1){
+//                toReturnS = candidateS;
+                minDesirability = sDesirability;
             }
         }
 
-        List<Server> minLists = new ArrayList<>();
-        for (Server candidateServer:preFilteredServers) {
-            if (Double.compare(calculateDesirability(totalCosts, totalLoad, candidateServer, serverLoads.get(candidateServer), alpha, src),minDesirability)==0){
-                minLists.add(candidateServer);
+        List<HasLoadAndCost> minLists = new ArrayList<>();
+        for (HasLoadAndCost candidateS:preFilteredS) {
+            if (Double.compare(calculateDesirability(totalCosts, totalLoad, candidateS, loads.get(candidateS), alpha, src),minDesirability)==0){
+                minLists.add(candidateS);
             }
         }
-        toReturnServer = minLists.get(new Random().nextInt(minLists.size()));
+        toReturnS = minLists.get(new Random().nextInt(minLists.size()));
 
 
 //        System.out.println(minDesirability);
 //        Logger.printWithoutTime(" total cost = "+ totalCosts + "  total Load = " + totalLoad);
-        return toReturnServer;
+        return toReturnS;
     }
 
-    private int calculateTotalCosts(List<Server> preFilteredServers, EndDevice src) {
+    private Integer getTotalCost(List preFilteredS, EndDevice src) {
+        Integer totalCosts;
+        totalCosts = cachedTotalCost.get(new Pair(src,preFilteredS));
+        if(totalCosts== null){
+            totalCosts = calculateTotalCosts(preFilteredS, src);
+            cachedTotalCost.put(new Pair(src,preFilteredS),totalCosts);
+        }
+        return totalCosts;
+    }
+
+    private int calculateTotalCosts(List<HasLoadAndCost> preFilteredS, EndDevice src) {
         int sum = 0;
-        for (Server server:preFilteredServers) {
-            sum+=  server.getCommunicationCostTable().get(src);
+        for (HasLoadAndCost serverOrsite:preFilteredS) {
+            sum+=  serverOrsite.getCommunicationCostTable().get(src);
         }
         return sum;
     }
-    private int calculateTotalLoad(List<Server> preFilteredServers, Map<Server, Integer> serverLoads) {
+    private int calculateTotalLoad(List<HasLoadAndCost> preFilteredS, Map<HasLoadAndCost, Integer> loads) {
         int sum = 0;
-        for (Server server:preFilteredServers) {
-            sum+= serverLoads.get(server);
+        for (HasLoadAndCost serverOrSite:preFilteredS) {
+            sum+= loads.get(serverOrSite);
         }
         return sum;
     }
 
-    private double calculateDesirability(int totalCost, int totalLoad, Server server, Integer load, double alpha, EndDevice src) {
-        int cost = server.getCommunicationCostTable().get(src);
-        if (totalLoad==0) totalLoad = 1; if (totalCost==0) totalCost = 1;
+    private double calculateDesirability(int totalCost, int totalLoad, HasLoadAndCost servOrsite, Integer load, double alpha, EndDevice src) {
+        int cost = servOrsite.getCommunicationCostTable().get(src);
+        if (totalLoad==0) totalLoad = 1;
+        if (totalCost==0) totalCost = 1;
         double desirability = alpha *( ((double)cost)/totalCost) + (1-alpha)*(((double)load)/totalLoad);
         return desirability;
     }

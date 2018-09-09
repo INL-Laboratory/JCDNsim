@@ -22,9 +22,21 @@ public class RestorePrevResults {
                 Result result = (Result)objectInputStream.readObject();
                 System.out.println(result.simulationName);
 //                result.getDelayStats()[9]/=10;
+
 //                result.getDelayStats()[10]/=5;
 //                res.put(Float.parseFloat(result.simulationName.substring(result.simulationName.lastIndexOf("-")+1)),result.getDelayStats()[0]);
-                res.put(Float.parseFloat(result.simulationName.substring(result.simulationName.indexOf("-")+1,result.simulationName.indexOf("-",result.simulationName.indexOf("-")+1))),result.getDelayStats()[0]);
+//                res.put(Float.parseFloat(result.simulationName.substring(result.simulationName.indexOf("-")+1,result.simulationName.indexOf("-",result.simulationName.indexOf("-")+1))),result.getDelayStats()[0]);
+                Number[] xValues = result.getCostStats();
+                Number[] yValues = result.getDelayStats();
+                int c = 0;
+                for (Number i: res.keySet()) {
+                    xValues[c]= i;
+                    yValues[c]= res.get(i);
+                    c++;
+                }
+//        Chart.addSeries("HoneyBees",xValues,yValues);
+                Chart.addSeries(result.simulationName,xValues,yValues);
+
             }catch (Exception e){
                 e.printStackTrace();
             }finally {
@@ -46,15 +58,16 @@ public class RestorePrevResults {
 //            c++;
 //        }
 //        Chart.addSeries("Periodics",xValues,yValues);
-        Number[] xValues = new Number[res.size()];
-        Number[] yValues = new Number[res.size()];
-        int c = 0;
-        for (Number i: res.keySet()) {
-            xValues[c]= i;
-            yValues[c]= res.get(i);
-            c++;
-        }
-        Chart.addSeries("HoneyBees",xValues,yValues);
+//        Number[] xValues = new Number[res.size()];
+//        Number[] yValues = new Number[res.size()];
+//        int c = 0;
+//        for (Number i: res.keySet()) {
+//            xValues[c]= i;
+//            yValues[c]= res.get(i);
+//            c++;
+//        }
+//        Chart.addSeries("HoneyBees",xValues,yValues);
+//        Chart.addSeries("HoneyBees",xValues,yValues);
         Chart.main(args);
 
     }

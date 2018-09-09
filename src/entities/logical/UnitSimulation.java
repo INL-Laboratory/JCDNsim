@@ -6,7 +6,6 @@ import entities.Statistics.Result;
 import entities.physical.*;
 import entities.utilities.Poisson;
 import entities.utilities.ZipfGenerator;
-import entities.utilities.logger.Logger;
 
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
@@ -218,8 +217,10 @@ public class UnitSimulation implements Callable<Float[]> {
         correctLinksWeights();
 
         Map<Integer, List<Server>> serversHavingFile = new HashMap<>();
+        Map<Integer, List<Site>> sitesHavingFile = new HashMap<>();
 
         setServersHavingFile(configuration.numberOfServers, serversHavingFile);
+        setSitesHavingFile(configuration.numberOfServers, sitesHavingFile);
 
         assignFileListsToServers(configuration.numberOfFiles,configuration. numberOfServers,configuration. numberOfFilesPerServer);
 
@@ -227,12 +228,21 @@ public class UnitSimulation implements Callable<Float[]> {
 
         addLinksToGraph();
 
-        fillServersHavingFile(serversHavingFile);
+        fillSitesAndServersHavingFile(serversHavingFile, sitesHavingFile);
         setServerLoadLists(configuration.numberOfServers);
         networkGraph.buildRoutingTables();
+        for (Site site:sites) {
+            site.makeRoutingTable();
+        }
         redirectingAlgorithm.networkGraph = networkGraph;
         initiationTime = System.currentTimeMillis() - EnteringTime;
 
+    }
+
+    private void setSitesHavingFile(int numberOfServers, Map<Integer,List<Site>> sitesHavingFile) {
+        for (int i = 0; i < numberOfServers ; i++) {
+            servers.get(i).setSitesHavingFile(sitesHavingFile);
+        }
     }
 
     private void correctLinksWeights() {
@@ -267,14 +277,27 @@ public class UnitSimulation implements Callable<Float[]> {
 
     }
 
-    private void fillServersHavingFile(Map<Integer, List<Server>> serversHavingFile) {
+    private void fillSitesAndServersHavingFile(Map<Integer, List<Server>> serversHavingFile,Map<Integer, List<Site>> sitesHavingFile) {
         StringBuffer sb = new StringBuffer();
         List<Server> serversss ;
+        List<Site> sites ;
 //        sb.append(" ***** Files ***** ");
 //
         for(IFile f: files){
             serversss = networkGraph.getServersHavingFile(f.getId());
             serversHavingFile.put(f.getId(),serversss);
+
+
+//            sb.append("\n").append(f).append(" :");
+//            for(Server s: serversss){
+//                sb.append("  ").append(s);
+//            }
+        }
+        for(IFile f: files){
+            sites = networkGraph.getSitesHavingFile(f.getId());
+            sitesHavingFile.put(f.getId(),sites);
+
+
 //            sb.append("\n").append(f).append(" :");
 //            for(Server s: serversss){
 //                sb.append("  ").append(s);

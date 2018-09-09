@@ -9,9 +9,9 @@ import java.util.Objects;
 
 public class Pair {
     EndDevice endDevice;
-    List<Server> preFiltered;
+    List preFiltered;
 
-    public Pair(EndDevice endDevice, List<Server> preFiltered) {
+    public Pair(EndDevice endDevice, List preFiltered) {
         this.endDevice = endDevice;
         this.preFiltered = preFiltered;
     }

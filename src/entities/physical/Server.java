@@ -7,7 +7,7 @@ import java.util.*;
 import static entities.logical.UpdateType.ideal;
 import static entities.logical.UpdateType.piggyGroupedPeriodic;
 
-public class Server extends EndDevice{
+public class Server extends EndDevice implements HasLoadAndCost{
     private Map<EndDevice,Link> links = new HashMap<>();
 //    private Link clientLink;
     private List<IFile> files;
@@ -17,6 +17,7 @@ public class Server extends EndDevice{
     private boolean isServerBusy;
     private Map<Integer, List<Server>> serversHavingFile = new HashMap<>();
     private Map<Server, Integer> serverLoads = new HashMap<>();
+    private Map<Integer, List<Site>> sitesHavingFile = new HashMap<>();
     private Map<Server, Integer> serverShares = new HashMap<>();
     private Site site ;
     RedirectingAlgorithm redirectingAlgorithm;
@@ -164,13 +165,13 @@ public class Server extends EndDevice{
         Link link = routingTable.get(dst);
 //        HashMap<Server, Integer> updateHashMap= new HashMap<>();
 //        if (sendSiteUpdate) {
-//            updateHashMap.putAll(site.getLoads());
+//            updateHashMap.putAll(site.getRealLoads());
 //        }else {
 //            updateHashMap.put(this,getServerLoad());
 //        }
         if (sendSiteUpdate) {
-            for (Server server:site.getLoads().keySet()) {
-                loadPair pair =new loadPair (server,site.getLoads().get(server));
+            for (Server server:site.getRealLoads().keySet()) {
+                loadPair pair =new loadPair (server,site.getRealLoads().get(server));
                 Segment updateSegment = new Segment(id,this, dst , DefaultValues.PIGGY_BACK_SIZE, SegmentType.Update,pair , 0);
                 sendData(time, link, updateSegment);
             }
@@ -243,12 +244,14 @@ public class Server extends EndDevice{
         int fileId = request.getNeededFileID();
         Client client = request.getSource();
         List<Server> serversHavingSpecificFile = serversHavingFile.get(fileId);
+        List<Site> sitesHavingSpecificFile = sitesHavingFile.get(fileId);
         if (serversHavingSpecificFile==null || serversHavingSpecificFile.size()==0) throw new OkayException(" No server has the file " + fileId + " requested in " + request , time);
+        if (sitesHavingSpecificFile==null || sitesHavingSpecificFile.size()==0) throw new OkayException(" No site has the file " + fileId + " requested in " + request , time);
         if (algorithmData.updateType==ideal)
               makeLoadListIdeally(serversHavingSpecificFile,serverLoads);
         serverLoads.put(this,getServerLoad());
         setShares();
-        Server selectedServer = redirectingAlgorithm.selectServerToRedirect(algorithmData.redirectingAlgorithmType,serversHavingSpecificFile,serverLoads,client, serverShares);
+        Server selectedServer = redirectingAlgorithm.selectServerToRedirect(algorithmData.redirectingAlgorithmType,serversHavingSpecificFile,serverLoads,client, serverShares,(List)sitesHavingSpecificFile);
         return selectedServer;
     }
 
@@ -365,6 +368,10 @@ public class Server extends EndDevice{
 
     public void setServersHavingFile(Map<Integer, List<Server>> serversHavingFile) {
         this.serversHavingFile = serversHavingFile;
+    }
+
+    public void setSitesHavingFile(Map<Integer, List<Site>> sitesHavingFile) {
+        this.sitesHavingFile = sitesHavingFile;
     }
 
     public Map<Server, Integer> getServerLoadListss() {

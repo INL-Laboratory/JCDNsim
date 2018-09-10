@@ -2,12 +2,14 @@ package entities.utilities.logger;
 import entities.logical.DefaultValues;
 
 import java.io.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 public class Logger {
-    private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm:ss");
-    private static LocalDateTime now = LocalDateTime.now();
+    static Calendar now = Calendar.getInstance();
+    static SimpleDateFormat dtf = new SimpleDateFormat("d MMM uuuu HH:mm:ss");
+
+
     public static PrintWriter printWriter;
 
 
@@ -41,7 +43,7 @@ public class Logger {
     }
 
     public static String getRealTime(){
-        return dtf.format(now);
+        return dtf.format(now.getTime());
     }
 
     public static void main(String[] args) {

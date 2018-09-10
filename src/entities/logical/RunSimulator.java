@@ -7,17 +7,18 @@ import entities.Statistics.Chart;
 import entities.utilities.logger.Logger;
 
 import java.io.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.concurrent.*;
 
 
 public class RunSimulator {
-    private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("d MMM uuuu HH:mm:ss");
-    private static LocalDateTime now = LocalDateTime.now();
-
+//    private static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("d MMM uuuu HH:mm:ss");
+//    private static LocalDateTime now = LocalDateTime.now();
+    static Calendar calendar = Calendar.getInstance();
+    static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d MMM uuuu HH:mm:ss");
     ArrayDeque<Callable<Float[]>> simulationsToBeRun = new ArrayDeque<>();
     ArrayList<Future<Float[]>> futures = new ArrayList<>();
     ArrayList<Result> results = new ArrayList<>();
@@ -28,7 +29,7 @@ public class RunSimulator {
         Configuration configuration = new Configuration();
         String path = "results";
         new File( path).mkdir();
-        path = "results/"+dtf.format(now);
+        path = "results/"+simpleDateFormat.format(calendar.getTime());
         new File( path).mkdir();
         new File(path+"/logs").mkdir();
         new File(path+"/chart").mkdir();
@@ -86,7 +87,7 @@ public class RunSimulator {
 //        runSimulator.run("WMC",null,"ideal",null,points,configuration,path);
 //        runSimulator.run("WMC",null,"periodic",1000,points,configuration,path);
 //        runSimulator.run("WMC",null,"periodic",1200,points,configuration,path);
-//        runSimulator.run("WMC",null,"periodic",800,points,configuration,path);
+//        runSimulator.run("WMC",null,"periodic",600,points,configuration,path);
 //        runSimulator.run("WMC",null,"periodic",600,points,configuration,path);
 //        runSimulator.run("WMC",null,"periodic",320,points,configuration,path);
 //        runSimulator.run("WMC",null,"periodic",340,points,configuration,path);
@@ -97,19 +98,19 @@ public class RunSimulator {
 //        runSimulator.run("WMC",null,"periodic",1000,points,configuration,path);
 //        runSimulator.run("WMC",null,"periodic",1100,points,configuration,path);
 //        runSimulator.run("WMC",null,"periodic",1200,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0.002,"piggyGroupedPeriodic",5000,points,configuration,path);
 //        runSimulator.run("HONEYBEE",0,"piggyGroupedPeriodic",5000,points,configuration,path);
-//        runSimulator.run("HONEYBEE",0.001,"piggyGroupedPeriodic",5000,points,configuration,path);
         runSimulator.run("HONEYBEE",0.002,"piggyGroupedPeriodic",2000,points,configuration,path);
-        runSimulator.run("HONEYBEE",0.002,"piggyGroupedPeriodic",1000,points,configuration,path);
-        runSimulator.run("HONEYBEE",0.001,"piggyGroupedPeriodic",1000,points,configuration,path);
-        runSimulator.run("HONEYBEE",0.001,"piggyGroupedPeriodic",2000,points,configuration,path);
-//        runSimulator.run("HONEYBEE",0.003,"piggyGroupedPeriodic",5000,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0.001,"piggyGroupedPeriodic",5000,points,configuration,path);
 //        runSimulator.run("HONEYBEE",0.004,"piggyGroupedPeriodic",5000,points,configuration,path);
-//        runSimulator.run("HONEYBEE",0.005,"piggyGroupedPeriodic",5000,points,configuration,path);
 //        runSimulator.run("HONEYBEE",0.006,"piggyGroupedPeriodic",5000,points,configuration,path);
-//        runSimulator.run("HONEYBEE",0.007,"piggyGroupedPeriodic",5000,points,configuration,path);
-//        runSimulator.run("HONEYBEE",0.009,"piggyGroupedPeriodic",5000,points,configuration,path);
-//        runSimulator.run("HONEYBEE",0.010,"piggyGroupedPeriodic",5000,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0.008,"piggyGroupedPeriodic",5000,points,configuration,path);
+        runSimulator.run("HONEYBEE",0.010,"piggyGroupedPeriodic",2000,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0.015,"piggyGroupedPeriodic",5000,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0.030,"piggyGroupedPeriodic",5000,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0.050,"piggyGroupedPeriodic",5000,points,configuration,path);
+//        runSimulator.run("HONEYBEE",0.070,"piggyGroupedPeriodic",5000,points,configuration,path);
+        runSimulator.run("HONEYBEE",0.100,"piggyGroupedPeriodic",2000,points,configuration,path);
 //        projectRun.run("PSS",null,"ideal",null,points,configuration,path);
 //        run("WMC",null,"periodic",1000,points,configuration,path);
 //        run("MCS",null,"ideal",null,points1,configuration,path);

@@ -2,11 +2,11 @@ package entities.physical;
 
 import entities.physical.Server;
 
-public class loadPair{
+public class LoadPair {
     Server server;
     int load;
 
-    public loadPair(Server server, int load) {
+    public LoadPair(Server server, int load) {
         this.server = server;
         this.load = load;
     }

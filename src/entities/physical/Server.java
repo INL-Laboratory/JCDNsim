@@ -4,8 +4,7 @@ import entities.logical.*;
 
 import java.util.*;
 
-import static entities.logical.UpdateType.ideal;
-import static entities.logical.UpdateType.piggyGroupedPeriodic;
+import static entities.logical.UpdateType.*;
 
 public class Server extends EndDevice implements HasLoadAndCost{
     private Map<EndDevice,Link> links = new HashMap<>();
@@ -83,15 +82,17 @@ public class Server extends EndDevice implements HasLoadAndCost{
 //
 //                Logger.print(this + "update package from "+ segment.getSource() +" received ",time);
 //
-                updateLoadList((loadPair) segment.getOptionalContent());
+                updateLoadList((List<LoadPair>) segment.getOptionalContent());
                 break;
             default:
                 throw new OkayException(this + " received unexpected " +segment,time);
         }
     }
 
-    private void updateLoadList(loadPair loads) {
-        serverLoads.put(loads.server,loads.load);
+    private void updateLoadList(List<LoadPair> loads) {
+        for(LoadPair load: loads){
+            serverLoads.put(load.server,load.load);
+        }
         serverLoads.put(this,getServerLoad());
 //
 //        Logger.printWithoutTime("******"+this + "'s load list");
@@ -169,20 +170,22 @@ public class Server extends EndDevice implements HasLoadAndCost{
 //        }else {
 //            updateHashMap.put(this,getServerLoad());
 //        }
+        List<LoadPair> pairs = new ArrayList<>();
         if (sendSiteUpdate) {
-            for (Server server:site.getRealLoads().keySet()) {
-                loadPair pair =new loadPair (server,site.getRealLoads().get(server));
-                Segment updateSegment = new Segment(id,this, dst , DefaultValues.PIGGY_BACK_SIZE, SegmentType.Update,pair , 0);
-                sendData(time, link, updateSegment);
+            for (Server server : site.getServers()) {
+                LoadPair pair =new LoadPair(server,serverLoads.get(server));
+                pairs.add(pair);
             }
+            Segment updateSegment = new Segment(id,this, dst , DefaultValues.PIGGY_BACK_SIZE, SegmentType.Update,pairs , 0);
+            sendData(time, link, updateSegment);
+
         }else {
-            loadPair pair =new loadPair (this,getServerLoad());
-            Segment updateSegment = new Segment(id,this, dst , DefaultValues.PIGGY_BACK_SIZE, SegmentType.Update,pair , 0);
+            LoadPair pair =new LoadPair(this,getServerLoad());
+            pairs.add(pair);
+            Segment updateSegment = new Segment(id,this, dst , DefaultValues.PIGGY_BACK_SIZE, SegmentType.Update,pairs , 0);
             sendData(time, link, updateSegment);
         }
     }
-
-
 
     private float serveUnredirectedRequest(float time, Request request ) throws Exception {
         float delay;
@@ -287,8 +290,8 @@ public class Server extends EndDevice implements HasLoadAndCost{
          * Commands to serve the request then after a service delay serve the next request
          */
         if (servedRequest.getShouldBePiggiedBack() ) {
-            piggyBack(time, servedRequest , piggyGroupedPeriodic == algorithmData.updateType);
-
+            if(algorithmData.updateType == piggyBack || algorithmData.updateType == piggyGroupedPeriodic)
+                piggyBack(time, servedRequest , piggyGroupedPeriodic == algorithmData.updateType);
         }
         isServerBusy = false;
         if (queue.size()==0) {
@@ -396,6 +399,14 @@ public class Server extends EndDevice implements HasLoadAndCost{
         for(Server server:serverLoads.keySet()) {
             serverShares.put(server,serverLoads.get(server)-this.getServerLoad());
         }
+    }
+
+    public EndDevice getClient(){
+        for(EndDevice item : getLinks().keySet()){
+            if(item instanceof Client)
+                return item;
+        }
+        return null;
     }
 
 

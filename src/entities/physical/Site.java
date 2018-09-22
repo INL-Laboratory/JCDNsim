@@ -1,7 +1,5 @@
 package entities.physical;
 
-import entities.physical.Server;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,6 +56,12 @@ public class Site implements HasLoadAndCost{
                 }
                 communicationCostTable.put(src, sum);
 
+            }
+
+            for (Server server: servers){
+                communicationCostTable.put(server, 0);
+                assert server.getClient()!= null;
+                communicationCostTable.put(server.getClient(), 0);
             }
         }catch (Exception e){
             e.printStackTrace();

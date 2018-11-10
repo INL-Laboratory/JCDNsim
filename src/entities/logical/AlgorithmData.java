@@ -2,6 +2,10 @@ package entities.logical;
 
 import java.util.Random;
 
+
+/**
+ * AlgorithmDate contains the setting of any algorithm run in the simulator. Parameters are shown and described below.
+ */
 public class AlgorithmData {
     public RedirectingAlgorithmType redirectingAlgorithmType;
     public UpdateType updateType;

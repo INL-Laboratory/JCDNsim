@@ -33,13 +33,15 @@ public abstract class EndDevice extends IEventHandler{
         );
     }
 
-    public boolean receiveData(float time, Segment segment, Link link) throws Exception{
+    boolean receiveData(float time, Segment segment, Link link) throws Exception{
         if(!isReceivedDataValid(link))
             return false;
 //        Logger.print(this + " received "+ segment + " from Link " + link,time);
         parseReceivedSegment(time, segment);
         return true;
     }
+
+
 
     protected boolean isThisDeviceDestined(Segment segment) {
         return segment.getDestination().equals(this);

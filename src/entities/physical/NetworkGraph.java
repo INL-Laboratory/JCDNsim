@@ -13,7 +13,7 @@ import java.util.*;
  * Created by hd on 2018/4/1 AD.
  */
 public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
-    //it's like singleton design pattern
+    //it used to be like singleton design pattern
 //    public NetworkGraph networkGraph = new NetworkGraph();
 
 //    public void renewNetworrkGraph(){
@@ -204,18 +204,23 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         }
         return toReturnServers;
     }
-    public List<Site> getSitesHavingFile(int fileID){
+    public Map<Site,List<Server>> getSitesHavingFile(int fileID){
         /***
-         * returns the servers who have the file with fileId.
+         * returns the sites who have the file with fileId.
          */
         Server candidateServer;
-        LinkedList<Site> toReturnSites = new LinkedList<>();
+        Map<Site,List<Server>> toReturnSites = new HashMap<>();
         for (EndDevice end:getVertices()) {
             if (!(end instanceof Server)) continue;
             candidateServer= (Server) end;
-            if ((!toReturnSites.contains(candidateServer.getSite())) && candidateServer.findFile(fileID)!=null){
-                toReturnSites.add(candidateServer.getSite());
+            boolean hasTheFile = candidateServer.findFile(fileID)!=null;
+            if ((!toReturnSites.containsKey(candidateServer.getSite())) && hasTheFile){
+                toReturnSites.put(candidateServer.getSite(),new LinkedList<Server>());
             }
+            if (hasTheFile){
+                toReturnSites.get(candidateServer.getSite()).add(candidateServer);
+            }
+
         }
         return toReturnSites;
     }

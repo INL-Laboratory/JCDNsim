@@ -16,10 +16,10 @@ public class Server extends EndDevice implements HasLoadAndCost{
     private boolean isServerBusy;
     private Map<Integer, List<Server>> serversHavingFile = new HashMap<>();
     private Map<Server, Integer> serverLoads = new HashMap<>();
-    private Map<Integer, List<Site>> sitesHavingFile = new HashMap<>();
+    private Map<Integer, Map<Site,List<Server>>> sitesHavingFile = new HashMap<>();
     private Map<Server, Integer> serverShares = new HashMap<>();
     private Site site ;
-    RedirectingAlgorithm redirectingAlgorithm;
+    private RedirectingAlgorithm redirectingAlgorithm;
 
 
 
@@ -36,19 +36,19 @@ public class Server extends EndDevice implements HasLoadAndCost{
     }
 
 
+    /***
+         * Checks the validity of the link from the segment arrived.
+     */
     @Override
     protected boolean isReceivedDataValid(Link link) {
-        /***
-         * Checks the validity of the link from the segment arrived.
-         */
         boolean linkExistence =  links.values().contains(link) ;
         return linkExistence;
     }
-    @Override
-    protected void parseReceivedSegment(float time, Segment segment) throws Exception {
         /***
          * takes suitable course of action according to the type of the segment
          */
+    @Override
+    protected void parseReceivedSegment(float time, Segment segment) throws Exception {
 //            Logger.print(this+ " is parsing "+ segment, time);
         if (isThisDeviceDestined(segment)) {
 //            Logger.print(this + " is the destination of " + segment, time);
@@ -60,7 +60,10 @@ public class Server extends EndDevice implements HasLoadAndCost{
 
     }
 //    public static int maxQueue = 0;
-    private void lookAtContent(float time, Segment segment) throws Exception {
+    /***
+     * checks the content of the packet and spots its type
+     */
+    private void lookAtContent(float time, Segment segment) throws OkayException {
         switch (segment.getSegmentType()) {
             case Request:
                 Request request = (Request) segment.getOptionalContent();
@@ -89,6 +92,9 @@ public class Server extends EndDevice implements HasLoadAndCost{
         }
     }
 
+    /***
+     * It receives a list of pairs in which there is a server and it's load. This information is used to update the way the load list in the server.
+     */
     private void updateLoadList(List<LoadPair> loads) {
         for(LoadPair load: loads){
             serverLoads.put(load.server,load.load);
@@ -102,20 +108,20 @@ public class Server extends EndDevice implements HasLoadAndCost{
 //        }
     }
 
+    /***
+       * releases an event at current time + service time pops the queue
+     */
     private void setTimeToPopNextRequestInQueue(float time , float delay, Request request) {
-        /***
-         * releases an event which at current time + service time pops the queue
-         */
             eventsQueue.addEvent(
                     new Event<>(EventType.requestServed, this, (time+delay), this, request)
             );
 
     }
 
-    private void redirectRequest(float time, Request request, Server selectedServer) {
         /***
          * Forwards the request to the intended server  - makes new request and segment
          */
+    private void redirectRequest(float time, Request request, Server selectedServer) {
 
         Client client = request.getSource();
         Request newRequest = new Request(client,selectedServer,request.getNeededFileID(),request.getId());
@@ -128,19 +134,17 @@ public class Server extends EndDevice implements HasLoadAndCost{
         forwardSegment(time, newSegment);
     }
 
-    private void forwardSegment(float time, Segment segment) {
-        /***
+    /***
          * Forwards the segment to the intended server using routing table and the corresponding link
-         */
+     */
+    private void forwardSegment(float time, Segment segment) {
         EndDevice destination = segment.getDestination();
         Link link = routingTable.get(destination);
         sendData(time, link , segment);      //Without any delay forward the packet
     }
 
 
-    public void serveRequest(float time, Request request) throws Exception{
-        /***
-         */
+    public void serveRequest(float time, Request request) throws OkayException{
         float delay = 0f;
         if (request.isRedirected()){
 //
@@ -187,7 +191,7 @@ public class Server extends EndDevice implements HasLoadAndCost{
         }
     }
 
-    private float serveUnredirectedRequest(float time, Request request ) throws Exception {
+    private float serveUnredirectedRequest(float time, Request request ) throws OkayException {
         float delay;
         float queryDelay = 0f; //TODO : update this
 //
@@ -211,7 +215,7 @@ public class Server extends EndDevice implements HasLoadAndCost{
         return delay;
     }
 
-    private void sendFile(float time, Request request, float queryDelay) throws Exception {
+    private void sendFile(float time, Request request, float queryDelay) throws OkayException {
         isServerBusy = true;
         float delay;
 //        Logger.print(this + "starts to serve the " + request, time);
@@ -235,26 +239,26 @@ public class Server extends EndDevice implements HasLoadAndCost{
     }
 
 
-    public Server getSuitableServer( Request request) throws Exception {
+    public Server getSuitableServer( Request request) throws OkayException {
         return getSuitableServer(request,0f);
     }
 
 
-    public Server getSuitableServer( Request request , float time) throws Exception{
-        /***
+    /***
          *   finds a suitable server from graph to respond to the request
-         */
+     */
+    public Server getSuitableServer( Request request , float time) throws OkayException{
         int fileId = request.getNeededFileID();
         Client client = request.getSource();
         List<Server> serversHavingSpecificFile = serversHavingFile.get(fileId);
-        List<Site> sitesHavingSpecificFile = sitesHavingFile.get(fileId);
+        Map<Site,List<Server>> sitesHavingSpecificFile = sitesHavingFile.get(fileId);
         if (serversHavingSpecificFile==null || serversHavingSpecificFile.size()==0) throw new OkayException(" No server has the file " + fileId + " requested in " + request , time);
         if (sitesHavingSpecificFile==null || sitesHavingSpecificFile.size()==0) throw new OkayException(" No site has the file " + fileId + " requested in " + request , time);
         if (algorithmData.updateType==ideal)
               makeLoadListIdeally(serversHavingSpecificFile,serverLoads);
         serverLoads.put(this,getServerLoad());
         setShares();
-        Server selectedServer = redirectingAlgorithm.selectServerToRedirect(algorithmData.redirectingAlgorithmType,serversHavingSpecificFile,serverLoads,client, serverShares,(List)sitesHavingSpecificFile);
+        Server selectedServer = redirectingAlgorithm.selectServerToRedirect(algorithmData.redirectingAlgorithmType,serversHavingSpecificFile,serverLoads,client, serverShares,sitesHavingSpecificFile);
         return selectedServer;
     }
 
@@ -373,9 +377,6 @@ public class Server extends EndDevice implements HasLoadAndCost{
         this.serversHavingFile = serversHavingFile;
     }
 
-    public void setSitesHavingFile(Map<Integer, List<Site>> sitesHavingFile) {
-        this.sitesHavingFile = sitesHavingFile;
-    }
 
     public Map<Server, Integer> getServerLoadListss() {
         return serverLoads;
@@ -409,6 +410,8 @@ public class Server extends EndDevice implements HasLoadAndCost{
         return null;
     }
 
-
+    public void setSitesHavingFile(Map<Integer, Map<Site, List<Server>>> sitesHavingFile) {
+        this.sitesHavingFile = sitesHavingFile;
+    }
 }
 

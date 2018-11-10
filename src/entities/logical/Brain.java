@@ -3,6 +3,11 @@ package entities.logical;
 
 public class Brain {
     public EventsQueue eventsQueue;
+
+    /**
+     * Handle events crawls on the queue of events and performs the action stated in each, one by one, whatever it is.
+     * This is the place that exceptions are handled.
+     */
 //    EventsQueue eventsQueue;
 //    public static double totalTimeInBrain=0;
     public void handleEvents(){

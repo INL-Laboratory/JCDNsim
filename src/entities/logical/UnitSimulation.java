@@ -83,37 +83,8 @@ public class UnitSimulation implements Callable<Float[]> {
 //    }
 
 
-//    private static void simulateMCS(int numberOfPoints,int numberOfFiles, int numberOfServers, int numberOfFilesPerServer, int numberOfRequests, float bandwidth, float propagationDelay, int sizeOfFiles, int numberOfRuns, float lambdaInOutRatio, String path, PrintWriter result, Float[][] costStatsForAllRuns, Float[][] delayStatsForAllRuns, Float[] costStats, Float[] delayStats) throws IOException {
-//        double startTime = System.currentTimeMillis();
-//        SimulationParameters.redirectingAlgorithmType = RedirectingAlgorithmType.MCS;
-//        result.println("Redirecting Algorithm : " + SimulationParameters.redirectingAlgorithmType);
-//        for (int i = 0; i <numberOfPoints ; i++){
-////                saeed = i;
-//            System.out.println(i);
-//            for (int j = 0; j < numberOfRuns ; j++) {
-//                PrintWriter logger = null;
-//                if (DefaultValues.LOGGER_ON) {
-//                    new File(path+"/logs/run"+j).mkdir();
-//                    logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i+1 + ".txt"));
-//                    Logger.printWriter = logger;
-//                }
-//                DefaultValues.MCS_DELTA =  i+1;
-//                simulate(numberOfFiles, numberOfServers, numberOfFilesPerServer, numberOfRequests, bandwidth, propagationDelay, sizeOfFiles, lambdaInOutRatio, costStatsForAllRuns, delayStatsForAllRuns, i, j, logger);
-//
-//            }
-//            calcAverageOnAllRuns(costStats,delayStats,costStatsForAllRuns, delayStatsForAllRuns,i);
-//            result.print(DefaultValues.MCS_DELTA);
-//
-//            result.print("\t cost: "+costStats[i]+ "\t delay: " + delayStats[i]+"\n");
-//        }
-//
-//        double finishTime = System.currentTimeMillis();
-//        result.println("Duration(min): " + (finishTime - startTime)/60000);
-//
-//        result.close();
-//    }
 
-    public Float[] simulate(Configuration configuration, Result result, PrintWriter logger) {
+    private Float[] simulate(Configuration configuration, Result result, PrintWriter logger) {
 //        double a = System.currentTimeMillis();
         initSimulator(configuration );
 //        double b = System.currentTimeMillis();
@@ -205,9 +176,7 @@ public class UnitSimulation implements Callable<Float[]> {
     static double initiationTime;
 
     private void initSimulator(Configuration configuration) {
-         double EnteringTime = System.currentTimeMillis();
-
-        resetSimulatorSettings();
+        double EnteringTime = System.currentTimeMillis();
 
         createFiles(configuration.numberOfFiles, configuration.sizeOfFiles);
 
@@ -217,7 +186,7 @@ public class UnitSimulation implements Callable<Float[]> {
         correctLinksWeights();
 
         Map<Integer, List<Server>> serversHavingFile = new HashMap<>();
-        Map<Integer, List<Site>> sitesHavingFile = new HashMap<>();
+        Map<Integer, Map<Site,List<Server>>> sitesHavingFile = new HashMap<>();
 
         setServersHavingFile(configuration.numberOfServers, serversHavingFile);
         setSitesHavingFile(configuration.numberOfServers, sitesHavingFile);
@@ -239,7 +208,7 @@ public class UnitSimulation implements Callable<Float[]> {
 
     }
 
-    private void setSitesHavingFile(int numberOfServers, Map<Integer,List<Site>> sitesHavingFile) {
+    private void setSitesHavingFile(int numberOfServers, Map<Integer,Map<Site,List<Server>>> sitesHavingFile) {
         for (int i = 0; i < numberOfServers ; i++) {
             servers.get(i).setSitesHavingFile(sitesHavingFile);
         }
@@ -277,10 +246,10 @@ public class UnitSimulation implements Callable<Float[]> {
 
     }
 
-    private void fillSitesAndServersHavingFile(Map<Integer, List<Server>> serversHavingFile,Map<Integer, List<Site>> sitesHavingFile) {
+    private void fillSitesAndServersHavingFile(Map<Integer, List<Server>> serversHavingFile,Map<Integer, Map<Site,List<Server>>> sitesHavingFile) {
         StringBuffer sb = new StringBuffer();
         List<Server> serversss ;
-        List<Site> sites ;
+        Map<Site,List<Server>> sites ;
 //        sb.append(" ***** Files ***** ");
 //
         for(IFile f: files){
@@ -406,16 +375,6 @@ public class UnitSimulation implements Callable<Float[]> {
         for (int i = 0; i < servers.size(); i++) {
 //            servers.get(i).setShares();
         }
-    }
-    private void resetSimulatorSettings() {
-//        EventsQueue.lastSentPeriod =0;
-//        NetworkGraph.renewNetworrkGraph();
-//         networkGraph = new NetworkGraph();
-//        networkGraph = NetworkGraph.networkGraph;
-//        eventsQueue = new EventsQueue(this);
-//        RedirectingAlgorithm.rnd = new Random() ;
-//        algorithmData.random = new Random() ;
-//        System.gc();
     }
 
     @Override

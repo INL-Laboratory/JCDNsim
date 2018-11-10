@@ -2,10 +2,18 @@ package entities.logical;
 
 import entities.utilities.BinaryHeap;
 
+
+
 public class EventsQueue {
     private BinaryHeap<Event> queue = new BinaryHeap<>(false);
     public float lastSentPeriod = 0;
     UnitSimulation unitSimulation;
+
+
+    /**
+     * Add a newly made event to the event's queue
+     * @param event the event to be added
+     */
     public void addEvent(Event event){
 //        if(queue.() == 0){
 //            queue.add(event);
@@ -23,6 +31,11 @@ public class EventsQueue {
         queue.add(event);
     }
     public float maximumTime = 0;
+
+
+    /**
+     * @return pops and event from the event's queue. For the periodic algorithm and its counterpart, it takes care of sending the update packages on due times. Other
+     */
     public  Event popEvent() {
 //        if(queue.size() == 0){
 //            return null;

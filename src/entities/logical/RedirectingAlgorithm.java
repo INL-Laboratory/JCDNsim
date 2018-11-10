@@ -7,6 +7,7 @@ import java.util.*;
 
 /**
  * Created by hd on 2018/4/2 AD.
+ * Redirecting algorithms are implemented here.
  */
 public class RedirectingAlgorithm {
     float queryDelay = 0;
@@ -20,7 +21,20 @@ public class RedirectingAlgorithm {
         this.algorithmData = algorithmData;
     }
 
-    public Server selectServerToRedirect(RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile, Map<Server, Integer> serverLoads, Client client, Map<Server, Integer> serverShares, List<Site> sitesHavingFile){
+
+    /**
+     * This method identifies the algorithm called and calls the associated algorithm method
+     * @param redirectingAlgorithmType Specifies the algorithm name.
+     * @param serversHavingFile Servers which have the specified file
+     * @param serverLoads Current recorded loads for the severs based on the list of the server requesting a suitable server to redirect
+     * @param client The client originally making the request
+     * @param serverShares = other server's loads - the load of server calling this method
+     * @param sitesHavingFile = sites having the specified file
+     * @return The most suitable server according to the selected algorithm
+     */
+    public Server selectServerToRedirect(RedirectingAlgorithmType redirectingAlgorithmType, List<Server> serversHavingFile,
+                                         Map<Server, Integer> serverLoads, Client client, Map<Server,
+                                         Integer> serverShares, Map<Site,List<Server>> sitesHavingFile){
 //        double a = System.currentTimeMillis();
 
         Server selectedServer;
@@ -39,7 +53,7 @@ public class RedirectingAlgorithm {
                 selectedServer = selectCostBasedserver(client, serversHavingFile,serverShares,serverLoads);
                 break;
             case HONEYBEE:
-                selectedServer = selectHoneyBeeServer(client ,serversHavingFile,sitesHavingFile,serverLoads);
+                selectedServer = selectHoneyBeeServer2(client ,serversHavingFile,sitesHavingFile,serverLoads);
                 break;
             default:
                 throw new RuntimeException("Redirecting Algorithm is not defined");
@@ -62,8 +76,19 @@ public class RedirectingAlgorithm {
         return selectedServer;
     }
 
+    private Server selectWMCsiteThenServer2(Client client, Map<Server,Integer> serverLoads, Map<Site,List<Server>> sitesHavingFile) {
+        Map<Site,Server> theBestServersInEachSite = findTheBestServerInEachSite(client,serverLoads,sitesHavingFile);
+        List bestServersInSites = new LinkedList();
+        for (Server server:theBestServersInEachSite.values()) {
+            bestServersInSites.add(server);
+        }
+        Server selectedServer = (Server) selectWMCServerOrSite(client,bestServersInSites,(Map)serverLoads);
 
-    public int calulateTotalLoad(Map<Server,Integer> serverLoads, Site site){
+        return selectedServer;
+    }
+
+
+    private int calculateTotalLoad(Map<Server,Integer> serverLoads, Site site){
         int size = site.getServers().size();
         int sum = 0;
         for (Server server:site.getServers()) {
@@ -71,14 +96,23 @@ public class RedirectingAlgorithm {
         }
         return sum;
     }
-    public Map<Site,Integer> getTotalSiteLoads(Map<Server,Integer> serverLoads, List<Site> sites){
+    private Map<Site,Integer> getTotalSiteLoads(Map<Server,Integer> serverLoads, List<Site> sites){
         Map<Site,Integer> map = new HashMap<>();
         for (Site site:sites) {
-            map.put(site,calulateTotalLoad(serverLoads,site));
+            map.put(site,calculateTotalLoad(serverLoads,site));
         }
         return map;
     }
 
+    private Map<Site,Server> findTheBestServerInEachSite(Client client,Map<Server,Integer> serverLoads, Map<Site,List<Server>> sites){
+        Map<Site,Server> map = new HashMap<>();
+        for (Site site:sites.keySet()) {
+            Server theBestServerInSite;
+            theBestServerInSite = (Server)selectWMCServerOrSite(client,(List)sites.get(site),(Map)serverLoads);
+            map.put(site,theBestServerInSite);
+        }
+        return map;
+    }
 
 
     private Server selectCostBasedserver(Client client, List<Server> serversHavingFile, Map<Server,Integer> serverShares,Map<Server,Integer> serverLoads) {
@@ -181,6 +215,21 @@ public class RedirectingAlgorithm {
 
 
     }
+
+    private Server selectHoneyBeeServer2(Client client, List<Server> serversHavingFile, Map<Site,List<Server>> sitesHavingFile,Map<Server, Integer> serverLoads) {
+        Server selectedServer;
+        double randomDouble = algorithmData.random.nextDouble();
+        if (randomDouble<algorithmData.HONEY_BEE_SEARCH_PROBABILITY.doubleValue())
+            selectedServer = serversHavingFile.get(new Random().nextInt(serversHavingFile.size()));
+        else {
+            selectedServer = selectWMCsiteThenServer2(client, serverLoads, sitesHavingFile);
+        }
+
+        return selectedServer;
+
+
+    }
+
 
 //            }
 //            Server ser = (Server) selectWMCServerOrSite(client, (List)serversHavingFile, (Map)serverLoads);

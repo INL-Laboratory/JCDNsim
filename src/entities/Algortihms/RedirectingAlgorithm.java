@@ -1,3 +1,9 @@
+/*
+ * Developed By Saeed Hadadan, INL lab, Sharif University of Technology: www.inl-lab.net
+ * Copyright (c) 2019. All rights reserved.
+ *
+ */
+
 package entities.Algortihms;
 
 import entities.Setting.AlgorithmData;
@@ -204,7 +210,7 @@ public class RedirectingAlgorithm {
 
     private Server selectHoneyBeeServer(Client client, List<Server> serversHavingFile, Map<Site,List<Server>> sitesHavingFile, Map<Server, Integer> serverLoads) {
         Server selectedServer;
-        double randomDouble = algorithmData.random2.nextDouble();
+        double randomDouble = algorithmData.random.nextDouble();
         if (randomDouble<algorithmData.HONEY_BEE_SEARCH_PROBABILITY.doubleValue())
             selectedServer = serversHavingFile.get(new Random().nextInt(serversHavingFile.size()));
         else {

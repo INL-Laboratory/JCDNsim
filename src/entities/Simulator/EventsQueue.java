@@ -1,3 +1,9 @@
+/*
+ * Developed By Saeed Hadadan, INL lab, Sharif University of Technology: www.inl-lab.net
+ * Copyright (c) 2019. All rights reserved.
+ *
+ */
+
 package entities.Simulator;
 
 import entities.Network.Segment;
@@ -15,7 +21,7 @@ public class EventsQueue {
 
 
     /**
-     * Add a newly made event to the event's queue
+     * Add a newly created event to the event's queue
      * @param event the event to be added
      */
     public void addEvent(Event event){

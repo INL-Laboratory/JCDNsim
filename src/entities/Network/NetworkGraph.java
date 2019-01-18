@@ -1,3 +1,9 @@
+/*
+ * Developed By Saeed Hadadan, INL lab, Sharif University of Technology: www.inl-lab.net
+ * Copyright (c) 2019. All rights reserved.
+ *
+ */
+
 package entities.Network;
 
 import com.sun.istack.internal.Nullable;
@@ -350,4 +356,23 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         return toReturnServers;
 
     }
+
+    public static boolean[][] generateLatticeTopology(int n) {
+        boolean[][] top = new boolean[n][n];
+        int m = (int)Math.sqrt(n);
+        if (Math.sqrt(n)!=m) throw new RuntimeException("Square number of servers is needed");
+        for (int i = 0; i < n ; i++) {
+            int[] neighbours= {i%m==0?i+m-1:i-1
+                    ,i%m==m-1?i-m+1:i+1
+                    ,i<m?n-m+i:i-m
+                    ,n-1-i<m?i-(n-m):i+m};
+            for (int j = 0; j < neighbours.length ; j++) {
+                if (neighbours[j]<i) continue;
+                top[i][neighbours[j]] =  true;
+            }
+        }
+        return top;
+    }
+
+
 }

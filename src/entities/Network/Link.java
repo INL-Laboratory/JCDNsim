@@ -1,3 +1,9 @@
+/*
+ * Developed By Hamid Ghasemi, INL lab, Sharif University of Technology: www.inl-lab.net
+ * Copyright (c) 2019. All rights reserved.
+ *
+ */
+
 package entities.Network;
 
 import entities.Setting.DefaultValues;

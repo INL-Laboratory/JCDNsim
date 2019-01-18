@@ -1,9 +1,16 @@
+/*
+ * Developed By Saeed Hadadan, INL lab, Sharif University of Technology: www.inl-lab.net
+ * Copyright (c) 2019. All rights reserved.
+ *
+ */
+
 package entities.Simulator;
 
-import com.sun.istack.internal.NotNull;
+import entities.Network.NetworkGraph;
 import entities.Setting.Configuration;
 import entities.Setting.DefaultValues;
-import entities.Setting.ParamsChangibleRuntime;
+import entities.Setting.AlgParamsList;
+import entities.Setting.RunningParameters;
 import entities.Statistics.Result;
 import entities.Statistics.Chart;
 import entities.Utilities.Poisson;
@@ -16,6 +23,12 @@ import java.util.*;
 import java.util.concurrent.*;
 
 
+/**
+ * This class is the main class of the simulator when you want to run it. In this class you can
+ * specify what kind of simulation you want to perform.
+ * RunSimulator initiates the files related to the simulation, creates and runs the instances of UnitSimulation and
+ * controls the parallel or sequential running of the code.
+ */
 public class RunSimulator {
     static Calendar calendar = Calendar.getInstance();
     static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("d MMM uuuu HH:mm:ss");
@@ -35,45 +48,45 @@ public class RunSimulator {
         double startTime = System.currentTimeMillis();
 
 
-        String RunType;
+        String runType;
         RunSimulator runSimulator= new RunSimulator();
 
-        int availableProcerssors = (int)Runtime.getRuntime().availableProcessors();
-        System.out.println("available processors: "+ availableProcerssors);
-        ExecutorService pool = Executors.newFixedThreadPool((int)(availableProcerssors));
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        System.out.println("available processors: "+ availableProcessors);
+        ExecutorService pool = Executors.newFixedThreadPool((availableProcessors));
 
         
         
-        boolean[][] latticeTopology = generateLatticeTopology(configuration.numberOfServers);
+        boolean[][] latticeTopology = NetworkGraph.generateLatticeTopology(configuration.numberOfServers);
 
         // Run Section : If you want to run any simulations you want, you should modify this part.
 
-
         Number[] points1 = {0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0};
-        RunType = "Regular";
+        runType = "Regular";
         Map<String,Number> bundle1 = new HashMap<>();
-        bundle1.put(ParamsChangibleRuntime.periodicStep.toString(),400);
-        bundle1.put(ParamsChangibleRuntime.HONEY_BEE_SEARCH_PROBABILITY.toString(),0);
-        runSimulator.run(RunType,"WMC","periodic"
-                ,bundle1,ParamsChangibleRuntime.WMC_ALPHA.toString(),points1,configuration,path,pool, latticeTopology);
+        bundle1.put(AlgParamsList.periodicStep.toString(),400);
+        bundle1.put(AlgParamsList.HONEY_BEE_SEARCH_PROBABILITY.toString(),0);
+        RunningParameters runParams= new RunningParameters(runType,"WMC", "periodic",bundle1,AlgParamsList.WMC_ALPHA.toString(), points1, configuration,path);
+        runSimulator.run(runParams,pool, latticeTopology);
 
 
 
-        RunType = "Regular";
-        Map<String,Number> bundle7 = new HashMap<>();
-        bundle7.put(ParamsChangibleRuntime.HONEY_BEE_SEARCH_PROBABILITY.toString(),0);
-        bundle7.put(ParamsChangibleRuntime.periodicStep.toString(),20);
-        runSimulator.run(RunType,"HONEYBEE","piggyGroupedPeriodic"
-                ,bundle7,ParamsChangibleRuntime.WMC_ALPHA.toString(),points1,configuration,path,pool,latticeTopology);
+        runType = "Regular";
+        Map<String,Number> bundle2 = new HashMap<>();
+        bundle2.put(AlgParamsList.HONEY_BEE_SEARCH_PROBABILITY.toString(),0);
+        bundle2.put(AlgParamsList.periodicStep.toString(),20);
+        RunningParameters runParams2= new RunningParameters(runType,"HONEYBEE","piggyGroupedPeriodic",bundle2,AlgParamsList.WMC_ALPHA.toString(),points1,configuration,path);
+        runSimulator.run(runParams2,pool,latticeTopology);
 
-        RunType = "Regular";
-        Map<String,Number> bundle8 = new HashMap<>();
-        runSimulator.run(RunType,"WMC","ideal"
-                ,bundle8,ParamsChangibleRuntime.WMC_ALPHA.toString(),points1,configuration,path,pool,latticeTopology);
+        runType = "Regular";
+        Map<String,Number> bundle3 = new HashMap<>();
+        RunningParameters runParams3= new RunningParameters(runType,"WMC","ideal"
+                ,bundle3,AlgParamsList.WMC_ALPHA.toString(),points1,configuration,path);
+        runSimulator.run(runParams3 ,pool,latticeTopology);
 
         //End of Run Section
 
-        Chart.initiateChart(photoPath,RunType);
+        Chart.initiateChart(photoPath,runType);
 
 
         runSimulator.finalizeResults();
@@ -139,27 +152,6 @@ public class RunSimulator {
 
     }
 
-    private void submitFuture() throws ExecutionException, InterruptedException {
-        int availableProccerssors = (int)Runtime.getRuntime().availableProcessors();
-        System.out.println("available proccessors: "+ availableProccerssors);
-        ExecutorService pool = Executors.newFixedThreadPool((int)(availableProccerssors));
-        while (!tasksBuffer.isEmpty()){
-            Callable<Float[]> callable = tasksBuffer.removeFirst();
-            UnitSimulation uSim = (UnitSimulation) callable;
-            uSimIds.add(uSim.uSimID);
-            Future<Float[]> future = pool.submit(callable);
-            futures.add(future);
-//            System.gc();
-        }
-        for (int i = 0; i < futures.size() ; i++) {
-            Float[] res = futures.get(i).get();
-            USimId uSimID = uSimIds.get(i);
-            results.get(uSimID.id).putStatsInTables(uSimID.ithPoint,uSimID.jthRun,res);
-
-        }
-        pool.shutdown();
-
-    }
 
     private void finalizeResults() {
         for (int i = 0; i < results.size() ; i++) {
@@ -173,87 +165,138 @@ public class RunSimulator {
     }
 
 
-
-    private void run(String RunType,@NotNull String algorithm, @NotNull String updateType, Map<String,Number> fixedParamsBundle, String variableParam,Number[] valuesOfVariableParam,Configuration configuration , String path, ExecutorService pool,boolean[][] topology) throws Exception {
+    /** This method gets the simulation name from the responsible method, calls the  results' container generator.
+     * The specific task of this method is to break the simulation into replications and to call the replication runner.
+     * @param runParams
+     * @param pool
+     * @param topology
+     * @throws Exception
+     */
+    private void run(RunningParameters runParams, ExecutorService pool,boolean[][] topology) throws Exception {
         String simulationName;
-        simulationName = getSimulationName(RunType, algorithm, updateType, fixedParamsBundle, variableParam, valuesOfVariableParam,configuration);
+        simulationName = getSimulationName(runParams);
 
-        Result result = new Result(valuesOfVariableParam.length, configuration.numberOfRuns,valuesOfVariableParam,RunType,simulationName,path);
+        Result result = generateResultContainer(runParams, simulationName);
+
+
+        for (int j = 0; j < runParams.configuration.numberOfRuns ; j++) {
+            runReplication(runParams, pool, topology, simulationName, result, j);
+        }
+    }
+
+    private Result generateResultContainer(RunningParameters runParams, String simulationName) {
+        Result result = new Result(runParams.valuesOfVariableParam.length, runParams.configuration.numberOfRuns,
+                runParams.valuesOfVariableParam,runParams.RunType,simulationName,runParams.path);
         results.add(result);
+        return result;
+    }
 
-
-        for (int j = 0; j < configuration.numberOfRuns ; j++) {
-            Random random = new Random();
-            List<RequestEvent> requestEvents = generateRequests(configuration, random);
-
-            int[][] serverContents = ZipfGenerator.returnFileList(1,configuration.numberOfFilesPerServer,configuration.numberOfFiles,configuration.numberOfServers);
-
-            for (int i = 0; i < valuesOfVariableParam.length; i++){
-                PrintWriter logger = null;
-                if (DefaultValues.LOGGER_ON) {
-                    new File(path+"/logs/run"+j).mkdir();
-                    logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i + ".txt"));
-                    Logger.printWriter = logger;
-                }
-                USimId uSimId = new USimId(i,j,results.size()-1,simulationName,path);
-                UnitSimulation unitSimulation = new UnitSimulation(uSimId,configuration,result,algorithm,updateType,valuesOfVariableParam[i],variableParam,fixedParamsBundle,requestEvents,serverContents, topology);
-                tasksBuffer.addLast(unitSimulation);
-
-
-                if (DefaultValues.RUN_PARALLEL) {
-                    int bufferSize = tasksBuffer.size();
-                    UnitSimulation lastAddedTask = (UnitSimulation) tasksBuffer.getLast();
-                    boolean isLastTaskAdded = lastAddedTask.uSimID.ithPoint == (valuesOfVariableParam.length - 1) && lastAddedTask.uSimID.jthRun == (configuration.numberOfRuns - 1);
-
-                    if (bufferSize == 500 || isLastTaskAdded) {
-                        parallelRun(pool, bufferSize);
-
-                    }
-                }else {
-                    sequentialRun();
-                }
-
-
-
-            }
+    /** This method breaks the replications into different points of it. It does so by creating unit simulations.
+     * Then, it calls the method in charge of planning to run the unit simulations in an either parallel or sequential way.
+     * Before running a replication it is needed to generate requests and distribute files in the CDN.
+     * @param runParams
+     * @param pool
+     * @param topology
+     * @param simulationName
+     * @param result
+     * @param jthReplication
+     * @throws Exception
+     */
+    private void runReplication(RunningParameters runParams, ExecutorService pool, boolean[][] topology,
+                                String simulationName, Result result, int jthReplication) throws Exception {
+        //Generating the requests and distributing the files before running the replication
+        List<RequestEvent> requestEvents = generateRequests(runParams.configuration);
+        int[][] serverContents = returnFilesDistribution(runParams);
+        for (int i = 0; i < runParams.valuesOfVariableParam.length; i++){
+            createLog(runParams.path, jthReplication, i);
+            USimId uSimId = new USimId(i, jthReplication, results.size() - 1, simulationName, runParams.path);
+            initiateUnitSimulation(runParams, i,uSimId, topology, result, requestEvents, serverContents);
+            planTheRun(runParams, pool);
         }
     }
 
-    private static boolean[][] generateLatticeTopology(int n) {
-        boolean[][] top = new boolean[n][n];
-        int m = (int)Math.sqrt(n);
-        if (Math.sqrt(n)!=m) throw new RuntimeException("Square number of servers is needed");
-        for (int i = 0; i < n ; i++) {
-            int[] neighbours= {i%m==0?i+m-1:i-1
-                    ,i%m==m-1?i-m+1:i+1
-                    ,i<m?n-m+i:i-m
-                    ,n-1-i<m?i-(n-m):i+m};
-            for (int j = 0; j < neighbours.length ; j++) {
-                if (neighbours[j]<i) continue;
-                top[i][neighbours[j]] =  true;
+
+    private void planTheRun(RunningParameters runParams, ExecutorService pool) throws Exception {
+        if (DefaultValues.RUN_PARALLEL) {
+            int bufferSize = tasksBuffer.size();
+            UnitSimulation recentlyAddedTask = (UnitSimulation) tasksBuffer.getLast();
+            boolean isLastTaskAdded = isLastTaskAdded(runParams.valuesOfVariableParam, runParams.configuration, recentlyAddedTask);
+
+            if (bufferSize == 500 || isLastTaskAdded) {
+                parallelRun(pool, bufferSize);
             }
+        }else {
+            sequentialRun();
         }
-        return top;
     }
 
+    private int[][] returnFilesDistribution(RunningParameters runParams) {
+        return ZipfGenerator.returnFileList(1,runParams.configuration.numberOfFilesPerServer,runParams.configuration.numberOfFiles,runParams.configuration.numberOfServers);
+    }
+
+    private void createLog(String path, int j, int i) throws IOException {
+        PrintWriter logger = null;
+        if (DefaultValues.LOGGER_ON) {
+            new File(path+"/logs/run"+j).mkdir();
+            logger = new PrintWriter(new FileWriter(path + "/logs/run" + j + "/with i " + i + ".txt"));
+            Logger.printWriter = logger;
+        }
+    }
+
+    private void initiateUnitSimulation(RunningParameters runParam, int ithPoint, USimId uSimId1, boolean[][] topology, Result result, List<RequestEvent> requestEvents, int[][] serverContents) {
+        USimId uSimId = uSimId1;
+        UnitSimulation unitSimulation = new UnitSimulation(uSimId, runParam,result, runParam.valuesOfVariableParam[ithPoint],requestEvents,serverContents, topology);
+        tasksBuffer.addLast(unitSimulation);
+    }
+
+
+    private boolean isLastTaskAdded(Number[] valuesOfVariableParam, Configuration configuration, UnitSimulation lastAddedTask) {
+        boolean isTheLastPointOfChart = lastAddedTask.uSimID.ithPoint == valuesOfVariableParam.length - 1;
+        boolean isTheLastRun = lastAddedTask.uSimID.ithPoint == valuesOfVariableParam.length - 1;
+
+        return isTheLastPointOfChart && isTheLastRun;
+    }
+
+    /**
+     * This method is in charge of running the futures that are generated by the method extractTasks.
+     * Running the futures is done by the passed ExecutorService.
+     * @param pool The ExecutorService in which the futures run.
+     * @param bufferSize The size of the buffer
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
     private void parallelRun(ExecutorService pool, int bufferSize) throws InterruptedException, ExecutionException {
-        int c = 0;
+        int counter = extractTasks(pool);
+        for (int i=bufferSize-1; i >=0; i--) {
+            Float[] res = futures.get(counter-i).get();
+            USimId uSimID = uSimIds.get(counter-i);
+            results.get(uSimID.id).putStatsInTables(uSimID.ithPoint, uSimID.jthRun, res);
+        }
+    }
+
+    /**
+     * This method extracts the tasks put in the tasksBuffer and generates the corresponding futures.
+     * The it submits the futures in the pool.
+     * Running the futures is done by the passed ExecutorService.
+     * @param pool The ExecutorService in which the futures run.
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
+    private int extractTasks(ExecutorService pool) {
+        int counter = 0;
         while (!tasksBuffer.isEmpty()){
             Callable<Float[]> callable = tasksBuffer.removeFirst();
             UnitSimulation uSim = (UnitSimulation) callable;
             uSimIds.add(uSim.uSimID);
             Future<Float[]> future = pool.submit(callable);
             futures.add(future);
-            c = futures.size()-1;
+            counter = futures.size()-1;
         }
-        for (int k=bufferSize-1; k >=0; k--) {
-            Float[] res = futures.get(c-k).get();
-            USimId uSimID = uSimIds.get(c-k);
-            results.get(uSimID.id).putStatsInTables(uSimID.ithPoint, uSimID.jthRun, res);
-        }
+        return counter;
     }
 
-    private List<RequestEvent> generateRequests(Configuration configuration, Random random) {
+    private List<RequestEvent> generateRequests(Configuration configuration) {
+        Random random = new Random();
         List<RequestEvent> requests = new LinkedList<>();
         int reqFileId, requestingClientID;
         double timePerReq=  DefaultValues.SERVICE_TIME / configuration.numberOfServers / configuration.lambdaInOutRatio;
@@ -282,71 +325,22 @@ public class RunSimulator {
     }
 
 
-    private String getSimulationName(String RunType, @NotNull String algorithm, @NotNull String updateType, Map<String, Number> fixedParamsBundle, String variableParam, Number[] valuesOfVariableParam,Configuration configuration) {
+    private String getSimulationName(RunningParameters runParams ) {
         String simulationName;
         StringBuffer simName = new StringBuffer();
-        simName.append(RunType).append("-").append(algorithm).append("-").append(updateType).append("-");
-        for (String fp:fixedParamsBundle.keySet()) {
-            simName.append(fp).append("-").append(fixedParamsBundle.get(fp)).append("-");
+        simName.append(runParams.RunType).append("-").append(runParams.algorithm).append("-").append(runParams.updateType).append("-");
+        for (String fp:runParams.fixedParamsBundle.keySet()) {
+            simName.append(fp).append("-").append(runParams.fixedParamsBundle.get(fp)).append("-");
         }
-        simName.append(variableParam).append("-").append(valuesOfVariableParam[0]).append(" to ").append(valuesOfVariableParam[valuesOfVariableParam.length-1]);
-        simName.append("-cacheSize-"+configuration.numberOfFilesPerServer);
-        simName.append("-sites-"+configuration.numberofSites);
+        simName.append(runParams.variableParam).append("-").append(runParams.valuesOfVariableParam[0]).append(" to ").append(runParams.valuesOfVariableParam[runParams.valuesOfVariableParam.length-1]);
+        simName.append("-cacheSize-"+runParams.configuration.numberOfFilesPerServer);
+        simName.append("-sites-"+runParams.configuration.numberofSites);
         //TODO
         simulationName = simName.toString();
         return simulationName;
     }
 
 
-    private String setAlgorithmNameParam(@NotNull String algorithm) {
-        String paramName = null ;
-        switch (algorithm){
-            case "WMC":
-                paramName = "WMC_ALPHA";
-                break;
-            case "PSS":
-                paramName = "PSS_PROBABILITY";
-                break;
-            case "MCS":
-                paramName = "MCS_DELTA";
-                break;
-            case "CostBased":
-                paramName = "Radius";
-                break;
-            case "HONEYBEE":
-                paramName = "WMC_ALPHA";
-                break;
-        }
-        return paramName;
-    }
-
-    private String setHoneyBeeParam(@NotNull String algorithm) {
-        String secParamName = null ;
-
-        switch (algorithm){
-            case "HONEYBEE":
-                secParamName = "HONEY_BEE_SEARCH_PROBABILITY";
-                break;
-            default:
-                break;
-        }
-        return secParamName;
-    }
-
-    private String setUpdateTypeParam(@NotNull String updateType) {
-        String terParamName = null ;
-        switch (updateType){
-            case "piggyBack":
-                break;
-            case "periodic":
-            case "piggyGroupedPeriodic":
-                terParamName = "periodicStep";
-                break;
-            case "ideal":
-                break;
-        }
-        return terParamName;
-    }
 
 
 }

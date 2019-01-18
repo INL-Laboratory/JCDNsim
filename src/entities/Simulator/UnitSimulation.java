@@ -1,3 +1,9 @@
+/*
+ * Developed By Saeed Hadadan, INL lab, Sharif University of Technology: www.inl-lab.net
+ * Copyright (c) 2019. All rights reserved.
+ *
+ */
+
 package entities.Simulator;
 
 import edu.uci.ics.jung.graph.util.EdgeType;
@@ -12,8 +18,8 @@ import java.util.*;
 import java.util.concurrent.Callable;
 
 
-/**
- * Created by hd on 2018/4/21 AD.
+/**Created by hd on 2018/4/21 AD.
+    UnitSimulation is a simulation of a single replication at a single point.
  */
 public class UnitSimulation implements Callable<Float[]> {
     private List<Server> servers = new ArrayList<>();
@@ -31,13 +37,13 @@ public class UnitSimulation implements Callable<Float[]> {
     private final List<RequestEvent> requestEvents;
     private final int[][] serverContents;
     private final boolean[][] topology ;
-    public UnitSimulation(USimId uSimId, Configuration configuration, Result result,String algorithm , String updateTypeString, Number vParam, String vParamName, Map<String,Number> fParamsBundle, List<RequestEvent> requestEvents,int[][] servercontents, boolean[][] topology) {
-        this.configuration = configuration;
+    public UnitSimulation(USimId uSimId, RunningParameters runParams, Result result, Number vParam, List<RequestEvent> requestEvents,int[][] servercontents, boolean[][] topology) {
+        this.configuration = runParams.configuration;
         this.result = result;
         this.uSimID = uSimId;
-        loadParams(vParam,vParamName,fParamsBundle);
-        this.algorithmData.redirectingAlgorithmType = RedirectingAlgorithmType.valueOf(algorithm);
-        this.algorithmData.updateType = UpdateType.valueOf(updateTypeString);
+        loadParams(vParam,runParams.variableParam,runParams.fixedParamsBundle);
+        this.algorithmData.redirectingAlgorithmType = RedirectingAlgorithmType.valueOf(runParams.algorithm);
+        this.algorithmData.updateType = UpdateType.valueOf(runParams.updateType);
         this.requestEvents = requestEvents;
         this.serverContents= servercontents;
         this.topology = topology;
@@ -61,22 +67,6 @@ public class UnitSimulation implements Callable<Float[]> {
         }
 
     }
-
-
-
-    //    private MatFileWriter produceMatFile(String simulationName, ArrayList<Number[]> xValues, ArrayList<Number[]> yValues, String[] seriesNames){
-//        for (int i = 0; i < xValues.size() ; i++) {
-//            int sizeOf
-//            MLDouble seriesData = new MLDouble(seriesNames[i], new int[] {.length,2});
-//            for (int j = 0; j <xValues[i].length ; j++) {
-//            }
-//        }
-//        for (int i = 0; i < 100; i++) {
-//            seriesData.set((double)i, );
-//        }
-//        MatFileWriter writer = new MatFileWriter();
-//
-//    }
 
 
 
@@ -114,8 +104,6 @@ public class UnitSimulation implements Callable<Float[]> {
 
     }
 
-
-//    private static double initiationTime;
 
     private void initSimulator(Configuration configuration) {
         createFiles(configuration.numberOfFiles, configuration.sizeOfFiles);
@@ -232,7 +220,7 @@ public class UnitSimulation implements Callable<Float[]> {
         }
     }
 
-    private void createSimpleTopology(int numberOfServers, float propDelay, float bw) {
+    private void createDefaultTopology(int numberOfServers, float propDelay, float bw) {
         int targetServerId;
         for (int i = 0; i < numberOfServers; i++) {
             Server server =  servers.get(i);

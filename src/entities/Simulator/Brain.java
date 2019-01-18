@@ -1,3 +1,9 @@
+/*
+ * Developed By Saeed Hadadan, INL lab, Sharif University of Technology: www.inl-lab.net
+ * Copyright (c) 2019. All rights reserved.
+ *
+ */
+
 package entities.Simulator;
 
 
@@ -5,7 +11,7 @@ public class Brain {
     public EventsQueue eventsQueue;
 
     /**
-     * Handle events crawls on the queue of events and performs the action stated in each, one by one, whatever it is.
+     * Handle events pops the events from the queue of events and performs the action stated in each, one by one, whatever it is.
      * This is the place that exceptions are handled.
      */
     public void handleEvents(){

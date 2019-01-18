@@ -23,7 +23,6 @@ public class AlgorithmData {
 //    public float REQUEST_SIZE = (float) 1;
 //    public float SERVICE_TIME = 50f;
     public Random random = new Random();
-    public Random random2 = new Random();
 
 
 

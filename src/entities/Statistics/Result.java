@@ -1,10 +1,8 @@
 package entities.Statistics;
 
-import entities.logical.USimId;
-import entities.physical.Client;
+import entities.Network.Client;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Result implements Serializable {
@@ -14,14 +12,18 @@ public class Result implements Serializable {
      private transient Float[][] delayStatsForAllRuns ;
      public String simulationName;
      public String timeStamp;
+     public String RunType;
+     private Number[] valuesOfVariableParam;
 
-    public Result(int numberOfPoints, int numberOfRuns,String simulationName , String timeStamp){
+    public Result(int numberOfPoints, int numberOfRuns, Number[] valuesOfVariableParam, String RunType,String simulationName , String timeStamp){
          costStats = new Float[numberOfPoints];
          delayStats = new Float[numberOfPoints];
          costStatsForAllRuns = new Float[numberOfPoints][numberOfRuns];
          delayStatsForAllRuns = new Float[numberOfPoints][numberOfRuns];
          this.simulationName = simulationName;
          this.timeStamp = timeStamp;
+         this.valuesOfVariableParam = valuesOfVariableParam;
+         this.RunType = RunType;
     }
 
 
@@ -62,11 +64,18 @@ public class Result implements Serializable {
         }
         costStats[i] = costSum/numberOfRuns;
         delayStats[i] = delaySum/numberOfRuns;
+
     }
 
     public void calcAverageOnAllRunsOnAllPoints() {
         for (int i = 0; i < costStats.length; i++) {
             calcAverageOnAllRuns(i);
+        }
+        if (RunType.equals("D")| RunType.equals("P")) {
+            costStats = new Float[valuesOfVariableParam.length];
+            for (int i = 0; i < valuesOfVariableParam.length; i++) {
+                costStats[i] = valuesOfVariableParam[i].floatValue();
+            }
         }
     }
 

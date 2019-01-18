@@ -8,7 +8,7 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.image.WritableImage;
 import javafx.stage.Stage;
-
+//
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
@@ -34,8 +34,20 @@ public class Chart extends Application {
         Chart.seriesName.add(seriesName);
     }
 
-    public static void initiateChart(String pathName) {
-        String[] chartLabels = {"Communication cost vs. load balancing","cost","time"};
+    public static void initiateChart(String pathName, String RunType) {
+        String XAxisName="";
+        switch (RunType){
+            case "D":
+                XAxisName = "Honeybee random factor";
+                break;
+            case "P":
+                    XAxisName = "Update step(ms)";
+                    break;
+            case "Regular":
+                default:
+                XAxisName = "Communication Cost" ;
+        }
+        String[] chartLabels = {"Communication cost vs. load balancing",XAxisName,"Waiting Time(ms)"};
         Chart.lineChartLabels = chartLabels;
         Chart.xValuesSeries = new ArrayList<>();
         Chart.yValuesSeries = new ArrayList<>();
@@ -51,6 +63,7 @@ public class Chart extends Application {
         //defining the axes
         final NumberAxis xAxis = new NumberAxis();
         xAxis.setForceZeroInRange(false);
+//        final NumberAxis yAxis = new NumberAxis(300,440,10);
         final NumberAxis yAxis = new NumberAxis();
         yAxis.setForceZeroInRange(false);
         xAxis.setLabel(lineChartLabels[1]);
@@ -58,10 +71,9 @@ public class Chart extends Application {
         //creating the chart
         final LineChart<Number,Number> lineChart =
                 new LineChart<Number,Number>(xAxis,yAxis);
-
         lineChart.setTitle(lineChartLabels[0]);
         //defining a series
-
+        lineChart.setAnimated(true);
 
         for (int i = 0; i < seriesName.size(); i++) {
             XYChart.Series series = new XYChart.Series();

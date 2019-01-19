@@ -78,3 +78,6 @@ You can use the following guideline:
 
 
 
+# Contact
+
+Should you have any questions, please contact me at: saeedhd@ce.sharif.edu or 2nd.silverist@gmail.com

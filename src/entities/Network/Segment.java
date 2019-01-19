@@ -9,8 +9,8 @@ package entities.Network;
 import entities.Setting.SegmentType;
 
 public class Segment {
-    //Each client generate id for each request, and server puts this id in response segment
-    //So client can map request and response together
+    //Each client generates an id for each request, and server puts this id in response segment
+    //So the clients can map requests to responses
     private final int id;
     private EndDevice source;
     private EndDevice destination;

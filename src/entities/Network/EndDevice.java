@@ -13,12 +13,11 @@ import entities.Simulator.*;
 import java.util.Objects;
 
 public abstract class EndDevice extends IEventHandler{
-    /**
-     * Instead of using IP addresses, by this number we specify the servers and clients.
-     */
-    protected int number;
-    protected EventsQueue eventsQueue;
-    protected AlgorithmData algorithmData;
+
+    protected int number; //Instead of using IP addresses, by this number we specify the servers and clients.
+
+    EventsQueue eventsQueue;
+    AlgorithmData algorithmData;
 
     public EndDevice(int number, EventsQueue eventsQueue, AlgorithmData algorithmData) {
         this.number = number;

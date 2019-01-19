@@ -55,8 +55,8 @@ public class RunSimulator {
         System.out.println("available processors: "+ availableProcessors);
         ExecutorService pool = Executors.newFixedThreadPool((availableProcessors));
 
-        
-        
+
+
         boolean[][] latticeTopology = NetworkGraph.generateLatticeTopology(configuration.numberOfServers);
 
         // Run Section : If you want to run any simulations you want, you should modify this part.
@@ -86,6 +86,11 @@ public class RunSimulator {
 
         //End of Run Section
 
+        finalizeRun(args, photoPath, startTime, runType, runSimulator);
+
+    }
+
+    private static void finalizeRun(String[] args, String photoPath, double startTime, String runType, RunSimulator runSimulator) throws IOException {
         Chart.initiateChart(photoPath,runType);
 
 
@@ -96,13 +101,11 @@ public class RunSimulator {
         System.out.println("Duration(min): " + (finishTime - startTime)/60000);
 
 
-
         try {
             Chart.main(args);
         }catch (Exception e){
             e.printStackTrace();
         }
-
     }
 
     private static void createParametersFile(Configuration configuration, String path) throws IOException {
@@ -335,7 +338,6 @@ public class RunSimulator {
         simName.append(runParams.variableParam).append("-").append(runParams.valuesOfVariableParam[0]).append(" to ").append(runParams.valuesOfVariableParam[runParams.valuesOfVariableParam.length-1]);
         simName.append("-cacheSize-"+runParams.configuration.numberOfFilesPerServer);
         simName.append("-sites-"+runParams.configuration.numberofSites);
-        //TODO
         simulationName = simName.toString();
         return simulationName;
     }

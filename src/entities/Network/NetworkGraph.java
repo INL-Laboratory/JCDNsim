@@ -15,6 +15,8 @@ import java.util.*;
 
 /**
  * Created by hd on 2018/4/1 AD.
+ * NetworkGraph is responsible for all actions related to graph of the network. It manages the routing tables,
+ * returns the nearest servers, and returns the least loaded servers. It also is capable of creating adjacency matrix of topologies.
  */
 public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
     //it used to be like singleton design pattern
@@ -60,8 +62,7 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
                 }
                 src.getRoutingTable().put(dest, link);
                 src.getCommunicationCostTable().put(dest, communicationCost);
-                //TODO: We should optimize this part if it was slow by exploiting the path list. Now we just use the first element of that
-                //TODO: We should test whether the first link is at index 0 or the last one
+                //TODO: We should optimize this part if it was slow when exploiting the path list. Now we just use the first element of that
 
             }
         }
@@ -71,7 +72,6 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
 //            }
 //        }
     }
-    //TODO: implement NumberOf Queries
 
 
 
@@ -164,11 +164,10 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
     }
 
 
-
+    /***
+     * returns the nearest server to the client in a list of servers that might have been already filtered.
+     */
     public Server getNearestServer(List<Server> preFilteredServers, Client src){
-        /***
-         * returns the nearest server to the client in a list of servers that might have been already filtered.
-         */
         if (preFilteredServers.size()==0) return null;
         Server directlyConnectedServer = (Server)src.getLink().getOtherEndPoint(src);
         if (preFilteredServers.contains(directlyConnectedServer)) {
@@ -193,10 +192,10 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
             toReturnServer = minLists.get(new Random().nextInt(minLists.size()));
         return toReturnServer;
     }
+    /***
+     * returns the servers who have the file with fileId.
+     */
     public List<Server> getServersHavingFile(int fileID){
-        /***
-         * returns the servers who have the file with fileId.
-         */
         Server candidateServer;
         LinkedList<Server> toReturnServers = new LinkedList<>();
         for (EndDevice end:getVertices()) {
@@ -208,10 +207,10 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         }
         return toReturnServers;
     }
+    /***
+     * returns the sites who have the file with fileId.
+     */
     public Map<Site,List<Server>> getSitesHavingFile(int fileID){
-        /***
-         * returns the sites who have the file with fileId.
-         */
         Server candidateServer;
         Map<Site,List<Server>> toReturnSites = new HashMap<>();
         for (EndDevice end:getVertices()) {
@@ -228,25 +227,24 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
         }
         return toReturnSites;
     }
+    /***
+     * returns the n least loaded servers in a list of servers that might have been already filtered.
+     */
     public List<Server> getLeastLoadedServers(int n, List<Server> preFilteredServers){
-        /***
-         * returns the n least loaded servers in a list of servers that might have been already filtered.
-         */
         List<Server> toReturnServers = new LinkedList<>();
 //        if (n<=0) return toReturnServers;
 //        Collections.sort(preFilteredServers, (Comparator<Server>) (o1, o2) -> {
 //            return o1.getServerLoad()<o2.getServerLoad()?1:0;
-//            //TODO: check whether the order is right
 //        });
 //        for (int i = 0; i <n ; i++) {
 //            toReturnServers.add(preFilteredServers.get(i));
 //        }
         return toReturnServers;
     }
+    /***
+     * returns the least loaded server in a list of servers that might have been already filtered.
+     */
     public Server getLeastLoadedServer(List<Server> preFilteredServers, Map<Server, Integer> serverLoads){
-        /***
-         * returns the least loaded server in a list of servers that might have been already filtered.
-         */
         if (preFilteredServers.size()==0) return null;
         int minLoad= Integer.MAX_VALUE;
         Server toReturnServer = null;
@@ -266,15 +264,14 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
 
         return toReturnServer;
     }
-//    static int maxLoad = 0;
 
     private Map<Pair,Integer> cachedTotalCost = new HashMap<>();
 
-
+    /***
+     * returns the least desirable server in a list of servers that might have been already filtered.
+     */
     public HasLoadAndCost getMostDesirableServerOrSite(List<HasLoadAndCost> preFilteredS, Map<HasLoadAndCost,Integer> loads, double alpha, EndDevice src){
-        /***
-         * returns the least desirable server in a list of servers that might have been already filtered.
-         */
+
 //        Logger.printWithoutTime("*******Servers Having File:");
         if (preFilteredS.size()==0) return null;
         double minDesirability = Double.MAX_VALUE;
@@ -301,9 +298,6 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
             }
         }
         toReturnS = minLists.get(new Random().nextInt(minLists.size()));
-
-
-//        System.out.println(minDesirability);
 //        Logger.printWithoutTime(" total cost = "+ totalCosts + "  total Load = " + totalLoad);
         return toReturnS;
     }

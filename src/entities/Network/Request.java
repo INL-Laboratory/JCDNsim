@@ -6,9 +6,6 @@
 
 package entities.Network;
 
-import entities.Network.Client;
-import entities.Network.Server;
-
 public class Request {
     private Client source;
     private Server destination;
@@ -16,7 +13,7 @@ public class Request {
     private int neededFileID;
     private final int id;     //This must be the same id in segment
     private boolean isRedirect = false;
-    private boolean shouldBePiggiedBack = false;
+    private boolean shouldBePiggybacked = false;
     private int toleratedCost =0;
     public boolean isRedirected() {
         return isRedirect;
@@ -85,11 +82,11 @@ public class Request {
         this.serverToPiggyBack = serverToPiggyBack;
     }
 
-    public boolean getShouldBePiggiedBack() {
-        return shouldBePiggiedBack;
+    public boolean getShouldBePiggybacked() {
+        return shouldBePiggybacked;
     }
 
-    public void setShouldBePiggiedBack(boolean shouldBePiggiedBack) {
-        this.shouldBePiggiedBack = shouldBePiggiedBack;
+    public void setShouldBePiggybacked(boolean shouldBePiggybacked) {
+        this.shouldBePiggybacked = shouldBePiggybacked;
     }
 }

@@ -19,7 +19,6 @@ import static entities.Setting.UpdateType.*;
 
 public class Server extends EndDevice implements HasLoadAndCost{
     private Map<EndDevice,Link> links = new HashMap<>();
-//    private Link clientLink;
     private List<IFile> files;
     private final Map<EndDevice, Link> routingTable = new HashMap<>();
     private final  Map<EndDevice, Integer> communicationCostTable = new HashMap<>();
@@ -70,7 +69,7 @@ public class Server extends EndDevice implements HasLoadAndCost{
         }
 
     }
-//    public static int maxQueue = 0;
+
     /***
      * checks the content of the packet and spots its type
      */
@@ -80,12 +79,9 @@ public class Server extends EndDevice implements HasLoadAndCost{
                 Request request = (Request) segment.getOptionalContent();
                 if (queue.size()==0 && !this.isServerBusy)  {
 //                    Logger.print(this + " wasn't busy and goes to serve " + request,time);
-//                    System.out.println(this+" received request at "+ time);
                     serveRequest(time,request);
                 }else {
                     queue.add(request);
-//                    if (queue.size()>maxQueue) maxQueue = queue.size();
-//
 //                    Logger.print(this + " added to queue: " + request + " queueSize = " + queue.size(),time);
 //
                 }
@@ -93,9 +89,7 @@ public class Server extends EndDevice implements HasLoadAndCost{
             case Data:
                 break;
             case Update:
-//
 //                Logger.print(this + "update package from "+ segment.getSource() +" received ",time);
-//
                 updateLoadList((List<LoadPair>) segment.getOptionalContent());
                 break;
             default:
@@ -113,7 +107,6 @@ public class Server extends EndDevice implements HasLoadAndCost{
         serverLoads.put(this,getServerLoad());
 //
 //        Logger.printWithoutTime("******"+this + "'s load list");
-//
 //        for (Server s:serverLoads.keySet()) {
 //            Logger.printWithoutTime("      "+s + " : " + serverLoads.get(s));
 //        }
@@ -163,7 +156,7 @@ public class Server extends EndDevice implements HasLoadAndCost{
 //
             sendFile(time, request, 0);
             delay = DefaultValues.SERVICE_TIME;
-            request.setShouldBePiggiedBack(true);
+            request.setShouldBePiggybacked(true);
         }else {     //if the request is not redirected
             delay = serveUnredirectedRequest(time, request);
         }
@@ -176,15 +169,18 @@ public class Server extends EndDevice implements HasLoadAndCost{
 //        System.out.println(this+ " : sends piggy back at "+ time);
 
     }
+    public void sendUpdateToAll(float time,List<Server> servers) {
+        algorithmData.generatedId++;
+        int id = algorithmData.generatedId;
+        for (Server dst:servers) {
+            if (dst.equals(this)) continue;
+            sendUpdateTo(time,id,dst, false);
+        }
+
+    }
 
     private void sendUpdateTo(float time, int  id, Server dst, boolean sendSiteUpdate) {
         Link link = routingTable.get(dst);
-//        HashMap<Server, Integer> updateHashMap= new HashMap<>();
-//        if (sendSiteUpdate) {
-//            updateHashMap.putAll(site.getRealLoads());
-//        }else {
-//            updateHashMap.put(this,getServerLoad());
-//        }
         List<LoadPair> pairs = new ArrayList<>();
         if (sendSiteUpdate) {
             for (Server server : site.getServers()) {
@@ -202,9 +198,11 @@ public class Server extends EndDevice implements HasLoadAndCost{
         }
     }
 
+
+
     private float serveUnredirectedRequest(float time, Request request ) throws OkayException {
         float delay;
-        float queryDelay = 0f; //TODO : update this
+        float queryDelay = 0f;
 //
 //        Logger.print(this + " is looking for a suitable server to serve " + request, time);
 //
@@ -274,10 +272,11 @@ public class Server extends EndDevice implements HasLoadAndCost{
     }
 
 
+    /***
+     * searches for a file in cached files with corresponding fileID
+     * */
 
     public IFile findFile(int fileID){
-        /***
-        * searches for a file in cached files with corresponding fileID */
         for (IFile f:files) {
             if (f.getId()==fileID){
                 return f;
@@ -285,10 +284,8 @@ public class Server extends EndDevice implements HasLoadAndCost{
         }
         return null;
     }
-//    public static double totalTimeInServerHandleEvent = 0;
     @Override
     public void handleEvent(Event event) throws Exception {
-//        double tempTime = System.currentTimeMillis();
         switch (event.getType()){
             case receiveSegment:
                 receiveData(event.getTime(),(Segment) event.getOptionalData() , (Link)event.getCreator());
@@ -296,15 +293,12 @@ public class Server extends EndDevice implements HasLoadAndCost{
             case requestServed:
                 requestServed(event.getTime(), (Request)event.getOptionalData());
         }
-//        totalTimeInServerHandleEvent += System.currentTimeMillis()-tempTime;
-
     }
-
+    /***
+     * Commands to serve the request then after a service delay serve the next request
+     */
     private void requestServed(float time, Request servedRequest) throws Exception {
-        /***
-         * Commands to serve the request then after a service delay serve the next request
-         */
-        if (servedRequest.getShouldBePiggiedBack() ) {
+        if (servedRequest.getShouldBePiggybacked() ) {
             if(algorithmData.updateType == piggyBack || algorithmData.updateType == piggyGroupedPeriodic)
                 piggyBack(time, servedRequest , piggyGroupedPeriodic == algorithmData.updateType);
         }
@@ -362,9 +356,8 @@ public class Server extends EndDevice implements HasLoadAndCost{
         }
         return sb.toString();
     }
-//    public static double totalTimeInMakeLoadListIdeally = 0;
-    public static int makeLoadListIdeally(List<Server> serversHavingSpecificFile, Map<Server, Integer> serverLoads){
-//        double tempTime = System.currentTimeMillis();
+
+    private static int makeLoadListIdeally(List<Server> serversHavingSpecificFile, Map<Server, Integer> serverLoads){
         int sum = 0;
         for (Server server:
              serversHavingSpecificFile) {
@@ -372,7 +365,6 @@ public class Server extends EndDevice implements HasLoadAndCost{
             sum+= server.getServerLoad();
 
         }
-//        totalTimeInMakeLoadListIdeally += System.currentTimeMillis() - tempTime;
         return sum;
     }
 
@@ -397,15 +389,7 @@ public class Server extends EndDevice implements HasLoadAndCost{
         this.serverLoads = serverLoads;
     }
 
-    public void sendUpdateToAll(float time,List<Server> servers) {
-        algorithmData.generatedId++;
-        int id = algorithmData.generatedId;
-        for (Server dst:servers) {
-            if (dst.equals(this)) continue;
-            sendUpdateTo(time,id,dst, false);
-        }
 
-    }
 
     public void setShares() {
         for(Server server:serverLoads.keySet()) {

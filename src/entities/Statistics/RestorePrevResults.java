@@ -13,10 +13,10 @@ import java.util.Objects;
 
 public class RestorePrevResults {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-        File file = new File("/Users/hd/IdeaProjects/ICDNSim/restore");
+        File file = new File("/Users/saeedhd/IdeaProjects/ICDNSim/restore");
         String[] list = file.list();
         boolean firstTime = true;
-        String photoPathName = "/Users/hd/IdeaProjects/ICDNSim/restore/photo.png";
+        String photoPathName = "/Users/saeedhd/IdeaProjects/ICDNSim/restore/photo.png";
         Map<HoneyBeeStatPair,Map<Number,Number>> res = new HashMap<>();
         Map<Number,Number> resReg = new HashMap<>();
         for (String f:list) {
@@ -24,7 +24,7 @@ public class RestorePrevResults {
             FileInputStream fileInputStream = null;
             try {
                 System.out.println(f);
-                fileInputStream = new FileInputStream("/Users/hd/IdeaProjects/ICDNSim/restore/"+f);
+                fileInputStream = new FileInputStream("/Users/saeedhd/IdeaProjects/ICDNSim/restore/"+f);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 Result result = (Result)objectInputStream.readObject();
                 System.out.println(result.simulationName);
@@ -47,7 +47,7 @@ public class RestorePrevResults {
 //                    yValues[c]= resReg.get(i);
 //                    c++;
 //                }
-                Chart.addSeries(result.simulationName,xValues,yValues);
+                Chart.addSeries(f.substring(0,f.indexOf(".dat")),xValues,yValues);
 
             }catch (Exception e){
                 e.printStackTrace();

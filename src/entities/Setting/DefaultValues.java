@@ -23,21 +23,12 @@ public class DefaultValues {
 //    public static  Random random = new Random();
 
 
-
     public static final float TIME_OUT = 20f ;      //ms
     public static final boolean IS_TIME_OUT_ACTIVATED = false ;
-
-
-
-
 
 
     public static final boolean LINK_DELAY_ALLOWED= true;
     public final static boolean LOGGER_ON = false ;
     public final static boolean RUN_PARALLEL = true;
     //Having it On takes over 850 MB of your disk for every 10 times making 20000 requests
-
-
-
-
 }

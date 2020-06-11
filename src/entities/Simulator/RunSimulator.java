@@ -53,36 +53,144 @@ public class RunSimulator {
 
         int availableProcessors = Runtime.getRuntime().availableProcessors();
         System.out.println("available processors: "+ availableProcessors);
-        ExecutorService pool = Executors.newFixedThreadPool((availableProcessors));
+        System.out.println("Thread pool:* "+ 40);
+        ExecutorService pool = Executors.newFixedThreadPool((40));
+
+//        boolean[][] adjMat = NetworkGraph.generateLatticeTopology(configuration.numberOfServers);
+        boolean[][] adjMat = NetworkGraph.usePowerLaw(configuration);
+
+//        Formatter out = null;
+//        try {
+//            out = new Formatter(new File("hello.txt"));
+//            for (int i = 0; i < adjMat.length; i++) {
+//                for (int j = 0; j < adjMat.length; j++) {
+//                    if (j!=adjMat.length - 1)
+//                        out.format(adjMat[i][j]?"1 ": "0 ");
+//                    else
+//                        out.format(adjMat[i][j]?"1\n": "0\n");
+//                }
+//            }
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        } finally {
+//            out.close();
+//        }
 
 
 
-        boolean[][] latticeTopology = NetworkGraph.generateLatticeTopology(configuration.numberOfServers);
 
+        Topology topology = NetworkGraph.getTopology(adjMat);
         // Run Section : If you want to run any simulations you want, you should modify this part.
 
         Number[] points1 = {0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0};
+        Number[] points2 = {25,30,60,70,100};
+//        runType = "Regular";
+//        Map<String,Number> bundle1 = new HashMap<>();
+//        bundle1.put(AlgParamsList.periodicStep.toString(),260);
+//        bundle1.put(AlgParamsList.HONEY_BEE_SEARCH_PROBABILITY.toString(),0);
+//        RunningParameters runParams= new RunningParameters(runType,"WMC", "periodic",bundle1,AlgParamsList.WMC_ALPHA.toString(), points1, configuration,path);
+//        runSimulator.run(runParams,pool, topology);
+
+
+
+//        runType = "Regular";
+//        Map<String,Number> bundle2 = new HashMap<>();
+//        bundle2.put(AlgParamsList.HONEY_BEE_SEARCH_PROBABILITY.toString(),0);
+//        bundle2.put(AlgParamsList.periodicStep.toString(),260);
+//        int[] caches = {10};
+////
+//        for (int i = 0; i < caches.length ; i++) {
+//            configuration = new Configuration();
+//            configuration.numberOfFilesPerServer=caches[i];
+//            RunningParameters runParams2= new RunningParameters(runType,"HONEYBEE","piggyGroupedPeriodic",bundle2,AlgParamsList.WMC_ALPHA.toString(),points1,configuration,path);
+//            runSimulator.run(runParams2,pool,topology);
+//        }
+
+//        runType = "Regular";
+//        Map<String,Number> bundle4 = new HashMap<>();
+//        bundle4.put(AlgParamsList.HONEY_BEE_SEARCH_PROBABILITY.toString(),0);
+//        RunningParameters runParams4= new RunningParameters(runType,"WMC","ideal",bundle4,AlgParamsList.WMC_ALPHA.toString(),points1,configuration,path);
+//        runSimulator.run(runParams4,pool,topology);
+
+
+
+// Trade OFF
         runType = "Regular";
-        Map<String,Number> bundle1 = new HashMap<>();
-        bundle1.put(AlgParamsList.periodicStep.toString(),400);
-        bundle1.put(AlgParamsList.HONEY_BEE_SEARCH_PROBABILITY.toString(),0);
-        RunningParameters runParams= new RunningParameters(runType,"WMC", "periodic",bundle1,AlgParamsList.WMC_ALPHA.toString(), points1, configuration,path);
-        runSimulator.run(runParams,pool, latticeTopology);
-
-
-
-        runType = "Regular";
-        Map<String,Number> bundle2 = new HashMap<>();
-        bundle2.put(AlgParamsList.HONEY_BEE_SEARCH_PROBABILITY.toString(),0);
-        bundle2.put(AlgParamsList.periodicStep.toString(),20);
-        RunningParameters runParams2= new RunningParameters(runType,"HONEYBEE","piggyGroupedPeriodic",bundle2,AlgParamsList.WMC_ALPHA.toString(),points1,configuration,path);
-        runSimulator.run(runParams2,pool,latticeTopology);
+        Map<String,Number> bundle4 = new HashMap<>();
+        bundle4.put(AlgParamsList.HONEY_BEE_SEARCH_PROBABILITY.toString(),0);
+        bundle4.put(AlgParamsList.periodicStep.toString(),200);
+        RunningParameters runParams4= new RunningParameters(runType,"HONEYBEE","piggyGroupedPeriodic",bundle4,AlgParamsList.WMC_ALPHA.toString(),points1,configuration,path);
+        runSimulator.run(runParams4,pool,topology);
 
         runType = "Regular";
         Map<String,Number> bundle3 = new HashMap<>();
         RunningParameters runParams3= new RunningParameters(runType,"WMC","ideal"
                 ,bundle3,AlgParamsList.WMC_ALPHA.toString(),points1,configuration,path);
-        runSimulator.run(runParams3 ,pool,latticeTopology);
+        runSimulator.run(runParams3 ,pool,topology);
+
+
+        runType = "Regular";
+        Map<String,Number> bundle5 = new HashMap<>();
+        bundle5.put(AlgParamsList.HONEY_BEE_SEARCH_PROBABILITY.toString(),0);
+        bundle5.put(AlgParamsList.periodicStep.toString(),400);
+        RunningParameters runParams5= new RunningParameters(runType,"WMC","periodic",bundle5,AlgParamsList.WMC_ALPHA.toString(),points1,configuration,path);
+        runSimulator.run(runParams5,pool,topology);
+
+        runType = "Regular";
+        Map<String,Number> bundle6 = new HashMap<>();
+        bundle6.put(AlgParamsList.HONEY_BEE_SEARCH_PROBABILITY.toString(),0);
+        bundle6.put(AlgParamsList.periodicStep.toString(),0);
+        RunningParameters runParams6= new RunningParameters(runType,"WMC","piggyBack",bundle6,AlgParamsList.WMC_ALPHA.toString(),points1,configuration,path);
+        runSimulator.run(runParams6,pool,topology);
+
+
+//        TradeOff
+
+//
+//        runType = "Regular";
+//        Map<String,Number> bundle7 = new HashMap<>();
+//        bundle7.put(AlgParamsList.HONEY_BEE_SEARCH_PROBABILITY.toString(),0);
+//        bundle7.put(AlgParamsList.periodicStep.toString(),400);
+//        RunningParameters runParams7= new RunningParameters(runType,"WMC","periodic",bundle7,AlgParamsList.WMC_ALPHA.toString(),points1,configuration,path);
+//        runSimulator.run(runParams7,pool,topology);
+//
+//
+//        runType = "Regular";
+//        Map<String,Number> bundle8 = new HashMap<>();
+//        bundle8.put(AlgParamsList.HONEY_BEE_SEARCH_PROBABILITY.toString(),0);
+//        bundle8.put(AlgParamsList.periodicStep.toString(),600);
+//        RunningParameters runParams8= new RunningParameters(runType,"WMC","periodic",bundle8,AlgParamsList.WMC_ALPHA.toString(),points1,configuration,path);
+//        runSimulator.run(runParams8,pool,topology);
+//
+//        runType = "Regular";
+//        Map<String,Number> bundle9 = new HashMap<>();
+//        bundle9.put(AlgParamsList.HONEY_BEE_SEARCH_PROBABILITY.toString(),0);
+//        bundle9.put(AlgParamsList.periodicStep.toString(),900);
+//        RunningParameters runParams9= new RunningParameters(runType,"WMC","periodic",bundle9,AlgParamsList.WMC_ALPHA.toString(),points1,configuration,path);
+//        runSimulator.run(runParams9,pool,topology);
+//
+
+//
+
+
+        //P
+//
+//        Number[] points3 = {100,150,200,250,300,400,500,600,700};
+//        runType = "P";
+//        Map<String,Number> bundle1 = new HashMap<>();
+//        bundle1.put(AlgParamsList.WMC_ALPHA.toString(),0.5);
+//        bundle1.put(AlgParamsList.HONEY_BEE_SEARCH_PROBABILITY.toString(),0);
+//        RunningParameters runParams= new RunningParameters(runType,"WMC", "periodic",bundle1,AlgParamsList.periodicStep.toString(), points3, configuration,path);
+//        runSimulator.run(runParams,pool, topology);
+//
+//        Number[] points1 = {0,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1};
+//        runType = "D";
+//        Map<String,Number> bundle1 = new HashMap<>();
+//        bundle1.put(AlgParamsList.WMC_ALPHA.toString(),0.5);
+//        bundle1.put(AlgParamsList.periodicStep.toString(),500);
+//        RunningParameters runParams= new RunningParameters(runType, "HONEYBEE","piggyGroupedPeriodic",bundle1,AlgParamsList.HONEY_BEE_SEARCH_PROBABILITY.toString(), points1, configuration,path);
+//        runSimulator.run(runParams,pool, topology);
+
 
         //End of Run Section
 
@@ -175,11 +283,11 @@ public class RunSimulator {
      * @param topology
      * @throws Exception
      */
-    private void run(RunningParameters runParams, ExecutorService pool,boolean[][] topology) throws Exception {
+    private void run(RunningParameters runParams, ExecutorService pool,Topology topology) throws Exception {
         String simulationName;
         simulationName = getSimulationName(runParams);
 
-        Result result = generateResultContainer(runParams, simulationName);
+        Result result = generateResultContainer(runParams, simulationName,topology.costNormalizationFactor);
 
 
         for (int j = 0; j < runParams.configuration.numberOfRuns ; j++) {
@@ -187,10 +295,11 @@ public class RunSimulator {
         }
     }
 
-    private Result generateResultContainer(RunningParameters runParams, String simulationName) {
+    private Result generateResultContainer(RunningParameters runParams, String simulationName, float costFactor) {
         Result result = new Result(runParams.valuesOfVariableParam.length, runParams.configuration.numberOfRuns,
                 runParams.valuesOfVariableParam,runParams.RunType,simulationName,runParams.path);
         results.add(result);
+        result.costNormalizationFactor = costFactor;
         return result;
     }
 
@@ -205,7 +314,7 @@ public class RunSimulator {
      * @param jthReplication
      * @throws Exception
      */
-    private void runReplication(RunningParameters runParams, ExecutorService pool, boolean[][] topology,
+    private void runReplication(RunningParameters runParams, ExecutorService pool, Topology topology,
                                 String simulationName, Result result, int jthReplication) throws Exception {
         //Generating the requests and distributing the files before running the replication
         List<RequestEvent> requestEvents = generateRequests(runParams.configuration);
@@ -246,7 +355,7 @@ public class RunSimulator {
         }
     }
 
-    private void initiateUnitSimulation(RunningParameters runParam, int ithPoint, USimId uSimId1, boolean[][] topology, Result result, List<RequestEvent> requestEvents, int[][] serverContents) {
+    private void initiateUnitSimulation(RunningParameters runParam, int ithPoint, USimId uSimId1, Topology topology, Result result, List<RequestEvent> requestEvents, int[][] serverContents) {
         USimId uSimId = uSimId1;
         UnitSimulation unitSimulation = new UnitSimulation(uSimId, runParam,result, runParam.valuesOfVariableParam[ithPoint],requestEvents,serverContents, topology);
         tasksBuffer.addLast(unitSimulation);

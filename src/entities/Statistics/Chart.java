@@ -72,12 +72,19 @@ public class Chart extends Application {
 //        final NumberAxis yAxis = new NumberAxis(300,440,10);
         final NumberAxis yAxis = new NumberAxis();
         yAxis.setForceZeroInRange(false);
-        xAxis.setLabel(lineChartLabels[1]);
-        yAxis.setLabel(lineChartLabels[2]);
+        if (lineChartLabels!=null) {
+            xAxis.setLabel(lineChartLabels[1]);
+            yAxis.setLabel(lineChartLabels[2]);
+        }else {
+            xAxis.setLabel("salam");
+            yAxis.setLabel("salam");
+        }
         //creating the chart
         final LineChart<Number,Number> lineChart =
                 new LineChart<Number,Number>(xAxis,yAxis);
-        lineChart.setTitle(lineChartLabels[0]);
+        if (lineChartLabels!=null){
+            lineChart.setTitle(lineChartLabels[0]);
+        }
         //defining a series
         lineChart.setAnimated(true);
 

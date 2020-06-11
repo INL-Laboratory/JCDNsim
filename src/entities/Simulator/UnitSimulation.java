@@ -36,8 +36,8 @@ public class UnitSimulation implements Callable<Float[]> {
     private final RedirectingAlgorithm redirectingAlgorithm = new RedirectingAlgorithm(algorithmData);
     private final List<RequestEvent> requestEvents;
     private final int[][] serverContents;
-    private final boolean[][] topology ;
-    public UnitSimulation(USimId uSimId, RunningParameters runParams, Result result, Number vParam, List<RequestEvent> requestEvents,int[][] servercontents, boolean[][] topology) {
+    private final Topology topology ;
+    public UnitSimulation(USimId uSimId, RunningParameters runParams, Result result, Number vParam, List<RequestEvent> requestEvents,int[][] servercontents, Topology topology) {
         this.configuration = runParams.configuration;
         this.result = result;
         this.uSimID = uSimId;
@@ -72,7 +72,6 @@ public class UnitSimulation implements Callable<Float[]> {
 
     private Float[] simulate(Configuration configuration, Result result, PrintWriter logger) {
         initSimulator(configuration );
-
         generateRequests();
 
         Brain brain = new Brain();
@@ -240,14 +239,17 @@ public class UnitSimulation implements Callable<Float[]> {
             }
         }
     }
-
-    private void createTopology(float propDelay, float bw, boolean[][] adjacencyMatrix) {
+    public final static int DEFAULT_WEIGHT = 1;
+    private void createTopology(float propDelay, float bw, Topology topology) {
+        boolean[][] adjacencyMatrix = topology.adjMat;
         for (int i = 0; i < adjacencyMatrix.length; i++) {
             for (int j = 0; j < adjacencyMatrix[0].length ; j++) {
                 if (adjacencyMatrix[i][j]) {
                     Server server1 = servers.get(i);
                     Server server2 = servers.get(j);
-                    Link link = new Link(server1, server2, propDelay, bw, 1, eventsQueue);
+                    if (server1.getLinks().get(server2)!=null) continue;
+                    int weight = topology.weight==null?DEFAULT_WEIGHT:topology.weight[i][j];
+                    Link link = new Link(server1, server2, propDelay, bw, weight, eventsQueue);
                     server1.getLinks().put(server2, link);
                     server2.getLinks().put(server1, link);
                     links.add(link);

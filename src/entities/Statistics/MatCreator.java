@@ -15,18 +15,21 @@ import java.io.*;
 import java.util.*;
 
 public class MatCreator {
+    static double a = 10;
     public static void main(String[] args) throws IOException, ClassNotFoundException {
-        File file = new File("/Users/hd/IdeaProjects/ICDNSim/matFile");
+        File file = new File("/Users/saeedhd/IdeaProjects/ICDNSim/matFile/TradeOff");
         String[] list = file.list();
         for (String f:list) {
             ObjectInputStream objectInputStream = null;
             FileInputStream fileInputStream = null;
             try {
                 System.out.println(f);
-                fileInputStream = new FileInputStream("/Users/hd/IdeaProjects/ICDNSim/matFile/"+f);
+                fileInputStream = new FileInputStream("/Users/saeedhd/IdeaProjects/ICDNSim/matFile/TradeOff/"+f);
                 objectInputStream = new ObjectInputStream(fileInputStream);
                 Result result = (Result)objectInputStream.readObject();
                 System.out.println(result.simulationName);
+
+
 
                 String RunType = result.simulationName.substring(0,result.simulationName.indexOf("-"));
                 String XAxisName="";
@@ -43,13 +46,13 @@ public class MatCreator {
                 }
                 String legend= "";
                 if (result.simulationName.contains("HONEYBEE")){
-                    legend = "Honey Bee, Random fraction = 0.06, Update Step = 500 ";
+                    legend = "Honey Bee, Random fraction = 0.05, Update Step = 270 ms";
                 }else if (result.simulationName.contains("ideal")){
                     legend="Ideal";
                 }
-                else if (result.simulationName.contains("periodic-periodicStep-460")){
-                    legend = "Periodic, Update Step = 460";
-                }else if (result.simulationName.contains("periodic-periodicStep-400")){
+                else if (result.simulationName.contains("WMC-periodic")){
+                    legend = "Periodic, Update Step = 270 ms";
+                }else if (result.simulationName.contains("piggyBack")){
                     legend = "PiggyBack";
                 }
 
@@ -73,6 +76,14 @@ public class MatCreator {
                     mlsx.set(yValues[i].doubleValue(),c);
                     c++;
                 }
+
+//                int s = result.simulationName.indexOf("cacheSize");
+//                a = Double.parseDouble(result.simulationName.substring(s+10,s+12));
+
+//                for (int i = 0; i < yValues.length; i++) {
+//                    mlsx.set(a,c);
+//                    c++;
+//                }
 //                String z = result.simulationName.substring(result.simulationName.lastIndexOf("-")+1);
 //                for (int i = 0; i < yValues.length; i++) {
 //                    mlsx.set(Double.parseDouble(z),c);
@@ -88,7 +99,7 @@ public class MatCreator {
                 list3.add(mlChar3);
 //                list3.add(mlChar4);
                 MatFileWriter writer = new MatFileWriter("salam.mat", list3);
-                writer.write("matFile/"+result.simulationName+".mat", list3);
+                writer.write("matFile/TradeOff/"+result.simulationName+".mat", list3);
 
 
 

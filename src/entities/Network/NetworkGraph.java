@@ -9,8 +9,15 @@ package entities.Network;
 import com.sun.istack.internal.Nullable;
 import edu.uci.ics.jung.algorithms.shortestpath.DijkstraShortestPath;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
+import entities.Setting.Configuration;
+import entities.Simulator.RandomGeometricGraph;
+import entities.Simulator.Topology;
+import entities.Simulator.Vertex;
 import org.apache.commons.collections15.Transformer;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.*;
 
 /**
@@ -27,6 +34,109 @@ public class NetworkGraph extends UndirectedSparseGraph<EndDevice,Link> {
 //    }
 
     public NetworkGraph() {
+    }
+
+    public static Topology useRGG() {
+        RandomGeometricGraph graph = RandomGeometricGraph.openGraph("graph-0.6-100-15-Jun-0006_11/40/25.dat");
+
+        Hashtable<Vertex,List<Vertex>> adjacencyList = graph.adjacencyList;
+        boolean[][] adjMat;
+        int[][] weights;
+
+        adjMat = new boolean[graph.n][graph.n];
+        weights = new int[graph.n][graph.n];
+
+
+        for (Vertex vertex:adjacencyList.keySet()) {
+            for (Vertex neghbour:adjacencyList.get(vertex)) {
+                if(!adjMat[neghbour.id][vertex.id])
+                    adjMat[vertex.id][neghbour.id] = true;
+                weights[vertex.id][neghbour.id] = (int)(graph.costNormalizationFactor*vertex.distanceFrom(neghbour));
+            }
+        }
+        double sum=0;
+        int numOfEdges=0;
+        for (int i = 0; i < graph.n; i++) {
+            for (int j = 0; j < graph.n ; j++) {
+                if (adjMat[i][j]){
+                    sum+=weights[i][j];
+                    numOfEdges++;
+                }
+            }
+        }
+        float summ = (float) sum;
+        float averageWeight = summ/numOfEdges;
+
+//        for (int i = 0; i < weights.length; i++) {
+//            for (int j = 0; j < weights[0].length; j++) {
+//                weights[i][j] = (int)(weights[i][j]) ;
+//            }
+//        }
+
+        Topology topology = new Topology(adjMat,weights,graph.costNormalizationFactor, averageWeight);
+        return topology;
+    }
+public static boolean[][] usePowerLaw(Configuration configuration) {
+    Scanner input = null;
+    try {
+        input = new Scanner(new File("powerLaw2"));
+    } catch (FileNotFoundException e) {
+        e.printStackTrace();
+    }
+
+        boolean[][] adjMat;
+        int[][] weights;
+
+        adjMat = new boolean[configuration.numberOfServers][configuration.numberOfServers];
+        weights = new int[configuration.numberOfServers][configuration.numberOfServers];
+
+
+    for (int i = 0; i < adjMat.length; i++) {
+        if (input.hasNextLine())
+        {
+            for (int j = 0; j < adjMat[0].length ; j++) {
+                if (input.hasNext())
+                    if(input.next().equals("1")) {
+                        adjMat[i][j] = true;
+                    }
+            }
+        }
+    }
+
+
+    return adjMat;
+}
+
+    public static Topology getTopology(boolean[][] adjMat) {
+        int[][] weights;
+        weights = new int[adjMat.length][adjMat.length];
+
+        double sum=0;
+        int numOfEdges=0;
+        for (int i = 0; i < adjMat.length; i++) {
+            {
+                for (int j = 0; j < adjMat[0].length ; j++) {
+                        if(adjMat[i][j]) {
+                            weights[i][j] = 1;
+                        }
+                }
+            }
+        }
+
+        for (int i = 0; i < adjMat.length; i++) {
+            for (int j = 0; j < adjMat[0].length ; j++) {
+                if (adjMat[i][j]){
+                    sum+=weights[i][j];
+                    numOfEdges++;
+                }
+            }
+        }
+        float summ = (float) sum;
+        float averageWeight = summ/numOfEdges;
+
+
+        Topology topology = new Topology(adjMat,weights,1, averageWeight);
+        return topology;
     }
 
     public void buildRoutingTables() {

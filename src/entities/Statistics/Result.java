@@ -12,7 +12,11 @@ import java.io.Serializable;
 import java.util.List;
 
 public class Result implements Serializable {
-     private Float[] costStats ;
+//    private static final long serialVersionUID = 5053760367900040939L;
+    private static final long serialVersionUID = -1518864227520694792L;
+
+//    private static final long serialVersionUID = 2355777149570419758L;
+    private Float[] costStats ;
      private Float[] delayStats ;
      private transient Float[][] costStatsForAllRuns ;
      private transient Float[][] delayStatsForAllRuns ;
@@ -20,6 +24,7 @@ public class Result implements Serializable {
      public String timeStamp;
      public String RunType;
      private Number[] valuesOfVariableParam;
+     public float costNormalizationFactor = 1;
 
     public Result(int numberOfPoints, int numberOfRuns, Number[] valuesOfVariableParam, String RunType,String simulationName , String timeStamp){
          costStats = new Float[numberOfPoints];
@@ -68,7 +73,7 @@ public class Result implements Serializable {
             costSum+=costStatsForAllRuns[i][j];
             delaySum+=delayStatsForAllRuns[i][j];
         }
-        costStats[i] = costSum/numberOfRuns;
+        costStats[i] = (costSum/numberOfRuns)/costNormalizationFactor;
         delayStats[i] = delaySum/numberOfRuns;
 
     }
@@ -85,6 +90,9 @@ public class Result implements Serializable {
         }
     }
 
+    public void setCostNormalizationFactor(int costNormalizationFactor) {
+        this.costNormalizationFactor = costNormalizationFactor;
+    }
 
     public Float[] getCostStats() {
         return costStats;

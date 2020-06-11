@@ -15,7 +15,7 @@ import entities.Utilities.logger.Logger
 /**
  * Created by hd on 2018/4/3 AD.
  */
-class ServerTest extends GroovyTestCase {
+class ServerTest {
     List<Server> servers = new ArrayList<>();
     List<Client>  clients= new ArrayList<>();
     List<IFile>  files= new ArrayList<>();
